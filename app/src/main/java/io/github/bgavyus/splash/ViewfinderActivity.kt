@@ -1,8 +1,10 @@
 package io.github.bgavyus.splash
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Matrix
 import android.graphics.RectF
 import android.graphics.SurfaceTexture
@@ -17,6 +19,7 @@ import android.util.Size
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_viewfinder.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -27,6 +30,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	MediaRecorder.OnErrorListener {
 	companion object {
 		private val TAG = ViewfinderActivity::class.simpleName
+		private val REQUEST_PERMISSIONS_CODE = 0
 	}
 
 	private lateinit var mVideoFile: MediaStoreFile
@@ -44,51 +48,43 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		super.onCreate(savedInstanceState)
 		window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
 		setContentView(R.layout.activity_viewfinder)
+		requestCameraPermission()
+	}
+
+	private fun requestCameraPermission() {
+		if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+			onCameraPermissionGranted()
+			return
+		}
+
+		requestPermissions(arrayOf(Manifest.permission.CAMERA), REQUEST_PERMISSIONS_CODE)
+	}
+
+	override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+		Log.d(TAG, "onRequestPermissionsResult(requestCode = $requestCode, permissions = $permissions, grantResults = $grantResults)")
+		assert(requestCode == REQUEST_PERMISSIONS_CODE)
+		assert(permissions.contentEquals(arrayOf(Manifest.permission.CAMERA)))
+
+		if (grantResults.isEmpty() || grantResults.first() != PackageManager.PERMISSION_GRANTED) {
+			Toast.makeText(this, R.string.camera_permission_not_granted, Toast.LENGTH_LONG).show()
+			finish()
+			return
+		}
+
+		onCameraPermissionGranted()
+	}
+
+	private fun onCameraPermissionGranted() {
+		Log.d(TAG, "onCameraPermissionGranted")
+
 		mTextureView = camera_texture.apply {
 			surfaceTextureListener = this@ViewfinderActivity
 		}
-	}
 
-	override fun onStart() {
-		Log.d(TAG, "Activity.onStart")
-		super.onStart()
-	}
-
-	override fun onResume() {
-		Log.d(TAG, "Activity.onResume")
-		super.onResume()
-	}
-
-	override fun onPause() {
-        Log.d(TAG, "Activity.onPause")
-        super.onPause()
-
-		try {
-			mRecorder.stop()
-			mVideoFile.close()
+		if (mTextureView.isAvailable) {
+			Log.d(TAG, "SurfaceTexture.isAvailable")
+			onSurfaceTextureAvailable(mTextureView.surfaceTexture, mTextureView.width, mTextureView.height)
 		}
-		catch (ex: RuntimeException) {
-			Log.d(TAG, "MediaRecorder RuntimeException")
-			mVideoFile.close()
-
-			Log.i(TAG, "Cleaning corrupted capture file")
-			mVideoFile.delete()
-		}
-
-		mRecorder.release()
-		mCaptureSession.close()
-		mPreviewSurface.release()
-		mRecorderSurface.release()
-	}
-
-	override fun onStop() {
-        Log.d(TAG, "Activity.onStop")
-        super.onStop()
-    }
-
-	override fun onDestroy() {
-		Log.d(TAG, "Activity.onDestroy")
-		super.onDestroy()
 	}
 
 	@SuppressLint("MissingPermission")
@@ -108,27 +104,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		setupRecorder()
 
 		configureTransform(width, height)
-
 		cameraManager.openCamera(cameraId, cameraDeviceStateCallback, null)
-	}
-
-	private fun selectCamera(cameraManager: CameraManager): String {
-		val cameraId = cameraManager.cameraIdList.first {
-			val characteristics = cameraManager.getCameraCharacteristics(it)
-			val capabilities =
-				characteristics[CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES]!!
-			return@first CameraMetadata.REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO in capabilities
-		}
-		val characteristics = cameraManager.getCameraCharacteristics(cameraId)
-		val configs = characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]!!
-
-		mFpsRange = configs.highSpeedVideoFpsRanges.maxBy { it.lower + it.upper }!!
-		Log.i(TAG, "FPS Range: $mFpsRange")
-
-		mVideoSize = configs.getHighSpeedVideoSizesFor(mFpsRange).maxBy { it.width * it.height }!!
-		Log.i(TAG, "Video Size: $mVideoSize")
-
-		return cameraId
 	}
 
 	private val cameraDeviceStateCallback = object : CameraDevice.StateCallback() {
@@ -202,6 +178,67 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		return true
 	}
 
+	override fun onStart() {
+		Log.d(TAG, "Activity.onStart")
+		super.onStart()
+	}
+
+	override fun onResume() {
+		Log.d(TAG, "Activity.onResume")
+		super.onResume()
+	}
+
+	override fun onPause() {
+		Log.d(TAG, "Activity.onPause")
+		super.onPause()
+
+//		try {
+//			mRecorder.stop()
+//			mVideoFile.close()
+//		}
+//		catch (ex: RuntimeException) {
+//			Log.d(TAG, "MediaRecorder RuntimeException")
+//			mVideoFile.close()
+//
+//			Log.i(TAG, "Cleaning corrupted capture file")
+//			mVideoFile.delete()
+//		}
+//
+//		mRecorder.release()
+//		mCaptureSession.close()
+//		mPreviewSurface.release()
+//		mRecorderSurface.release()
+	}
+
+	override fun onStop() {
+		Log.d(TAG, "Activity.onStop")
+		super.onStop()
+	}
+
+	override fun onDestroy() {
+		Log.d(TAG, "Activity.onDestroy")
+		super.onDestroy()
+	}
+
+	private fun selectCamera(cameraManager: CameraManager): String {
+		val cameraId = cameraManager.cameraIdList.first {
+			val characteristics = cameraManager.getCameraCharacteristics(it)
+			val capabilities =
+				characteristics[CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES]!!
+			return@first CameraMetadata.REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO in capabilities
+		}
+		val characteristics = cameraManager.getCameraCharacteristics(cameraId)
+		val configs = characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]!!
+
+		mFpsRange = configs.highSpeedVideoFpsRanges.maxBy { it.lower + it.upper }!!
+		Log.i(TAG, "FPS Range: $mFpsRange")
+
+		mVideoSize = configs.getHighSpeedVideoSizesFor(mFpsRange).maxBy { it.width * it.height }!!
+		Log.i(TAG, "Video Size: $mVideoSize")
+
+		return cameraId
+	}
+
 	private fun configureTransform(viewWidth: Int, viewHeight: Int) {
 		val rotation = windowManager.defaultDisplay.rotation
 		val matrix = Matrix()
@@ -225,7 +262,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	private fun setupRecorder() {
 		val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
 		mVideoFile = MediaStoreFile(contentResolver,
-			mode = "w",
+			mode ="w",
 			mimeType = "video/hevc",
 			parent = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
 			name = "${getString(R.string.video_file_prefix)}_$timestamp.mp4")
@@ -241,13 +278,24 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 			setVideoFrameRate(mFpsRange.upper)
 			setVideoEncodingBitRate(Int.MAX_VALUE)
 			setVideoEncoder(MediaRecorder.VideoEncoder.HEVC)
+			setOrientationHint(getVideoOrientation())
 			prepare()
 			start()
 			pause()
 		}
 	}
 
-    override fun onInfo(mr: MediaRecorder?, what: Int, extra: Int) {
+	private fun getVideoOrientation(): Int {
+		return when (windowManager.defaultDisplay.rotation) {
+			Surface.ROTATION_0   -> 90
+			Surface.ROTATION_90  -> 0
+			Surface.ROTATION_180 -> 270
+			Surface.ROTATION_270 -> 180
+			else -> throw RuntimeException("Invalid rotation")
+		}
+	}
+
+	override fun onInfo(mr: MediaRecorder?, what: Int, extra: Int) {
         val errorMessage = when (what) {
             MediaRecorder.MEDIA_RECORDER_INFO_UNKNOWN -> "Unknown"
             MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED -> "Max Duration reached"

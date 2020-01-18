@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Splash</string>
     <string name="video_file_prefix" translatable="false">splash</string>
+    <string name="camera_permission_not_granted">Cannot access camera</string>
 </resources>
