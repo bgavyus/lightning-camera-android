@@ -7,7 +7,6 @@ import android.graphics.Matrix
 import android.graphics.RectF
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
-import android.media.CamcorderProfile
 import android.media.MediaCodec
 import android.media.MediaRecorder
 import android.os.Bundle
@@ -36,7 +35,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	private lateinit var mFpsRange: Range<Int>
 	private lateinit var mVideoSize: Size
 	private val mRecorder = StatefulMediaRecorder()
-	private lateinit var mRecorderSurface: Surface
+	private val mRecorderSurface = MediaCodec.createPersistentInputSurface()
 	private lateinit var mDetector: LightningDetector
 	private lateinit var mCaptureSession: CameraConstrainedHighSpeedCaptureSession
 
@@ -58,10 +57,6 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	override fun onResume() {
 		Log.d(TAG, "Activity.onResume")
 		super.onResume()
-
-		if (::mVideoSize.isInitialized) {
-			setupRecorder()
-		}
 	}
 
 	override fun onPause() {
@@ -101,25 +96,15 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		Log.d(TAG, "onSurfaceTextureAvailable")
 
 		mPreviewSurface = Surface(surfaceTexture!!)
+
 		val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
-		val cameraId = cameraManager.cameraIdList.first {
-			val characteristics = cameraManager.getCameraCharacteristics(it)
-			val lensFacing = characteristics[CameraCharacteristics.LENS_FACING]!!
-			return@first lensFacing == CameraMetadata.LENS_FACING_BACK
-		}
-		val characteristics = cameraManager.getCameraCharacteristics(cameraId)
-		val configs = characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]!!
 
-        mFpsRange = configs.highSpeedVideoFpsRanges.maxBy { it.lower + it.upper }!!
-		Log.i(TAG, "FPS Range: $mFpsRange")
+		val cameraId = selectCamera(cameraManager)
 
-        mVideoSize = configs.getHighSpeedVideoSizesFor(mFpsRange).maxBy { it.width * it.height }!!
-		Log.i(TAG, "Video Size: $mVideoSize")
-
-        surfaceTexture.setDefaultBufferSize(mVideoSize.width, mVideoSize.height)
-		mRecorderSurface = MediaCodec.createPersistentInputSurface()
+		surfaceTexture.setDefaultBufferSize(mVideoSize.width, mVideoSize.height)
 
 		mDetector = LightningDetector(this, mTextureView, mVideoSize)
+
 		setupRecorder()
 
 		configureTransform(width, height)
@@ -127,16 +112,33 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		cameraManager.openCamera(cameraId, cameraDeviceStateCallback, null)
 	}
 
+	private fun selectCamera(cameraManager: CameraManager): String {
+		val cameraId = cameraManager.cameraIdList.first {
+			val characteristics = cameraManager.getCameraCharacteristics(it)
+			val capabilities =
+				characteristics[CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES]!!
+			return@first CameraMetadata.REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO in capabilities
+		}
+		val characteristics = cameraManager.getCameraCharacteristics(cameraId)
+		val configs = characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]!!
+
+		mFpsRange = configs.highSpeedVideoFpsRanges.maxBy { it.lower + it.upper }!!
+		Log.i(TAG, "FPS Range: $mFpsRange")
+
+		mVideoSize = configs.getHighSpeedVideoSizesFor(mFpsRange).maxBy { it.width * it.height }!!
+		Log.i(TAG, "Video Size: $mVideoSize")
+
+		return cameraId
+	}
+
 	private val cameraDeviceStateCallback = object : CameraDevice.StateCallback() {
 		override fun onOpened(camera: CameraDevice) {
 			Log.d(TAG, "CameraDevice.onOpened")
-
 			camera.createConstrainedHighSpeedCaptureSession(listOf(mPreviewSurface, mRecorderSurface), cameraCaptureSessionStateCallback, null)
 		}
 
 		override fun onDisconnected(camera: CameraDevice) {
 			Log.d(TAG, "CameraDevice.onDisconnected")
-
 			camera.close()
 		}
 
@@ -157,7 +159,6 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	private val cameraCaptureSessionStateCallback = object : CameraCaptureSession.StateCallback() {
 		override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
 			Log.d(TAG, "CameraCaptureSession.onConfigured")
-
 			mCaptureSession = (cameraCaptureSession as CameraConstrainedHighSpeedCaptureSession).apply {
 				setRepeatingBurst(createHighSpeedRequestList(
 					device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
@@ -175,7 +176,6 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 
 	override fun onSurfaceTextureSizeChanged(surfaceTexture: SurfaceTexture?, width: Int, height: Int) {
 		Log.d(TAG, "onSurfaceTextureSizeChanged(width = $width, height = $height)")
-
 		if (width != mVideoSize.width || height != mVideoSize.height) {
 			surfaceTexture!!.setDefaultBufferSize(mVideoSize.width, mVideoSize.height)
 		}
@@ -228,7 +228,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 			mode = "w",
 			mimeType = "video/hevc",
 			parent = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-			name = "lightning_$timestamp.mp4")
+			name = "${getString(R.string.video_file_prefix)}_$timestamp.mp4")
 
 		mRecorder.apply {
 			setOnInfoListener(this@ViewfinderActivity)
@@ -263,109 +263,4 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
     override fun onError(mr: MediaRecorder?, what: Int, extra: Int) {
         Log.d(TAG, "MediaRecorder.onError(mr = $mr, what = $what, extra = $extra)")
     }
-
-	private fun logCamcoderProfiles() {
-		data class Quality(val speed: String, val name: String, val id: Int)
-
-		val qualities = listOf(
-            Quality("Normal Speed", "Low"  , CamcorderProfile.QUALITY_LOW),
-            Quality("Normal Speed", "High" , CamcorderProfile.QUALITY_HIGH),
-            Quality("Normal Speed", "QCIF" , CamcorderProfile.QUALITY_QCIF),
-            Quality("Normal Speed", "CIF"  , CamcorderProfile.QUALITY_CIF),
-            Quality("Normal Speed", "480p" , CamcorderProfile.QUALITY_480P),
-            Quality("Normal Speed", "720p" , CamcorderProfile.QUALITY_720P),
-            Quality("Normal Speed", "1080p", CamcorderProfile.QUALITY_1080P),
-            Quality("Normal Speed", "QVGA" , CamcorderProfile.QUALITY_QVGA),
-            Quality("Normal Speed", "2160p", CamcorderProfile.QUALITY_2160P),
-
-			Quality("Time Lapse", "Low"  , CamcorderProfile.QUALITY_TIME_LAPSE_LOW),
-            Quality("Time Lapse", "High" , CamcorderProfile.QUALITY_TIME_LAPSE_HIGH),
-            Quality("Time Lapse", "QCIF" , CamcorderProfile.QUALITY_TIME_LAPSE_QCIF),
-            Quality("Time Lapse", "CIF"  , CamcorderProfile.QUALITY_TIME_LAPSE_CIF),
-            Quality("Time Lapse", "480p" , CamcorderProfile.QUALITY_TIME_LAPSE_480P),
-            Quality("Time Lapse", "720p" , CamcorderProfile.QUALITY_TIME_LAPSE_720P),
-            Quality("Time Lapse", "1080p", CamcorderProfile.QUALITY_TIME_LAPSE_1080P),
-            Quality("Time Lapse", "QVGA" , CamcorderProfile.QUALITY_TIME_LAPSE_QVGA),
-            Quality("Time Lapse", "2160p", CamcorderProfile.QUALITY_TIME_LAPSE_2160P),
-
-			Quality("High Speed", "Low"  , CamcorderProfile.QUALITY_HIGH_SPEED_LOW),
-            Quality("High Speed", "High" , CamcorderProfile.QUALITY_HIGH_SPEED_HIGH),
-            Quality("High Speed", "480p" , CamcorderProfile.QUALITY_HIGH_SPEED_480P),
-            Quality("High Speed", "720p" , CamcorderProfile.QUALITY_HIGH_SPEED_720P),
-            Quality("High Speed", "1080p", CamcorderProfile.QUALITY_HIGH_SPEED_1080P),
-            Quality("High Speed", "2160p", CamcorderProfile.QUALITY_HIGH_SPEED_2160P)
-		)
-
-        val outputFormats = mapOf(
-            MediaRecorder.OutputFormat.DEFAULT to "Default",
-            MediaRecorder.OutputFormat.THREE_GPP to "3GPP",
-            MediaRecorder.OutputFormat.MPEG_4 to "MPEG4"
-        )
-
-        val videoEncoders = mapOf(
-            MediaRecorder.VideoEncoder.DEFAULT to "Default",
-            MediaRecorder.VideoEncoder.H263 to "H263",
-            MediaRecorder.VideoEncoder.H264 to "H264",
-            MediaRecorder.VideoEncoder.MPEG_4_SP to "MPEG4-SP",
-            MediaRecorder.VideoEncoder.VP8 to "VP8",
-            MediaRecorder.VideoEncoder.HEVC to "HEVC"
-        )
-
-        val audioEncoders = mapOf(
-            MediaRecorder.AudioEncoder.DEFAULT to "Default",
-            MediaRecorder.AudioEncoder.AMR_NB to "AMR-NB",
-            MediaRecorder.AudioEncoder.AMR_WB to "AMR-WB",
-            MediaRecorder.AudioEncoder.AAC to "AAC",
-            MediaRecorder.AudioEncoder.HE_AAC to "HE-AAC",
-            MediaRecorder.AudioEncoder.AAC_ELD to "AAC-ELD",
-            MediaRecorder.AudioEncoder.VORBIS to "Ogg Vorbis",
-            MediaRecorder.AudioEncoder.OPUS to "Opus"
-        )
-
-        val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
-
-        Log.d(TAG, listOf(
-            "Camera ID",
-            "Speed",
-            "Quality",
-            "Duration",
-            "File Format",
-            "Video Codec",
-            "Video Bit Rate",
-            "Video Frame Rate",
-            "Video Frame Width",
-            "Video Frame Height",
-            "Audio Codec",
-            "Audio Bit Rate",
-            "Audio Sample Rate",
-            "Audio Channels"
-		).joinToString(","))
-
-        for (cameraId in cameraManager.cameraIdList.map(String::toInt)) {
-            for (quality in qualities) {
-                try {
-                    val profile = CamcorderProfile.get(cameraId, quality.id)
-
-                    Log.d(TAG, listOf(
-                        cameraId,
-                        quality.speed,
-                        quality.name,
-                        profile.duration,
-                        outputFormats[profile.fileFormat],
-                        videoEncoders[profile.videoCodec],
-                        profile.videoBitRate,
-                        profile.videoFrameRate,
-                        profile.videoFrameWidth,
-                        profile.videoFrameHeight,
-                        audioEncoders[profile.audioCodec],
-                        profile.audioBitRate,
-                        profile.audioSampleRate,
-                        profile.audioChannels
-					).joinToString(","))
-                }
-
-                catch (ex: RuntimeException) { }
-            }
-        }
-	}
 }
