@@ -2,7 +2,6 @@ package io.github.bgavyus.splash
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.ContentValues
 import android.content.Context
 import android.graphics.Matrix
 import android.graphics.RectF
@@ -11,9 +10,7 @@ import android.hardware.camera2.*
 import android.media.CamcorderProfile
 import android.media.MediaCodec
 import android.media.MediaRecorder
-import android.net.Uri
 import android.os.Bundle
-import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
 import android.util.Log
 import android.util.Range
@@ -31,18 +28,17 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	MediaRecorder.OnErrorListener {
 	companion object {
 		private val TAG = ViewfinderActivity::class.simpleName
-		private const val VIDEO_MEDIA_TYPE = "video/hevc"
 	}
 
-	private lateinit var mVideoFile: ParcelFileDescriptor
+	private lateinit var mVideoFile: MediaStoreFile
 	private lateinit var mTextureView: TextureView
 	private lateinit var mPreviewSurface: Surface
 	private lateinit var mFpsRange: Range<Int>
 	private lateinit var mVideoSize: Size
 	private val mRecorder = StatefulMediaRecorder()
 	private lateinit var mRecorderSurface: Surface
-	private lateinit var mVideoUri: Uri
 	private lateinit var mDetector: LightningDetector
+	private lateinit var mCaptureSession: CameraConstrainedHighSpeedCaptureSession
 
     override fun onCreate(savedInstanceState: Bundle?) {
 		Log.d(TAG, "Activity.onCreate")
@@ -74,17 +70,18 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 
 		try {
 			mRecorder.stop()
-			mVideoFile.checkError()
 			mVideoFile.close()
 		}
 		catch (ex: RuntimeException) {
-			Log.e(TAG, "MediaRecorder RuntimeException", ex)
-			mRecorder.reset()
+			Log.d(TAG, "MediaRecorder RuntimeException")
 			mVideoFile.close()
-			contentResolver.delete(mVideoUri, null, null)
+
+			Log.i(TAG, "Cleaning corrupted capture file")
+			mVideoFile.delete()
 		}
 
 		mRecorder.release()
+		mCaptureSession.close()
 		mPreviewSurface.release()
 		mRecorderSurface.release()
 	}
@@ -161,14 +158,14 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
 			Log.d(TAG, "CameraCaptureSession.onConfigured")
 
-			val session = cameraCaptureSession as CameraConstrainedHighSpeedCaptureSession
-
-			session.setRepeatingBurst(session.createHighSpeedRequestList(
-				session.device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
-					set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mFpsRange)
-					addTarget(mPreviewSurface)
-					addTarget(mRecorderSurface)
-				}.build()), null, null)
+			mCaptureSession = (cameraCaptureSession as CameraConstrainedHighSpeedCaptureSession).apply {
+				setRepeatingBurst(createHighSpeedRequestList(
+					device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
+						set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mFpsRange)
+						addTarget(mPreviewSurface)
+						addTarget(mRecorderSurface)
+					}.build()), null, null)
+			}
 		}
 
 		override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession) {
@@ -227,12 +224,11 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 
 	private fun setupRecorder() {
 		val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-		mVideoUri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, ContentValues().apply {
-			put(MediaStore.MediaColumns.MIME_TYPE, VIDEO_MEDIA_TYPE)
-			put(MediaStore.MediaColumns.DISPLAY_NAME, "lightning_$timestamp.mp4")
-		})!!
-
-		mVideoFile = contentResolver.openFile(mVideoUri, "w", null)!!
+		mVideoFile = MediaStoreFile(contentResolver,
+			mode = "w",
+			mimeType = "video/hevc",
+			parent = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+			name = "lightning_$timestamp.mp4")
 
 		mRecorder.apply {
 			setOnInfoListener(this@ViewfinderActivity)
