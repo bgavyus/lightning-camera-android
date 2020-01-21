@@ -1,7 +1,6 @@
 package io.github.bgavyus.splash
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
@@ -10,8 +9,10 @@ import android.graphics.RectF
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.MediaCodec
+import android.media.MediaFormat
 import android.media.MediaRecorder
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.util.Range
@@ -21,6 +22,7 @@ import android.view.TextureView
 import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_viewfinder.*
+import java.nio.file.Paths
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.max
@@ -31,11 +33,15 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	companion object {
 		private val TAG = ViewfinderActivity::class.simpleName
 		private val REQUEST_PERMISSIONS_CODE = 0
+
+		private val VIDEO_ENCODER = MediaRecorder.VideoEncoder.HEVC
+		private val VIDEO_MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_HEVC
+		private val VIDEO_FILE_EXTENSION = "mp4"
 	}
 
 	private lateinit var mVideoFile: MediaStoreFile
-	private lateinit var mTextureView: TextureView
-	private lateinit var mPreviewSurface: Surface
+	private lateinit var mViewfinderTextureView: TextureView
+	private lateinit var mViewfinderSurface: Surface
 	private lateinit var mFpsRange: Range<Int>
 	private lateinit var mVideoSize: Size
 	private val mRecorder = StatefulMediaRecorder()
@@ -46,18 +52,33 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
     override fun onCreate(savedInstanceState: Bundle?) {
 		Log.d(TAG, "Activity.onCreate")
 		super.onCreate(savedInstanceState)
+
 		window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
 		setContentView(R.layout.activity_viewfinder)
-		requestCameraPermission()
+
+		prepareViewfinderTextureView()
+		permissionCallback()
 	}
 
-	private fun requestCameraPermission() {
+	private fun prepareViewfinderTextureView() {
+		mViewfinderTextureView = viewfinder_texture_view
+		mViewfinderTextureView.surfaceTexture = SurfaceTexture(false)
+		mViewfinderSurface = Surface(mViewfinderTextureView.surfaceTexture)
+	}
+
+	private fun permissionCallback() {
 		if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-			onCameraPermissionGranted()
-			return
+			Log.i(TAG, "Camera permission granted")
+			val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+			val cameraId = getHighSpeedCameraId(cameraManager)
+			populateCameraProperties(cameraManager, cameraId)
+			cameraManager.openCamera(cameraId, cameraDeviceStateCallback, null)
 		}
 
-		requestPermissions(arrayOf(Manifest.permission.CAMERA), REQUEST_PERMISSIONS_CODE)
+		else {
+			Log.i(TAG, "Requesting camera permission")
+			requestPermissions(arrayOf(Manifest.permission.CAMERA), REQUEST_PERMISSIONS_CODE)
+		}
 	}
 
 	override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -66,51 +87,28 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		assert(permissions.contentEquals(arrayOf(Manifest.permission.CAMERA)))
 
 		if (grantResults.isEmpty() || grantResults.first() != PackageManager.PERMISSION_GRANTED) {
-			Toast.makeText(this, R.string.camera_permission_not_granted, Toast.LENGTH_LONG).show()
-			finish()
+			exitWithMessage(R.string.camera_permission_not_granted)
 			return
 		}
 
-		onCameraPermissionGranted()
+		permissionCallback()
 	}
 
-	private fun onCameraPermissionGranted() {
-		Log.d(TAG, "onCameraPermissionGranted")
-
-		mTextureView = camera_texture.apply {
-			surfaceTextureListener = this@ViewfinderActivity
-		}
-
-		if (mTextureView.isAvailable) {
-			Log.d(TAG, "SurfaceTexture.isAvailable")
-			onSurfaceTextureAvailable(mTextureView.surfaceTexture, mTextureView.width, mTextureView.height)
-		}
-	}
-
-	@SuppressLint("MissingPermission")
-	override fun onSurfaceTextureAvailable(surfaceTexture: SurfaceTexture?, width: Int, height: Int) {
-		Log.d(TAG, "onSurfaceTextureAvailable")
-
-		mPreviewSurface = Surface(surfaceTexture!!)
-
-		val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
-
-		val cameraId = selectCamera(cameraManager)
-
-		surfaceTexture.setDefaultBufferSize(mVideoSize.width, mVideoSize.height)
-
-		mDetector = LightningDetector(this, mTextureView, mVideoSize)
-
-		setupRecorder()
-
-		configureTransform(width, height)
-		cameraManager.openCamera(cameraId, cameraDeviceStateCallback, null)
+	private fun exitWithMessage(resourceId: Int) {
+		Toast.makeText(this, resourceId, Toast.LENGTH_LONG).show()
+		finish()
 	}
 
 	private val cameraDeviceStateCallback = object : CameraDevice.StateCallback() {
 		override fun onOpened(camera: CameraDevice) {
 			Log.d(TAG, "CameraDevice.onOpened")
-			camera.createConstrainedHighSpeedCaptureSession(listOf(mPreviewSurface, mRecorderSurface), cameraCaptureSessionStateCallback, null)
+
+			mDetector = LightningDetector(this@ViewfinderActivity, mViewfinderTextureView, mVideoSize)
+			mViewfinderTextureView.surfaceTextureListener = this@ViewfinderActivity
+
+			setupRecorder()
+			setViewfinderSize()
+			camera.createConstrainedHighSpeedCaptureSession(listOf(mViewfinderSurface, mRecorderSurface), cameraCaptureSessionStateCallback, null)
 		}
 
 		override fun onDisconnected(camera: CameraDevice) {
@@ -135,11 +133,13 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	private val cameraCaptureSessionStateCallback = object : CameraCaptureSession.StateCallback() {
 		override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
 			Log.d(TAG, "CameraCaptureSession.onConfigured")
+			setViewfinderSize()
+			applyTransform()
 			mCaptureSession = (cameraCaptureSession as CameraConstrainedHighSpeedCaptureSession).apply {
 				setRepeatingBurst(createHighSpeedRequestList(
 					device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
 						set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mFpsRange)
-						addTarget(mPreviewSurface)
+						addTarget(mViewfinderSurface)
 						addTarget(mRecorderSurface)
 					}.build()), null, null)
 			}
@@ -152,30 +152,94 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 
 	override fun onSurfaceTextureSizeChanged(surfaceTexture: SurfaceTexture?, width: Int, height: Int) {
 		Log.d(TAG, "onSurfaceTextureSizeChanged(width = $width, height = $height)")
-		if (width != mVideoSize.width || height != mVideoSize.height) {
-			surfaceTexture!!.setDefaultBufferSize(mVideoSize.width, mVideoSize.height)
-		}
+		assert(surfaceTexture == mViewfinderTextureView.surfaceTexture)
+		setViewfinderSize()
+		applyTransform()
+	}
 
-		configureTransform(width, height)
+	private fun applyTransform() {
+		val matrix = getTransformMatrix(Size(mViewfinderTextureView.width, mViewfinderTextureView.height), mVideoSize, windowManager.defaultDisplay.rotation)
+		mViewfinderTextureView.setTransform(matrix)
 	}
 
 	override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture?) {
 		if (mDetector.hasLightning()) {
 			if (mRecorder.state == State.Paused) {
-				Log.d(TAG, "lightning detected and recorder paused")
 				Log.i(TAG, "Resuming")
 				mRecorder.resume()
 			}
 		} else if (mRecorder.state == State.Recording) {
-			Log.d(TAG, "no lightning detected and recorder recording")
 			Log.i(TAG, "Pausing")
 			mRecorder.pause()
 		}
 	}
 
+	override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
+		Log.d(TAG, "onSurfaceTextureSizeChanged(width = $width, height = $height)")
+	}
+
 	override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
 		Log.d(TAG, "onSurfaceTextureDestroyed")
 		return true
+	}
+
+	private fun getHighSpeedCameraId(cameraManager: CameraManager): String {
+		try {
+			return cameraManager.cameraIdList.first {
+				val characteristics = cameraManager.getCameraCharacteristics(it)
+				val capabilities =
+					characteristics[CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES]!!
+				return@first CameraMetadata.REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO in capabilities
+			}
+		}
+
+		catch (ex: NoSuchElementException) {
+			exitWithMessage(R.string.high_speed_camera_not_available)
+			return ""
+		}
+	}
+
+	private fun populateCameraProperties(cameraManager: CameraManager, cameraId: String) {
+		val characteristics = cameraManager.getCameraCharacteristics(cameraId)
+		val configs = characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]!!
+
+		mFpsRange = configs.highSpeedVideoFpsRanges.maxBy { it.lower + it.upper }!!
+		Log.i(TAG, "FPS Range: $mFpsRange")
+
+		mVideoSize = configs.getHighSpeedVideoSizesFor(mFpsRange).maxBy { it.width * it.height }!!
+		Log.i(TAG, "Video Size: $mVideoSize")
+	}
+
+	private fun setViewfinderSize() {
+		mViewfinderTextureView.surfaceTexture.setDefaultBufferSize(mVideoSize.width, mVideoSize.height)
+	}
+
+	private fun setupRecorder() {
+		val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+		mVideoFile = MediaStoreFile(contentResolver,
+			mode = "w",
+			mimeType = VIDEO_MIME_TYPE,
+			baseUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+//			relativePath = Paths.get(Environment.DIRECTORY_DCIM, getString(R.string.video_folder_name)).toString(),
+			relativePath = Paths.get(Environment.DIRECTORY_MOVIES, getString(R.string.video_folder_name)).toString(),
+			name = "${getString(R.string.video_file_prefix)}_$timestamp.$VIDEO_FILE_EXTENSION")
+
+		mRecorder.apply {
+			setOnInfoListener(this@ViewfinderActivity)
+			setOnErrorListener(this@ViewfinderActivity)
+			setVideoSource(MediaRecorder.VideoSource.SURFACE)
+			setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+			setInputSurface(mRecorderSurface)
+			setOutputFile(mVideoFile.fileDescriptor)
+			setVideoSize(mVideoSize.width, mVideoSize.height)
+			setVideoFrameRate(29)
+			setVideoEncodingBitRate(Int.MAX_VALUE)
+			setVideoEncoder(VIDEO_ENCODER)
+			setOrientationHint(displayToVideoRotation(windowManager.defaultDisplay.rotation))
+			prepare()
+			start()
+			pause()
+		}
 	}
 
 	override fun onStart() {
@@ -220,81 +284,6 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		super.onDestroy()
 	}
 
-	private fun selectCamera(cameraManager: CameraManager): String {
-		val cameraId = cameraManager.cameraIdList.first {
-			val characteristics = cameraManager.getCameraCharacteristics(it)
-			val capabilities =
-				characteristics[CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES]!!
-			return@first CameraMetadata.REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO in capabilities
-		}
-		val characteristics = cameraManager.getCameraCharacteristics(cameraId)
-		val configs = characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]!!
-
-		mFpsRange = configs.highSpeedVideoFpsRanges.maxBy { it.lower + it.upper }!!
-		Log.i(TAG, "FPS Range: $mFpsRange")
-
-		mVideoSize = configs.getHighSpeedVideoSizesFor(mFpsRange).maxBy { it.width * it.height }!!
-		Log.i(TAG, "Video Size: $mVideoSize")
-
-		return cameraId
-	}
-
-	private fun configureTransform(viewWidth: Int, viewHeight: Int) {
-		val rotation = windowManager.defaultDisplay.rotation
-		val matrix = Matrix()
-		val viewRect = RectF(0F, 0F, viewWidth.toFloat(), viewHeight.toFloat())
-		val bufferRect = RectF(0F, 0F, mVideoSize.height.toFloat(), mVideoSize.width.toFloat())
-		val centerX = viewRect.centerX()
-		val centerY = viewRect.centerY()
-
-		if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
-			bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
-			matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
-			val scale: Float = max(viewHeight.toFloat() / mVideoSize.height, viewWidth.toFloat() / mVideoSize.width)
-			matrix.postScale(scale, scale, centerX, centerY)
-			matrix.postRotate(90F * (rotation - 2), centerX, centerY)
-		} else if (Surface.ROTATION_180 == rotation) {
-			matrix.postRotate(180F, centerX, centerY)
-		}
-		mTextureView.setTransform(matrix)
-	}
-
-	private fun setupRecorder() {
-		val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-		mVideoFile = MediaStoreFile(contentResolver,
-			mode ="w",
-			mimeType = "video/hevc",
-			parent = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-			name = "${getString(R.string.video_file_prefix)}_$timestamp.mp4")
-
-		mRecorder.apply {
-			setOnInfoListener(this@ViewfinderActivity)
-			setOnErrorListener(this@ViewfinderActivity)
-			setVideoSource(MediaRecorder.VideoSource.SURFACE)
-			setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-			setInputSurface(mRecorderSurface)
-			setOutputFile(mVideoFile.fileDescriptor)
-			setVideoSize(mVideoSize.width, mVideoSize.height)
-			setVideoFrameRate(mFpsRange.upper)
-			setVideoEncodingBitRate(Int.MAX_VALUE)
-			setVideoEncoder(MediaRecorder.VideoEncoder.HEVC)
-			setOrientationHint(getVideoOrientation())
-			prepare()
-			start()
-			pause()
-		}
-	}
-
-	private fun getVideoOrientation(): Int {
-		return when (windowManager.defaultDisplay.rotation) {
-			Surface.ROTATION_0   -> 90
-			Surface.ROTATION_90  -> 0
-			Surface.ROTATION_180 -> 270
-			Surface.ROTATION_270 -> 180
-			else -> throw RuntimeException("Invalid rotation")
-		}
-	}
-
 	override fun onInfo(mr: MediaRecorder?, what: Int, extra: Int) {
         val errorMessage = when (what) {
             MediaRecorder.MEDIA_RECORDER_INFO_UNKNOWN -> "Unknown"
@@ -305,10 +294,58 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
             else -> what.toString()
         }
 
-        Log.d(TAG, "MediaRecorder.onInfo(mr = $mr, what = $errorMessage, extra = $extra)")
+        Log.d(TAG, "MediaRecorder.onInfo(what = $errorMessage, extra = $extra)")
     }
 
     override fun onError(mr: MediaRecorder?, what: Int, extra: Int) {
-        Log.d(TAG, "MediaRecorder.onError(mr = $mr, what = $what, extra = $extra)")
+        Log.d(TAG, "MediaRecorder.onError(what = $what, extra = $extra)")
     }
+}
+
+private fun displayToVideoRotation(displayRotation: Int): Int {
+	return when (displayRotation) {
+		Surface.ROTATION_0   -> 90
+		Surface.ROTATION_90  -> 0
+		Surface.ROTATION_180 -> 270
+		Surface.ROTATION_270 -> 180
+		else -> throw RuntimeException("Invalid display rotation")
+	}
+}
+
+private fun getTransformMatrix(viewSize: Size, bufferSize: Size, rotation: Int): Matrix {
+	val matrix = Matrix()
+	val viewRect = RectF(0f, 0f, viewSize.width.toFloat(), viewSize.height.toFloat())
+	val bufferRect = RectF(0f, 0f, bufferSize.height.toFloat(), bufferSize.width.toFloat())
+	val centerX = viewRect.centerX()
+	val centerY = viewRect.centerY()
+
+	if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
+		bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
+		matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
+		val scale: Float = max(viewSize.height.toFloat() / bufferSize.height, viewSize.width.toFloat() / bufferSize.width)
+		matrix.postScale(scale, scale, centerX, centerY)
+		matrix.postRotate(90f * (rotation - 2), centerX, centerY)
+	} else if (Surface.ROTATION_180 == rotation) {
+		matrix.postRotate(180f, centerX, centerY)
+	}
+
+	return matrix
+}
+
+private fun getTransformMatrixAlt(viewSize: Size, bufferSize: Size, rotation: Int): Matrix {
+	val transformMatrix = Matrix()
+	val pivotX: Float = viewSize.width / 2f
+	val pivotY: Float = viewSize.height / 2f
+	transformMatrix.postRotate(90f * (rotation - 2), pivotX, pivotY)
+	val originalTextureRect = RectF(0f, 0f, viewSize.width.toFloat(), viewSize.height.toFloat())
+	val rotatedTextureRect = RectF()
+	transformMatrix.mapRect(rotatedTextureRect, originalTextureRect)
+	transformMatrix.postScale(
+		viewSize.width / rotatedTextureRect.width(),
+		viewSize.height / rotatedTextureRect.height(),
+		pivotX,
+		pivotY
+	)
+
+	return transformMatrix
 }

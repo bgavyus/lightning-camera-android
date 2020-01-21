@@ -2,4 +2,5 @@
 <resources>
 	<string name="app_name">ספלאש</string>
     <string name="camera_permission_not_granted">לא ניתן לגשת למצלמה</string>
+    <string name="high_speed_camera_not_available">הילוך איטי לא זמין</string>
 </resources>

@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Splash</string>
-    <string name="video_file_prefix" translatable="false">splash</string>
+    <string name="video_folder_name" translatable="false">Splash</string>
+    <string name="video_file_prefix" translatable="false">SPLASH</string>
     <string name="camera_permission_not_granted">Cannot access camera</string>
+    <string name="high_speed_camera_not_available">Slow motion is not available</string>
 </resources>

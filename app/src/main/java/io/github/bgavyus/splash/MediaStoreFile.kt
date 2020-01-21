@@ -6,10 +6,11 @@ import android.net.Uri
 import android.provider.MediaStore
 
 class MediaStoreFile(contentResolver: ContentResolver, mode: String, mimeType: String,
-					 parent: Uri, name: String) {
+					 baseUri: Uri, relativePath: String, name: String) {
 	private val mContentResolver = contentResolver
-	private val mUri = contentResolver.insert(parent, ContentValues().apply {
+	private val mUri = contentResolver.insert(baseUri, ContentValues().apply {
 		put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+		put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
 		put(MediaStore.MediaColumns.DISPLAY_NAME, name)
 	})!!
 	private val mFile = contentResolver.openFileDescriptor(mUri, mode)!!
