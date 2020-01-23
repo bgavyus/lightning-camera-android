@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.content.ContentValues
 import android.net.Uri
 import android.provider.MediaStore
+import java.io.IOException
 
 class MediaStoreFile(contentResolver: ContentResolver, mode: String, mimeType: String,
 					 baseUri: Uri, relativePath: String, name: String) {
@@ -24,6 +25,10 @@ class MediaStoreFile(contentResolver: ContentResolver, mode: String, mimeType: S
 	}
 
 	fun delete() {
-		mContentResolver.delete(mUri, null, null)
+		val rowsDeleted = mContentResolver.delete(mUri, null, null)
+
+		if (rowsDeleted != 1) {
+			throw IOException("Failed to delete $mUri")
+		}
 	}
 }

@@ -24,4 +24,11 @@ class LightningDetector(context: Context, textureView: TextureView, videoSize: S
 		mOutputAllocation.copyTo(mHistogram)
 		return mHistogram.last() > 0
 	}
+
+	fun release() {
+		mHistogramKernel.destroy()
+		mOutputAllocation.destroy()
+		mInputAllocation.destroy()
+		renderScript.destroy()
+	}
 }
