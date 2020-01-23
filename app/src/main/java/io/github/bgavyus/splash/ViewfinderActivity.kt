@@ -17,6 +17,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.util.Range
 import android.util.Size
+import android.view.Gravity
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
@@ -86,7 +87,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 			}
 
 			catch (ex: NoSuchElementException) {
-				return exitWithMessage(R.string.high_speed_camera_not_available)
+				return exitWithMessage(R.string.error_high_speed_camera_not_available)
 			}
 		}
 
@@ -102,14 +103,18 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		assert(permissions.contentEquals(arrayOf(Manifest.permission.CAMERA)))
 
 		if (grantResults.isEmpty() || grantResults.first() != PackageManager.PERMISSION_GRANTED) {
-			return exitWithMessage(R.string.camera_permission_not_granted)
+			return exitWithMessage(R.string.error_camera_permission_not_granted)
 		}
 
 		permissionCallback()
 	}
 
 	private fun exitWithMessage(resourceId: Int) {
-		Toast.makeText(this, resourceId, Toast.LENGTH_LONG).show()
+		Toast.makeText(this, resourceId, Toast.LENGTH_LONG).apply {
+			setGravity(Gravity.CENTER, 0, 0)
+			show()
+		}
+
 		finish()
 	}
 
@@ -133,20 +138,21 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 
 		override fun onDisconnected(camera: CameraDevice) {
 			Log.d(TAG, "CameraDevice.onDisconnected")
-			camera.close()
+			exitWithMessage(R.string.error_camera_disconnected)
 		}
 
 		override fun onError(camera: CameraDevice, error: Int) {
-			val errorMessage = when (error) {
-				ERROR_CAMERA_IN_USE -> "Camera in use"
-				ERROR_MAX_CAMERAS_IN_USE -> "Max cameras in use"
-				ERROR_CAMERA_DISABLED -> "Camera disabled"
-				ERROR_CAMERA_DEVICE -> "Camera device"
-				else -> error.toString()
+			Log.d(TAG, "CameraDevice.onError(error = $error)")
+
+			val resourceId = when (error) {
+				ERROR_CAMERA_IN_USE      -> R.string.error_camera_in_use
+				ERROR_MAX_CAMERAS_IN_USE -> R.string.error_max_cameras_in_use
+				ERROR_CAMERA_DISABLED    -> R.string.error_camera_disabled
+				ERROR_CAMERA_DEVICE      -> R.string.error_camera_device
+				else                     -> R.string.error_camera_generic
 			}
 
-			Log.d(TAG, "CameraDevice.onError(error = $errorMessage)")
-			camera.close()
+			exitWithMessage(resourceId)
 		}
 	}
 
@@ -301,10 +307,15 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	override fun onStop() {
 		Log.d(TAG, "Activity.onStop")
 		super.onStop()
+		finish()
+	}
 
-		for (func in mReleaseCallbacks.asReversed()) {
+	override fun finish() {
+		Log.d(TAG, "Activity.finish")
+
+		for (callback in mReleaseCallbacks.asReversed()) {
 			try {
-				func.invoke()
+				callback.invoke()
 			}
 
 			catch (ex: Throwable) {
@@ -312,7 +323,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 			}
 		}
 
-		finish()
+		super.finish()
 	}
 
 	override fun onDestroy() {
@@ -335,6 +346,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 
     override fun onError(mr: MediaRecorder?, what: Int, extra: Int) {
         Log.d(TAG, "MediaRecorder.onError(what = $what, extra = $extra)")
+		exitWithMessage(R.string.error_recorder)
     }
 }
 

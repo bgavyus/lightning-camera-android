@@ -1,7 +1,16 @@
 <resources>
     <string name="app_name">Splash</string>
+
     <string name="video_folder_name" translatable="false">Splash</string>
     <string name="video_file_prefix" translatable="false">SPLASH</string>
-    <string name="camera_permission_not_granted">Cannot access camera</string>
-    <string name="high_speed_camera_not_available">Slow motion is not available</string>
+
+    <string name="error_camera_permission_not_granted">No permission to access camera</string>
+    <string name="error_high_speed_camera_not_available">Slow motion is not available</string>
+    <string name="error_camera_disconnected">Camera disconnected</string>
+    <string name="error_camera_in_use">Camera in use by another app</string>
+    <string name="error_max_cameras_in_use">Too many cameras are in use</string>
+    <string name="error_camera_disabled">Camera disabled</string>
+    <string name="error_camera_device">Camera error</string>
+    <string name="error_camera_generic">Camera issue</string>
+    <string name="error_recorder">Recording error</string>
 </resources>
