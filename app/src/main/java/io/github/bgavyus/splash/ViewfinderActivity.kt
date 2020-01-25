@@ -27,7 +27,6 @@ import kotlinx.android.synthetic.main.activity_viewfinder.*
 import java.nio.file.Paths
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.max
 
 
@@ -44,7 +43,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		private const val VIDEO_PLAYBACK_FPS = 5
 	}
 
-	private val mOnReleaseCallbacks = ArrayList<() -> Unit>()
+	private val mOnReleaseCallbacks = ArrayDeque<() -> Unit>()
 
 	private lateinit var mRecorder: StatefulMediaRecorder
 	private lateinit var mRecorderSurface: Surface
@@ -281,7 +280,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	}
 
 	private fun registerOnReleaseCallback(cb: () -> Unit) {
-		mOnReleaseCallbacks.add(cb)
+		mOnReleaseCallbacks.push(cb)
 	}
 
 	private fun cameraPermissionsGranted(): Boolean {
@@ -370,7 +369,8 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	}
 
 	private fun release() {
-		for (callback in mOnReleaseCallbacks.asReversed()) {
+		while (!mOnReleaseCallbacks.isEmpty()) {
+			val callback = mOnReleaseCallbacks.pop()
 			Log.d(TAG, "ReleaseCallback: $callback")
 
 			try {
@@ -381,8 +381,6 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 				Log.w(TAG, "Exception while destroying view", error)
 			}
 		}
-
-		mOnReleaseCallbacks.clear()
 	}
 
 	override fun onError(mr: MediaRecorder?, what: Int, extra: Int) {
