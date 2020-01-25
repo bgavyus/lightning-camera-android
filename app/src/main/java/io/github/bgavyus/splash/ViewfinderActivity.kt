@@ -153,6 +153,11 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 			Log.d(TAG, "CameraDevice.onOpened")
 			registerOnReleaseCallback(camera::close)
 
+			if (!mViewfinderTextureView.isShown) {
+				Log.d(TAG, "Not shown while in onOpened")
+				return
+			}
+
 			mDetector = LightningDetector(this@ViewfinderActivity, mViewfinderTextureView, mVideoSize)
 			registerOnReleaseCallback(mDetector::release)
 
@@ -190,6 +195,12 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	private val cameraCaptureSessionStateCallback = object : CameraCaptureSession.StateCallback() {
 		override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
 			Log.d(TAG, "CameraCaptureSession.onConfigured")
+
+			if (!mViewfinderTextureView.isShown) {
+				Log.d(TAG, "Not shown while in onConfigured")
+				return
+			}
+
 			setViewfinderSize()
 			applyTransform()
 
@@ -224,10 +235,10 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 
 	override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture?) {
 		if (mDetector.hasLightning()) {
-			if (mRecorder.state == State.Prepared || mRecorder.state == State.Paused) {
+			if (mRecorder.state == RecorderState.Prepared || mRecorder.state == RecorderState.Paused) {
 				Log.i(TAG, "Recording")
 
-				if (mRecorder.state == State.Prepared) {
+				if (mRecorder.state == RecorderState.Prepared) {
 					mRecorder.start()
 				}
 
@@ -237,7 +248,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 			}
 		}
 
-		else if (mRecorder.state == State.Recording) {
+		else if (mRecorder.state == RecorderState.Recording) {
 			Log.i(TAG, "Pausing")
 			mRecorder.pause()
 		}
@@ -286,7 +297,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		registerOnReleaseCallback {
 			Log.d(TAG, "Releasing video file")
 
-			if (mRecorder.state == State.Prepared) {
+			if (mRecorder.state == RecorderState.Prepared) {
 				Log.d(TAG, "MediaRecorder.state == Prepared")
 				mVideoFile.close()
 
@@ -334,7 +345,11 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 
 	override fun finish() {
 		Log.d(TAG, "Activity.finish")
+		release()
+		super.finish()
+	}
 
+	private fun release() {
 		for (callback in mOnReleaseCallbacks.asReversed()) {
 			Log.d(TAG, "ReleaseCallback: $callback")
 
@@ -347,7 +362,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 			}
 		}
 
-		super.finish()
+		mOnReleaseCallbacks.clear()
 	}
 
 	override fun onDestroy() {

@@ -2,7 +2,7 @@ package io.github.bgavyus.splash
 
 import android.media.MediaRecorder
 
-enum class State {
+enum class RecorderState {
 	Initial,
 	Initialized,
 	DataSourceConfigured,
@@ -14,13 +14,13 @@ enum class State {
 }
 
 class StatefulMediaRecorder : MediaRecorder() {
-	private var mState = State.Initial
+	private var mState = RecorderState.Initial
 	private var mOnErrorListener: OnErrorListener? = null
 
 	init {
 		MediaRecorder()
 		setOnErrorListener { mr, what, extra ->
-			mState = State.Error
+			mState = RecorderState.Error
 			mOnErrorListener?.onError(mr, what, extra)
 		}
 	}
@@ -34,51 +34,51 @@ class StatefulMediaRecorder : MediaRecorder() {
 
 	override fun setAudioSource(audioSource: Int) {
 		super.setAudioSource(audioSource)
-		mState = State.Initialized
+		mState = RecorderState.Initialized
 	}
 
 	override fun setVideoSource(video_source: Int) {
 		super.setVideoSource(video_source)
-		mState = State.Initialized
+		mState = RecorderState.Initialized
 	}
 
 	override fun setOutputFormat(output_format: Int) {
 		super.setOutputFormat(output_format)
-		mState = State.DataSourceConfigured
+		mState = RecorderState.DataSourceConfigured
 	}
 
 	override fun prepare() {
 		super.prepare()
-		mState = State.Prepared
+		mState = RecorderState.Prepared
 	}
 
 	override fun start() {
 		super.start()
-		mState = State.Recording
+		mState = RecorderState.Recording
 	}
 
 	override fun stop() {
 		super.stop()
-		mState = State.Initial
+		mState = RecorderState.Initial
 	}
 
 	override fun reset() {
 		super.reset()
-		mState = State.Initial
+		mState = RecorderState.Initial
 	}
 
 	override fun release() {
 		super.release()
-		mState = State.Released
+		mState = RecorderState.Released
 	}
 
 	override fun pause() {
 		super.pause()
-		mState = State.Paused
+		mState = RecorderState.Paused
 	}
 
 	override fun resume() {
 		super.resume()
-		mState = State.Recording
+		mState = RecorderState.Recording
 	}
 }
