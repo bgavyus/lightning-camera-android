@@ -74,8 +74,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 			return
 		}
 
-		mRecorder = StatefulMediaRecorder().apply { registerOnReleaseCallback(::release) }
-		mRecorderSurface = MediaCodec.createPersistentInputSurface().apply { registerOnReleaseCallback(::release) }
+		prepareRecorder()
 		prepareTextureView()
 		prepareCamera()
 	}
@@ -98,6 +97,11 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		}
 
 		recreate()
+	}
+
+	private fun prepareRecorder() {
+		mRecorder = StatefulMediaRecorder().apply { registerOnReleaseCallback(::release) }
+		mRecorderSurface = MediaCodec.createPersistentInputSurface().apply { registerOnReleaseCallback(::release) }
 	}
 
 	@SuppressLint("Recycle")
@@ -370,7 +374,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
 			bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
 			matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
-			val scale: Float = max(viewSize.height.toFloat() / bufferSize.height, viewSize.width.toFloat() / bufferSize.width)
+			val scale = max(viewSize.height.toFloat() / bufferSize.height, viewSize.width.toFloat() / bufferSize.width)
 			matrix.postScale(scale, scale, centerX, centerY)
 			matrix.postRotate(90f * (rotation - 2), centerX, centerY)
 		}
@@ -409,12 +413,6 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 
 	private fun getDefaultString(resourceId: Int): String {
 		return createConfigurationContext(Configuration().apply { setLocale(Locale.ROOT) }).getString(resourceId)
-	}
-
-	override fun finish() {
-		Log.d(TAG, "Activity.finish")
-		super.finish()
-		release()
 	}
 
 	override fun onPause() {
