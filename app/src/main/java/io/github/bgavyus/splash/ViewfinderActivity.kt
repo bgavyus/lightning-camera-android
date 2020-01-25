@@ -48,7 +48,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	private lateinit var mRecorder: StatefulMediaRecorder
 	private lateinit var mRecorderSurface: Surface
 	private lateinit var mVideoFile: MediaStoreFile
-	private lateinit var mViewfinderTextureView: TextureView
+	private lateinit var mTextureView: TextureView
 	private lateinit var mViewfinderSurface: Surface
 	private lateinit var mFpsRange: Range<Int>
 	private lateinit var mVideoSize: Size
@@ -71,11 +71,10 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		if (!cameraPermissionsGranted()) {
 			Log.i(TAG, "Requesting camera permission")
 			requestCameraPermission()
+			return
 		}
 
-		else {
-			onPermissionGranted()
-		}
+		onPermissionGranted()
 	}
 
 	private fun cameraPermissionsGranted(): Boolean {
@@ -95,22 +94,22 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 			return finishWithMessage(R.string.error_camera_permission_not_granted)
 		}
 
-		onPermissionGranted()
+		finish()
 	}
 
 	private fun onPermissionGranted() {
 		mRecorder = StatefulMediaRecorder().apply { registerOnReleaseCallback(::release) }
 		mRecorderSurface = MediaCodec.createPersistentInputSurface().apply { registerOnReleaseCallback(::release) }
-		prepareViewfinderTextureView()
+		prepareTextureView()
 		prepareCamera()
 	}
 
 	@SuppressLint("Recycle")
-	private fun prepareViewfinderTextureView() {
-		mViewfinderTextureView = viewfinder_texture_view
+	private fun prepareTextureView() {
+		mTextureView = viewfinder_texture_view
 
 		try {
-			mViewfinderTextureView.surfaceTexture = SurfaceTexture(false).apply {
+			mTextureView.surfaceTexture = SurfaceTexture(false).apply {
 				registerOnReleaseCallback(::release)
 				mViewfinderSurface = Surface(this).apply {
 					registerOnReleaseCallback(::release)
@@ -168,17 +167,17 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 			Log.d(TAG, "CameraDevice.onOpened")
 			registerOnReleaseCallback(camera::close)
 
-			if (!mViewfinderTextureView.isShown) {
+			if (!mTextureView.isShown) {
 				Log.d(TAG, "Not shown while in onOpened")
 				return
 			}
 
-			mDetector = LightningDetector(this@ViewfinderActivity, mViewfinderTextureView, mVideoSize).apply { registerOnReleaseCallback(::release) }
+			mDetector = LightningDetector(this@ViewfinderActivity, mTextureView, mVideoSize).apply { registerOnReleaseCallback(::release) }
 
-			mViewfinderTextureView.surfaceTextureListener = this@ViewfinderActivity
+			mTextureView.surfaceTextureListener = this@ViewfinderActivity
 			registerOnReleaseCallback {
 				Log.d(TAG, "Removing surfaceTextureListener")
-				mViewfinderTextureView.surfaceTextureListener = null
+				mTextureView.surfaceTextureListener = null
 			}
 
 			setupRecorder()
@@ -290,7 +289,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
 			Log.d(TAG, "CameraCaptureSession.onConfigured")
 
-			if (!mViewfinderTextureView.isShown) {
+			if (!mTextureView.isShown) {
 				Log.d(TAG, "Not shown while in onConfigured")
 				return
 			}
@@ -350,19 +349,19 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 
 	override fun onSurfaceTextureSizeChanged(surfaceTexture: SurfaceTexture?, width: Int, height: Int) {
 		Log.d(TAG, "onSurfaceTextureSizeChanged(width = $width, height = $height)")
-		assert(surfaceTexture == mViewfinderTextureView.surfaceTexture)
+		assert(surfaceTexture == mTextureView.surfaceTexture)
 		setViewfinderSize()
 		applyTransform()
 	}
 
 	private fun setViewfinderSize() {
-		mViewfinderTextureView.surfaceTexture.setDefaultBufferSize(mVideoSize.width, mVideoSize.height)
+		mTextureView.surfaceTexture.setDefaultBufferSize(mVideoSize.width, mVideoSize.height)
 	}
 
 	private fun applyTransform() {
-		val viewSize = Size(mViewfinderTextureView.width, mViewfinderTextureView.height)
+		val viewSize = Size(mTextureView.width, mTextureView.height)
 		val matrix = getTransformMatrix(viewSize, mVideoSize, windowManager.defaultDisplay.rotation)
-		mViewfinderTextureView.setTransform(matrix)
+		mTextureView.setTransform(matrix)
 	}
 
 	private fun getTransformMatrix(viewSize: Size, bufferSize: Size, rotation: Int): Matrix {
