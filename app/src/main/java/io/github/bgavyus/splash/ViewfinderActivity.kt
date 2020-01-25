@@ -31,10 +31,7 @@ import kotlin.collections.ArrayList
 import kotlin.math.max
 
 
-class ViewfinderActivity : Activity(),
-	TextureView.SurfaceTextureListener,
-	MediaRecorder.OnInfoListener,
-	MediaRecorder.OnErrorListener {
+class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, MediaRecorder.OnErrorListener {
 
 	companion object {
 		private val TAG = ViewfinderActivity::class.simpleName
@@ -65,25 +62,27 @@ class ViewfinderActivity : Activity(),
 		setContentView(R.layout.activity_viewfinder)
 	}
 
-	override fun onStart() {
-		Log.d(TAG, "Activity.onStart")
-		super.onStart()
-	}
-
 	override fun onResume() {
 		Log.d(TAG, "Activity.onResume")
 		super.onResume()
-		prepareAll()
+		prepare()
 	}
-	
-	private fun prepareAll() {
-		if (!cameraPermissionsGranted()) {
-			Log.i(TAG, "Requesting camera permission")
-			requestCameraPermission()
-			return
+
+	override fun onPause() {
+		Log.d(TAG, "Activity.onPause")
+		super.onPause()
+		release()
+	}
+
+	private fun prepare() {
+		if (cameraPermissionsGranted()) {
+			onPermissionGranted()
 		}
 
-		onPermissionGranted()
+		else {
+			Log.i(TAG, "Requesting camera permission")
+			requestCameraPermission()
+		}
 	}
 
 	private fun requestCameraPermission() {
@@ -107,17 +106,6 @@ class ViewfinderActivity : Activity(),
 		mRecorderSurface = MediaCodec.createPersistentInputSurface().apply { registerOnReleaseCallback(::release) }
 		prepareViewfinderTextureView()
 		prepareCamera()
-	}
-
-	override fun onPause() {
-		Log.d(TAG, "Activity.onPause")
-		super.onPause()
-		release()
-	}
-
-	override fun onStop() {
-		Log.d(TAG, "Activity.onStop")
-		super.onStop()
 	}
 
 	@SuppressLint("MissingPermission")
@@ -146,15 +134,7 @@ class ViewfinderActivity : Activity(),
 		}
 
 		catch (error: CameraAccessException) {
-			val resourceId = when (error.reason) {
-				CameraAccessException.CAMERA_IN_USE      -> R.string.error_camera_in_use
-				CameraAccessException.MAX_CAMERAS_IN_USE -> R.string.error_max_cameras_in_use
-				CameraAccessException.CAMERA_DISABLED    -> R.string.error_camera_disabled
-				CameraAccessException.CAMERA_ERROR       -> R.string.error_camera_device
-				else                                     -> R.string.error_camera_generic
-			}
-
-			return finishWithMessage(resourceId)
+			return finishWithMessage(cameraAccessExceptionToResourceId(error))
 		}
 	}
 
@@ -178,7 +158,14 @@ class ViewfinderActivity : Activity(),
 
 			setupRecorder()
 			setViewfinderSize()
-			camera.createConstrainedHighSpeedCaptureSession(listOf(mViewfinderSurface, mRecorderSurface), cameraCaptureSessionStateCallback, null)
+
+			try {
+				camera.createConstrainedHighSpeedCaptureSession(listOf(mViewfinderSurface, mRecorderSurface), cameraCaptureSessionStateCallback, null)
+			}
+
+			catch (error: CameraAccessException) {
+				return finishWithMessage(cameraAccessExceptionToResourceId(error))
+			}
 		}
 
 		override fun onDisconnected(camera: CameraDevice) {
@@ -280,8 +267,12 @@ class ViewfinderActivity : Activity(),
 		mViewfinderTextureView = viewfinder_texture_view
 
 		try {
-			mViewfinderTextureView.surfaceTexture = SurfaceTexture(false).apply { registerOnReleaseCallback(::release) }
-			mViewfinderSurface = Surface(mViewfinderTextureView.surfaceTexture).apply { registerOnReleaseCallback(::release) }
+			mViewfinderTextureView.surfaceTexture = SurfaceTexture(false).apply {
+				registerOnReleaseCallback(::release)
+				mViewfinderSurface = Surface(this).apply {
+					registerOnReleaseCallback(::release)
+				}
+			}
 		}
 
 		catch (_: Surface.OutOfResourcesException) {
@@ -329,7 +320,6 @@ class ViewfinderActivity : Activity(),
 			name = "${getString(R.string.video_file_prefix)}_$timestamp.$VIDEO_FILE_EXTENSION")
 
 		mRecorder.apply {
-			setOnInfoListener(this@ViewfinderActivity)
 			setOnErrorListener(this@ViewfinderActivity)
 			setVideoSource(MediaRecorder.VideoSource.SURFACE)
 			setOutputFormat(VIDEO_OUTPUT_FORMAT)
@@ -375,8 +365,8 @@ class ViewfinderActivity : Activity(),
 
 	override fun finish() {
 		Log.d(TAG, "Activity.finish")
-		release()
 		super.finish()
+		release()
 	}
 
 	private fun release() {
@@ -395,25 +385,7 @@ class ViewfinderActivity : Activity(),
 		mOnReleaseCallbacks.clear()
 	}
 
-	override fun onDestroy() {
-		Log.d(TAG, "Activity.onDestroy")
-		super.onDestroy()
-	}
-
-	override fun onInfo(mr: MediaRecorder?, what: Int, extra: Int) {
-        val errorMessage = when (what) {
-            MediaRecorder.MEDIA_RECORDER_INFO_UNKNOWN -> "Unknown"
-            MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED -> "Max Duration reached"
-            MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED -> "Max file size reached"
-            MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_APPROACHING -> "Max file size approaching"
-            MediaRecorder.MEDIA_RECORDER_INFO_NEXT_OUTPUT_FILE_STARTED -> "Next output file started"
-            else -> what.toString()
-        }
-
-        Log.d(TAG, "MediaRecorder.onInfo(what = $errorMessage, extra = $extra)")
-    }
-
-    override fun onError(mr: MediaRecorder?, what: Int, extra: Int) {
+	override fun onError(mr: MediaRecorder?, what: Int, extra: Int) {
         Log.d(TAG, "MediaRecorder.onError(what = $what, extra = $extra)")
 		finishWithMessage(R.string.error_recorder)
     }
@@ -463,4 +435,14 @@ private fun getTransformMatrix(viewSize: Size, bufferSize: Size, rotation: Int):
 	}
 
 	return matrix
+}
+
+private fun cameraAccessExceptionToResourceId(error: CameraAccessException): Int {
+	return when (error.reason) {
+		CameraAccessException.CAMERA_IN_USE      -> R.string.error_camera_in_use
+		CameraAccessException.MAX_CAMERAS_IN_USE -> R.string.error_max_cameras_in_use
+		CameraAccessException.CAMERA_DISABLED    -> R.string.error_camera_disabled
+		CameraAccessException.CAMERA_ERROR       -> R.string.error_camera_device
+		else                                     -> R.string.error_camera_generic
+	}
 }
