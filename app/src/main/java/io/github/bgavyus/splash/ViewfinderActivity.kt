@@ -55,7 +55,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	private lateinit var mDetector: LightningDetector
 
     override fun onCreate(savedInstanceState: Bundle?) {
-		Log.d(TAG, "Activity.onCreate")
+		Log.d(TAG, "Activity.onCreate(savedInstanceState = $savedInstanceState)")
 		super.onCreate(savedInstanceState)
 		window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
 		setContentView(R.layout.activity_viewfinder)
@@ -67,21 +67,19 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		prepare()
 	}
 
-	override fun onPause() {
-		Log.d(TAG, "Activity.onPause")
-		super.onPause()
-		release()
-	}
-
 	private fun prepare() {
-		if (cameraPermissionsGranted()) {
-			onPermissionGranted()
-		}
-
-		else {
+		if (!cameraPermissionsGranted()) {
 			Log.i(TAG, "Requesting camera permission")
 			requestCameraPermission()
 		}
+
+		else {
+			onPermissionGranted()
+		}
+	}
+
+	private fun cameraPermissionsGranted(): Boolean {
+		return checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
 	}
 
 	private fun requestCameraPermission() {
@@ -105,6 +103,24 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		mRecorderSurface = MediaCodec.createPersistentInputSurface().apply { registerOnReleaseCallback(::release) }
 		prepareViewfinderTextureView()
 		prepareCamera()
+	}
+
+	@SuppressLint("Recycle")
+	private fun prepareViewfinderTextureView() {
+		mViewfinderTextureView = viewfinder_texture_view
+
+		try {
+			mViewfinderTextureView.surfaceTexture = SurfaceTexture(false).apply {
+				registerOnReleaseCallback(::release)
+				mViewfinderSurface = Surface(this).apply {
+					registerOnReleaseCallback(::release)
+				}
+			}
+		}
+
+		catch (_: Surface.OutOfResourcesException) {
+			return finishWithMessage(R.string.error_out_of_resources)
+		}
 	}
 
 	@SuppressLint("MissingPermission")
@@ -134,6 +150,16 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 
 		catch (error: CameraAccessException) {
 			return finishWithMessage(cameraAccessExceptionToResourceId(error))
+		}
+	}
+
+	private fun getHighSpeedCameraId(cameraManager: CameraManager): String? {
+		return cameraManager.cameraIdList.firstOrNull {
+			val characteristics = cameraManager.getCameraCharacteristics(it)
+			val capabilities = characteristics[CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES]
+				?: return@firstOrNull false
+
+			return@firstOrNull CameraMetadata.REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO in capabilities
 		}
 	}
 
@@ -185,127 +211,6 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 
 			finishWithMessage(resourceId)
 		}
-	}
-
-	private val cameraCaptureSessionStateCallback = object : CameraCaptureSession.StateCallback() {
-		override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
-			Log.d(TAG, "CameraCaptureSession.onConfigured")
-
-			if (!mViewfinderTextureView.isShown) {
-				Log.d(TAG, "Not shown while in onConfigured")
-				return
-			}
-
-			setViewfinderSize()
-			applyTransform()
-			startCaptureSession(cameraCaptureSession as CameraConstrainedHighSpeedCaptureSession)
-		}
-
-		override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession) {
-			Log.d(TAG, "CameraCaptureSession.onConfigureFailed")
-		}
-	}
-
-	override fun onSurfaceTextureSizeChanged(surfaceTexture: SurfaceTexture?, width: Int, height: Int) {
-		Log.d(TAG, "onSurfaceTextureSizeChanged(width = $width, height = $height)")
-		assert(surfaceTexture == mViewfinderTextureView.surfaceTexture)
-		setViewfinderSize()
-		applyTransform()
-	}
-
-	override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture?) {
-		handleFrame()
-	}
-
-	override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
-		Log.d(TAG, "onSurfaceTextureSizeChanged(width = $width, height = $height)")
-	}
-
-	override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
-		Log.d(TAG, "onSurfaceTextureDestroyed")
-		return true
-	}
-
-	private fun startCaptureSession(captureSession: CameraConstrainedHighSpeedCaptureSession) {
-		captureSession.apply {
-			setRepeatingBurst(createHighSpeedRequestList(
-				device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
-					set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mFpsRange)
-					addTarget(mViewfinderSurface)
-					addTarget(mRecorderSurface)
-				}.build()), null, null)
-
-			registerOnReleaseCallback(::close)
-		}
-	}
-
-	private fun handleFrame() {
-		if (mDetector.hasLightning()) {
-			if (mRecorder.state != RecorderState.Recording) {
-				Log.i(TAG, "Starting recording")
-
-				if (mRecorder.state == RecorderState.Prepared) {
-					Log.d(TAG, "Recorder state is Prepared")
-					mRecorder.start()
-				}
-
-				else {
-					mRecorder.resume()
-				}
-			}
-		}
-
-		else if (mRecorder.state == RecorderState.Recording) {
-			Log.i(TAG, "Pausing recording")
-			mRecorder.pause()
-		}
-	}
-
-	@SuppressLint("Recycle")
-	private fun prepareViewfinderTextureView() {
-		mViewfinderTextureView = viewfinder_texture_view
-
-		try {
-			mViewfinderTextureView.surfaceTexture = SurfaceTexture(false).apply {
-				registerOnReleaseCallback(::release)
-				mViewfinderSurface = Surface(this).apply {
-					registerOnReleaseCallback(::release)
-				}
-			}
-		}
-
-		catch (_: Surface.OutOfResourcesException) {
-			return finishWithMessage(R.string.error_out_of_resources)
-		}
-	}
-
-	private fun registerOnReleaseCallback(cb: () -> Unit) {
-		mOnReleaseCallbacks.push(cb)
-	}
-
-	private fun cameraPermissionsGranted(): Boolean {
-		return checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-	}
-
-	private fun finishWithMessage(resourceId: Int) {
-		Log.d(TAG, "finishWithMessage: ${getDefaultString(resourceId)}")
-
-		Toast.makeText(this, resourceId, Toast.LENGTH_LONG).apply {
-			setGravity(Gravity.CENTER, 0, 0)
-			show()
-		}
-
-		finish()
-	}
-
-	private fun applyTransform() {
-		val viewSize = Size(mViewfinderTextureView.width, mViewfinderTextureView.height)
-		val matrix = getTransformMatrix(viewSize, mVideoSize, windowManager.defaultDisplay.rotation)
-		mViewfinderTextureView.setTransform(matrix)
-	}
-
-	private fun setViewfinderSize() {
-		mViewfinderTextureView.surfaceTexture.setDefaultBufferSize(mVideoSize.width, mVideoSize.height)
 	}
 
 	private fun setupRecorder() {
@@ -362,9 +267,164 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		}
 	}
 
+	private fun displayToVideoRotation(displayRotation: Int): Int {
+		return when (displayRotation) {
+			Surface.ROTATION_0   -> 90
+			Surface.ROTATION_90  -> 0
+			Surface.ROTATION_180 -> 270
+			Surface.ROTATION_270 -> 180
+			else -> throw RuntimeException("Invalid display rotation")
+		}
+	}
+
+	private fun cameraAccessExceptionToResourceId(error: CameraAccessException): Int {
+		return when (error.reason) {
+			CameraAccessException.CAMERA_IN_USE      -> R.string.error_camera_in_use
+			CameraAccessException.MAX_CAMERAS_IN_USE -> R.string.error_max_cameras_in_use
+			CameraAccessException.CAMERA_DISABLED    -> R.string.error_camera_disabled
+			CameraAccessException.CAMERA_ERROR       -> R.string.error_camera_device
+			else                                     -> R.string.error_camera_generic
+		}
+	}
+	private val cameraCaptureSessionStateCallback = object : CameraCaptureSession.StateCallback() {
+		override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
+			Log.d(TAG, "CameraCaptureSession.onConfigured")
+
+			if (!mViewfinderTextureView.isShown) {
+				Log.d(TAG, "Not shown while in onConfigured")
+				return
+			}
+
+			setViewfinderSize()
+			applyTransform()
+			startCaptureSession(cameraCaptureSession as CameraConstrainedHighSpeedCaptureSession)
+		}
+
+		override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession) {
+			Log.d(TAG, "CameraCaptureSession.onConfigureFailed")
+		}
+	}
+
+	private fun startCaptureSession(captureSession: CameraConstrainedHighSpeedCaptureSession) {
+		captureSession.apply {
+			setRepeatingBurst(createHighSpeedRequestList(
+				device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
+					set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mFpsRange)
+					addTarget(mViewfinderSurface)
+					addTarget(mRecorderSurface)
+				}.build()), null, null)
+
+			registerOnReleaseCallback(::close)
+		}
+	}
+
+	private fun registerOnReleaseCallback(cb: () -> Unit) {
+		mOnReleaseCallbacks.push(cb)
+	}
+
+	override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture?) {
+		handleFrame()
+	}
+
+	private fun handleFrame() {
+		if (mDetector.hasLightning()) {
+			if (mRecorder.state != RecorderState.Recording) {
+				Log.i(TAG, "Starting recording")
+
+				if (mRecorder.state == RecorderState.Prepared) {
+					Log.d(TAG, "Recorder state is Prepared")
+					mRecorder.start()
+				}
+
+				else {
+					mRecorder.resume()
+				}
+			}
+		}
+
+		else if (mRecorder.state == RecorderState.Recording) {
+			Log.i(TAG, "Pausing recording")
+			mRecorder.pause()
+		}
+	}
+
+	override fun onSurfaceTextureSizeChanged(surfaceTexture: SurfaceTexture?, width: Int, height: Int) {
+		Log.d(TAG, "onSurfaceTextureSizeChanged(width = $width, height = $height)")
+		assert(surfaceTexture == mViewfinderTextureView.surfaceTexture)
+		setViewfinderSize()
+		applyTransform()
+	}
+
+	private fun setViewfinderSize() {
+		mViewfinderTextureView.surfaceTexture.setDefaultBufferSize(mVideoSize.width, mVideoSize.height)
+	}
+
+	private fun applyTransform() {
+		val viewSize = Size(mViewfinderTextureView.width, mViewfinderTextureView.height)
+		val matrix = getTransformMatrix(viewSize, mVideoSize, windowManager.defaultDisplay.rotation)
+		mViewfinderTextureView.setTransform(matrix)
+	}
+
+	private fun getTransformMatrix(viewSize: Size, bufferSize: Size, rotation: Int): Matrix {
+		val matrix = Matrix()
+		val viewRect = RectF(0f, 0f, viewSize.width.toFloat(), viewSize.height.toFloat())
+		val bufferRect = RectF(0f, 0f, bufferSize.height.toFloat(), bufferSize.width.toFloat())
+		val centerX = viewRect.centerX()
+		val centerY = viewRect.centerY()
+
+		if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
+			bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
+			matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
+			val scale: Float = max(viewSize.height.toFloat() / bufferSize.height, viewSize.width.toFloat() / bufferSize.width)
+			matrix.postScale(scale, scale, centerX, centerY)
+			matrix.postRotate(90f * (rotation - 2), centerX, centerY)
+		}
+
+		else if (Surface.ROTATION_180 == rotation) {
+			matrix.postRotate(180f, centerX, centerY)
+		}
+
+		return matrix
+	}
+
+	override fun onError(mr: MediaRecorder?, what: Int, extra: Int) {
+		Log.d(TAG, "MediaRecorder.onError(what = $what, extra = $extra)")
+		finishWithMessage(R.string.error_recorder)
+	}
+
+	override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
+		Log.d(TAG, "onSurfaceTextureSizeChanged(width = $width, height = $height)")
+	}
+
+	override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
+		Log.d(TAG, "onSurfaceTextureDestroyed")
+		return true
+	}
+
+	private fun finishWithMessage(resourceId: Int) {
+		Log.d(TAG, "finishWithMessage: ${getDefaultString(resourceId)}")
+
+		Toast.makeText(this, resourceId, Toast.LENGTH_LONG).apply {
+			setGravity(Gravity.CENTER, 0, 0)
+			show()
+		}
+
+		finish()
+	}
+
+	private fun getDefaultString(resourceId: Int): String {
+		return createConfigurationContext(Configuration().apply { setLocale(Locale.ROOT) }).getString(resourceId)
+	}
+
 	override fun finish() {
 		Log.d(TAG, "Activity.finish")
 		super.finish()
+		release()
+	}
+
+	override fun onPause() {
+		Log.d(TAG, "Activity.onPause")
+		super.onPause()
 		release()
 	}
 
@@ -381,66 +441,5 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 				Log.w(TAG, "Exception while destroying view", error)
 			}
 		}
-	}
-
-	override fun onError(mr: MediaRecorder?, what: Int, extra: Int) {
-        Log.d(TAG, "MediaRecorder.onError(what = $what, extra = $extra)")
-		finishWithMessage(R.string.error_recorder)
-    }
-
-	private fun getDefaultString(resourceId: Int): String {
-		return createConfigurationContext(Configuration().apply { setLocale(Locale.ROOT) }).getString(resourceId)
-	}
-}
-
-private fun getHighSpeedCameraId(cameraManager: CameraManager): String? {
-	return cameraManager.cameraIdList.firstOrNull {
-		val characteristics = cameraManager.getCameraCharacteristics(it)
-		val capabilities = characteristics[CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES]
-			?: return@firstOrNull false
-
-		return@firstOrNull CameraMetadata.REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO in capabilities
-	}
-}
-
-private fun displayToVideoRotation(displayRotation: Int): Int {
-	return when (displayRotation) {
-		Surface.ROTATION_0   -> 90
-		Surface.ROTATION_90  -> 0
-		Surface.ROTATION_180 -> 270
-		Surface.ROTATION_270 -> 180
-		else -> throw RuntimeException("Invalid display rotation")
-	}
-}
-
-private fun getTransformMatrix(viewSize: Size, bufferSize: Size, rotation: Int): Matrix {
-	val matrix = Matrix()
-	val viewRect = RectF(0f, 0f, viewSize.width.toFloat(), viewSize.height.toFloat())
-	val bufferRect = RectF(0f, 0f, bufferSize.height.toFloat(), bufferSize.width.toFloat())
-	val centerX = viewRect.centerX()
-	val centerY = viewRect.centerY()
-
-	if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
-		bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
-		matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
-		val scale: Float = max(viewSize.height.toFloat() / bufferSize.height, viewSize.width.toFloat() / bufferSize.width)
-		matrix.postScale(scale, scale, centerX, centerY)
-		matrix.postRotate(90f * (rotation - 2), centerX, centerY)
-	}
-
-	else if (Surface.ROTATION_180 == rotation) {
-		matrix.postRotate(180f, centerX, centerY)
-	}
-
-	return matrix
-}
-
-private fun cameraAccessExceptionToResourceId(error: CameraAccessException): Int {
-	return when (error.reason) {
-		CameraAccessException.CAMERA_IN_USE      -> R.string.error_camera_in_use
-		CameraAccessException.MAX_CAMERAS_IN_USE -> R.string.error_max_cameras_in_use
-		CameraAccessException.CAMERA_DISABLED    -> R.string.error_camera_disabled
-		CameraAccessException.CAMERA_ERROR       -> R.string.error_camera_device
-		else                                     -> R.string.error_camera_generic
 	}
 }
