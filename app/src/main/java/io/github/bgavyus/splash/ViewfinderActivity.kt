@@ -74,7 +74,10 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 			return
 		}
 
-		onPermissionGranted()
+		mRecorder = StatefulMediaRecorder().apply { registerOnReleaseCallback(::release) }
+		mRecorderSurface = MediaCodec.createPersistentInputSurface().apply { registerOnReleaseCallback(::release) }
+		prepareTextureView()
+		prepareCamera()
 	}
 
 	private fun cameraPermissionsGranted(): Boolean {
@@ -94,14 +97,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 			return finishWithMessage(R.string.error_camera_permission_not_granted)
 		}
 
-		finish()
-	}
-
-	private fun onPermissionGranted() {
-		mRecorder = StatefulMediaRecorder().apply { registerOnReleaseCallback(::release) }
-		mRecorderSurface = MediaCodec.createPersistentInputSurface().apply { registerOnReleaseCallback(::release) }
-		prepareTextureView()
-		prepareCamera()
+		recreate()
 	}
 
 	@SuppressLint("Recycle")
