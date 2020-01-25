@@ -15,13 +15,13 @@ enum class State {
 
 class StatefulMediaRecorder : MediaRecorder() {
 	private var mState = State.Initial
-	private var mErrorListener: OnErrorListener? = null
+	private var mOnErrorListener: OnErrorListener? = null
 
 	init {
 		MediaRecorder()
 		setOnErrorListener { mr, what, extra ->
 			mState = State.Error
-			mErrorListener?.onError(mr, what, extra)
+			mOnErrorListener?.onError(mr, what, extra)
 		}
 	}
 
@@ -29,7 +29,7 @@ class StatefulMediaRecorder : MediaRecorder() {
 		get() = mState
 
 	override fun setOnErrorListener(l: OnErrorListener?) {
-		mErrorListener = l
+		mOnErrorListener = l
 	}
 
 	override fun setAudioSource(audioSource: Int) {
