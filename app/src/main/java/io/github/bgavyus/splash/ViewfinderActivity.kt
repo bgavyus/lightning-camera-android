@@ -250,7 +250,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
         try {
             mVideoFile = MediaStoreFile(
                 contentResolver, mode = "w", mimeType = VIDEO_MIME_TYPE,
-                baseUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                collection = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                 relativePath = Paths.get(
                     Environment.DIRECTORY_MOVIES,
                     getString(R.string.video_folder_name)
@@ -300,6 +300,8 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
             prepare()
 
             registerOnReleaseCallback {
+                Log.d(TAG, "Releasing MediaRecorder")
+
                 if (state != RecorderState.Prepared) {
                     try {
                         stop()
@@ -392,19 +394,16 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
     }
 
     private fun handleFrame() {
-        if (shouldRecord() && !recording()) {
+        val shouldRecord = mDetector.hasLightning()
+        val recording = mRecorder.state == RecorderState.Recording
+
+        if (shouldRecord && !recording) {
             resumeRecord()
-        } else if (recording()) {
+        }
+
+        if (recording && !shouldRecord) {
             pauseRecord()
         }
-    }
-
-    private fun shouldRecord(): Boolean {
-        return mDetector.hasLightning()
-    }
-
-    private fun recording(): Boolean {
-        return mRecorder.state == RecorderState.Recording
     }
 
     private fun resumeRecord() {
