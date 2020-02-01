@@ -14,6 +14,7 @@ import android.media.MediaFormat
 import android.media.MediaRecorder
 import android.os.Bundle
 import android.os.Environment
+import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.util.Range
@@ -24,13 +25,15 @@ import android.view.TextureView
 import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_viewfinder.*
+import java.io.IOException
 import java.nio.file.Paths
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.max
 
 
-class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, MediaRecorder.OnErrorListener {
+class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
+	MediaRecorder.OnErrorListener, Thread.UncaughtExceptionHandler {
 
 	companion object {
 		private val TAG = ViewfinderActivity::class.simpleName
@@ -44,6 +47,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	}
 
 	private val mOnReleaseCallbacks = ArrayDeque<() -> Unit>()
+	private var mDeleteVideoFile = true
 
 	private lateinit var mRecorder: StatefulMediaRecorder
 	private lateinit var mRecorderSurface: Surface
@@ -59,6 +63,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		super.onCreate(savedInstanceState)
 		window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
 		setContentView(R.layout.activity_viewfinder)
+		Thread.setDefaultUncaughtExceptionHandler(this)
 	}
 
 	override fun onResume() {
@@ -68,11 +73,11 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	}
 
 	private fun prepare() {
-		if (!cameraPermissionsGranted()) {
-			Log.i(TAG, "Requesting camera permission")
-			requestCameraPermission()
-			return
-		}
+        if (!cameraPermissionsGranted()) {
+            Log.i(TAG, "Requesting camera permission")
+            requestCameraPermission()
+            return
+        }
 
 		prepareRecorder()
 		prepareTextureView()
@@ -89,13 +94,29 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 
 	override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
 		Log.d(TAG, "onRequestPermissionsResult(requestCode = $requestCode, permissions = $permissions, grantResults = $grantResults)")
-		assert(requestCode == REQUEST_PERMISSIONS_CODE)
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode != REQUEST_PERMISSIONS_CODE) {
+            return
+        }
+
 		assert(permissions.contentEquals(arrayOf(Manifest.permission.CAMERA)))
 
 		if (grantResults.isEmpty() || grantResults.first() != PackageManager.PERMISSION_GRANTED) {
-			return finishWithMessage(R.string.error_camera_permission_not_granted)
+			onCameraPermissionDenied()
 		}
 
+		else {
+			onCameraPermissionGranted()
+		}
+
+	}
+
+	private fun onCameraPermissionDenied() {
+		finishWithMessage(R.string.error_camera_permission_not_granted)
+	}
+
+	private fun onCameraPermissionGranted() {
 		recreate()
 	}
 
@@ -130,6 +151,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		try {
 			val cameraId = getHighSpeedCameraId(cameraManager)
 				?: return finishWithMessage(R.string.error_high_speed_camera_not_available)
+
 			val characteristics = cameraManager.getCameraCharacteristics(cameraId)
 			val configs = characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]
 				?: return finishWithMessage(R.string.error_camera_generic)
@@ -215,17 +237,40 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	private fun setupRecorder() {
 		val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
 
-		mVideoFile = MediaStoreFile(contentResolver,
-			mode = "w",
-			mimeType = VIDEO_MIME_TYPE,
-			baseUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-			relativePath = Paths.get(Environment.DIRECTORY_MOVIES, getString(R.string.video_folder_name)).toString(),
-			name = "${getString(R.string.video_file_prefix)}_$timestamp.$VIDEO_FILE_EXTENSION")
+		try {
+			mVideoFile = MediaStoreFile(
+				contentResolver, mode = "w", mimeType = VIDEO_MIME_TYPE,
+				baseUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+				relativePath = Paths.get(
+					Environment.DIRECTORY_MOVIES,
+					getString(R.string.video_folder_name)
+				).toString(),
+				name = "${getString(R.string.video_file_prefix)}_$timestamp.$VIDEO_FILE_EXTENSION"
+			)
+		} catch (_: IOException) {
+			return finishWithMessage(R.string.error_io)
+		}
+
+		registerOnReleaseCallback {
+			Log.d(TAG, "Checking for video file deletion")
+
+			if (mDeleteVideoFile) {
+				Log.i(TAG, "Deleting video file")
+				mVideoFile.delete()
+			}
+		}
+
+		registerOnReleaseCallback(mVideoFile::close)
 
 		mRecorder.apply {
 			setOnErrorListener(this@ViewfinderActivity)
+
+			assert(state == RecorderState.Initial)
 			setVideoSource(MediaRecorder.VideoSource.SURFACE)
+
+			assert(state == RecorderState.Initialized)
 			setOutputFormat(VIDEO_OUTPUT_FORMAT)
+
 			setInputSurface(mRecorderSurface)
 			setVideoEncoder(VIDEO_ENCODER)
 			setVideoSize(mVideoSize.width, mVideoSize.height)
@@ -233,58 +278,50 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 			setCaptureRate(mFpsRange.upper.toDouble())
 			setVideoEncodingBitRate(Int.MAX_VALUE)
 			setVideoFrameRate(VIDEO_PLAYBACK_FPS)
-			setOrientationHint(displayToVideoRotation(windowManager.defaultDisplay.rotation))
+			setOrientationHint(
+				surfaceRotationToDegrees(
+					displayRotationToRecorderRotation(
+						windowManager.defaultDisplay.rotation
+					)
+				)
+			)
+
+			assert(state == RecorderState.DataSourceConfigured)
 			prepare()
-			registerOnReleaseCallback(::release)
-		}
 
-		registerOnReleaseCallback {
-			Log.d(TAG, "Releasing video file")
-
-			if (mRecorder.state == RecorderState.Prepared) {
-				Log.d(TAG, "Recorder state is Prepared")
-				mVideoFile.close()
-
-				Log.i(TAG, "Deleting empty capture file")
-				mVideoFile.delete()
-
-				return@registerOnReleaseCallback
-			}
-
-			try {
-				mRecorder.stop()
-				mVideoFile.close()
-			}
-
-			catch (_: RuntimeException) {
-				Log.d(TAG, "MediaRecorder.stop RuntimeException")
-				mVideoFile.close()
-
-				Log.i(TAG, "Deleting corrupted capture file")
-				mVideoFile.delete()
+			registerOnReleaseCallback {
+				if (state != RecorderState.Prepared) {
+					try {
+						stop()
+					} catch (_: RuntimeException) {
+						Log.d(TAG, "MediaRecorder.stop RuntimeException")
+						mDeleteVideoFile = true
+					}
+				}
 			}
 		}
 	}
 
-	private fun displayToVideoRotation(displayRotation: Int): Int {
+	private fun displayRotationToRecorderRotation(displayRotation: Int): Int {
 		return when (displayRotation) {
-			Surface.ROTATION_0   -> 90
-			Surface.ROTATION_90  -> 0
-			Surface.ROTATION_180 -> 270
-			Surface.ROTATION_270 -> 180
+			Surface.ROTATION_0 -> Surface.ROTATION_90
+			Surface.ROTATION_90 -> Surface.ROTATION_0
+			Surface.ROTATION_180 -> Surface.ROTATION_270
+			Surface.ROTATION_270 -> Surface.ROTATION_180
 			else -> throw RuntimeException("Invalid display rotation")
 		}
 	}
 
-	private fun cameraAccessExceptionToResourceId(error: CameraAccessException): Int {
-		return when (error.reason) {
-			CameraAccessException.CAMERA_IN_USE      -> R.string.error_camera_in_use
-			CameraAccessException.MAX_CAMERAS_IN_USE -> R.string.error_max_cameras_in_use
-			CameraAccessException.CAMERA_DISABLED    -> R.string.error_camera_disabled
-			CameraAccessException.CAMERA_ERROR       -> R.string.error_camera_device
-			else                                     -> R.string.error_camera_generic
+	private fun surfaceRotationToDegrees(rotation: Int): Int {
+		return when (rotation) {
+			Surface.ROTATION_0 -> 0
+			Surface.ROTATION_90 -> 90
+			Surface.ROTATION_180 -> 180
+			Surface.ROTATION_270 -> 270
+			else -> throw RuntimeException("Invalid surface rotation")
 		}
 	}
+
 	private val cameraCaptureSessionStateCallback = object : CameraCaptureSession.StateCallback() {
 		override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
 			Log.d(TAG, "CameraCaptureSession.onConfigured")
@@ -305,15 +342,35 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	}
 
 	private fun startCaptureSession(captureSession: CameraConstrainedHighSpeedCaptureSession) {
-		captureSession.apply {
-			setRepeatingBurst(createHighSpeedRequestList(
-				device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
-					set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mFpsRange)
-					addTarget(mViewfinderSurface)
-					addTarget(mRecorderSurface)
-				}.build()), null, null)
+		try {
+			captureSession.apply {
+				setRepeatingBurst(createHighSpeedRequestList(
+					device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
+						set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mFpsRange)
+						addTarget(mViewfinderSurface)
+						addTarget(mRecorderSurface)
+					}.build()), null, null)
 
-			registerOnReleaseCallback(::close)
+				registerOnReleaseCallback(::close)
+			}
+		}
+
+		catch (error: CameraAccessException) {
+			return finishWithMessage(cameraAccessExceptionToResourceId(error))
+		}
+
+		catch (_: IllegalStateException) {
+			return finishWithMessage(R.string.error_camera_generic)
+		}
+	}
+
+	private fun cameraAccessExceptionToResourceId(error: CameraAccessException): Int {
+		return when (error.reason) {
+			CameraAccessException.CAMERA_IN_USE      -> R.string.error_camera_in_use
+			CameraAccessException.MAX_CAMERAS_IN_USE -> R.string.error_max_cameras_in_use
+			CameraAccessException.CAMERA_DISABLED    -> R.string.error_camera_disabled
+			CameraAccessException.CAMERA_ERROR       -> R.string.error_camera_device
+			else                                     -> R.string.error_camera_generic
 		}
 	}
 
@@ -326,26 +383,41 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 	}
 
 	private fun handleFrame() {
-		if (mDetector.hasLightning()) {
-			if (mRecorder.state != RecorderState.Recording) {
-				Log.i(TAG, "Starting recording")
-
-				if (mRecorder.state == RecorderState.Prepared) {
-					Log.d(TAG, "Recorder state is Prepared")
-					mRecorder.start()
-				}
-
-				else {
-					mRecorder.resume()
-				}
-			}
+		if (shouldRecord() && !recording()) {
+            resumeRecord()
 		}
 
-		else if (mRecorder.state == RecorderState.Recording) {
-			Log.i(TAG, "Pausing recording")
-			mRecorder.pause()
-		}
+		else if (recording()) {
+            pauseRecord()
+        }
 	}
+
+    private fun shouldRecord(): Boolean {
+        return mDetector.hasLightning()
+    }
+
+    private fun recording(): Boolean {
+        return mRecorder.state == RecorderState.Recording
+    }
+
+    private fun resumeRecord() {
+        Log.i(TAG, "Resuming recording")
+
+        if (mRecorder.state == RecorderState.Prepared) {
+            Log.d(TAG, "Recorder state is Prepared")
+			mDeleteVideoFile = false
+            mRecorder.start()
+        }
+
+        else {
+            mRecorder.resume()
+        }
+    }
+
+    private fun pauseRecord() {
+        Log.i(TAG, "Pausing recording")
+        mRecorder.pause()
+    }
 
 	override fun onSurfaceTextureSizeChanged(surfaceTexture: SurfaceTexture?, width: Int, height: Int) {
 		Log.d(TAG, "onSurfaceTextureSizeChanged(width = $width, height = $height)")
@@ -400,39 +472,56 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener, Media
 		return true
 	}
 
-	private fun finishWithMessage(resourceId: Int) {
-		Log.d(TAG, "finishWithMessage: ${getDefaultString(resourceId)}")
-
-		Toast.makeText(this, resourceId, Toast.LENGTH_LONG).apply {
-			setGravity(Gravity.CENTER, 0, 0)
-			show()
-		}
-
-		finish()
-	}
-
-	private fun getDefaultString(resourceId: Int): String {
-		return createConfigurationContext(Configuration().apply { setLocale(Locale.ROOT) }).getString(resourceId)
-	}
-
 	override fun onPause() {
 		Log.d(TAG, "Activity.onPause")
 		super.onPause()
 		release()
 	}
 
-	private fun release() {
-		while (!mOnReleaseCallbacks.isEmpty()) {
-			val callback = mOnReleaseCallbacks.pop()
-			Log.d(TAG, "ReleaseCallback: $callback")
+	override fun uncaughtException(t: Thread, e: Throwable) {
+		Log.d(TAG, "uncaughtException(t = $t, e = $e)")
+		Log.w(TAG, "Uncaught Exception")
 
-			try {
-				callback.invoke()
-			}
-
-			catch (error: Throwable) {
-				Log.w(TAG, "Exception while destroying view", error)
-			}
-		}
+		finishWithMessage(R.string.error_uncaught)
 	}
+
+	private fun finishWithMessage(resourceId: Int) {
+		Log.d(TAG, "finishWithMessage: ${getDefaultString(resourceId)}")
+
+		Thread {
+			Looper.prepare()
+			Toast.makeText(applicationContext, resourceId, Toast.LENGTH_LONG).apply {
+				setGravity(Gravity.CENTER, 0, 0)
+				show()
+			}
+			Looper.loop()
+		}.start()
+
+		finish()
+	}
+
+    private fun getDefaultString(resourceId: Int): String {
+        return createConfigurationContext(Configuration().apply { setLocale(Locale.ROOT) }).getString(resourceId)
+    }
+
+    override fun finish() {
+        Log.d(TAG, "finish")
+        super.finish()
+        release()
+    }
+
+    private fun release() {
+        while (!mOnReleaseCallbacks.isEmpty()) {
+            val callback = mOnReleaseCallbacks.pop()
+            Log.d(TAG, "ReleaseCallback: $callback")
+
+            try {
+                callback.invoke()
+            }
+
+            catch (error: Throwable) {
+                Log.w(TAG, "Exception while destroying view", error)
+            }
+        }
+    }
 }

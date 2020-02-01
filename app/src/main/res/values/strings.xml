@@ -14,4 +14,6 @@
     <string name="error_camera_generic">Camera issue</string>
     <string name="error_recorder">Recording error</string>
     <string name="error_out_of_resources">Resources ran out</string>
+    <string name="error_io">Cannot access files</string>
+    <string name="error_uncaught">Bug</string>
 </resources>
