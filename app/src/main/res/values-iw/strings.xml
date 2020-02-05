@@ -14,4 +14,5 @@
     <string name="error_out_of_resources">נגמרו המשאבים</string>
     <string name="error_io">לא ניתן לגשת לקבצים</string>
     <string name="error_uncaught">באג</string>
+    <string name="error_storage_permission_not_granted">לא ניתנה הרשאה לגשת לאחסון</string>
 </resources>

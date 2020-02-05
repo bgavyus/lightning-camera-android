@@ -74,9 +74,9 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
     }
 
     private fun prepare() {
-        if (!cameraPermissionsGranted()) {
-            Log.i(TAG, "Requesting camera permission")
-            requestCameraPermission()
+        if (!allPermissionsGranted()) {
+            Log.i(TAG, "Requesting permissions")
+            requestNonGrantedPermissions()
             return
         }
 
@@ -85,12 +85,22 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
         prepareCamera()
     }
 
-    private fun cameraPermissionsGranted(): Boolean {
-        return checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+    private fun allPermissionsGranted(): Boolean {
+        return cameraPermissionsGranted() && storagePermissionsGranted()
     }
 
-    private fun requestCameraPermission() {
-        requestPermissions(arrayOf(Manifest.permission.CAMERA), REQUEST_PERMISSIONS_CODE)
+    private fun requestNonGrantedPermissions() {
+        val permissions = ArrayList<String>()
+
+        if (!cameraPermissionsGranted()) {
+            permissions.add(Manifest.permission.CAMERA)
+        }
+
+        if (!storagePermissionsGranted()) {
+            permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        }
+
+        requestPermissions(permissions.toTypedArray(), REQUEST_PERMISSIONS_CODE)
     }
 
     override fun onRequestPermissionsResult(
@@ -100,29 +110,40 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
     ) {
         Log.d(
             TAG,
-            "onRequestPermissionsResult(requestCode = $requestCode, permissions = $permissions, grantResults = $grantResults)"
+            "onRequestPermissionsResult(requestCode = $requestCode, permissions = ${permissions.joinToString()}, grantResults = ${grantResults.joinToString()})"
         )
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         if (requestCode != REQUEST_PERMISSIONS_CODE) {
+            Log.w(TAG, "Got unknown request permission result: $requestCode")
             return
         }
 
-        assert(permissions.contentEquals(arrayOf(Manifest.permission.CAMERA)))
-
-        if (grantResults.isEmpty() || grantResults.first() != PackageManager.PERMISSION_GRANTED) {
-            onCameraPermissionDenied()
-        } else {
-            onCameraPermissionGranted()
+        if (!cameraPermissionsGranted()) {
+            return finishWithMessage(R.string.error_camera_permission_not_granted)
         }
 
+        if (!storagePermissionsGranted()) {
+            return finishWithMessage(R.string.error_storage_permission_not_granted)
+        }
+
+        onAllPermissionGranted()
     }
 
-    private fun onCameraPermissionDenied() {
-        finishWithMessage(R.string.error_camera_permission_not_granted)
+    private fun cameraPermissionsGranted(): Boolean {
+        return checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun onCameraPermissionGranted() {
+    private fun storagePermissionsGranted(): Boolean {
+        if (!Environment.isExternalStorageLegacy()) {
+            return true
+        }
+
+        return checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun onAllPermissionGranted() {
+        Log.d(TAG, "onAllPermissionGranted")
         recreate()
     }
 
@@ -209,6 +230,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
                 mTextureView.surfaceTextureListener = null
             }
 
+            setupVideoFile()
             setupRecorder()
             setViewfinderSize()
 
@@ -244,7 +266,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
         }
     }
 
-    private fun setupRecorder() {
+    private fun setupVideoFile() {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
 
         try {
@@ -271,7 +293,9 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
         }
 
         registerOnReleaseCallback(mVideoFile::close)
+    }
 
+    private fun setupRecorder() {
         mRecorder.apply {
             setOnErrorListener(this@ViewfinderActivity)
 

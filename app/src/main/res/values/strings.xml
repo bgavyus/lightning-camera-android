@@ -16,4 +16,5 @@
     <string name="error_out_of_resources">Resources ran out</string>
     <string name="error_io">Cannot access files</string>
     <string name="error_uncaught">Bug</string>
+    <string name="error_storage_permission_not_granted">No permission to access storage</string>
 </resources>
