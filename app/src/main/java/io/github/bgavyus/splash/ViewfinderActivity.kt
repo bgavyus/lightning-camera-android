@@ -12,6 +12,7 @@ import android.hardware.camera2.*
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.MediaRecorder
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Looper
@@ -135,8 +136,14 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
     }
 
     private fun storagePermissionsGranted(): Boolean {
-        if (!Environment.isExternalStorageLegacy()) {
-            return true
+        Log.d(TAG, "Android API Level: ${Build.VERSION.SDK_INT}")
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Log.d(TAG, "Environment.isExternalStorageLegacy: ${Environment.isExternalStorageLegacy()}")
+
+            if (!Environment.isExternalStorageLegacy()) {
+                return true
+            }
         }
 
         return checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
