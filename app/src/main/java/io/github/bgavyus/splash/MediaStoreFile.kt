@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.content.ContentValues
 import android.net.Uri
 import android.provider.MediaStore
+import android.text.format.DateUtils
 import java.io.IOException
 import java.nio.file.Paths
 
@@ -22,6 +23,10 @@ class MediaStoreFile(
         put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
         put(MediaStore.MediaColumns.DISPLAY_NAME, name)
         put(MediaStore.MediaColumns.IS_PENDING, IS_PENDING_TRUE)
+        put(
+            MediaStore.MediaColumns.DATE_EXPIRES,
+            (System.currentTimeMillis() + DateUtils.DAY_IN_MILLIS) / 1000
+        )
     }) ?: throw IOException(
         "Failed to create ${Paths.get(
             collection.toString(),
@@ -39,6 +44,7 @@ class MediaStoreFile(
 
     private fun markAsDone() {
         mContentResolver.update(mUri, ContentValues().apply {
+            putNull(MediaStore.MediaColumns.DATE_EXPIRES)
             put(MediaStore.MediaColumns.IS_PENDING, IS_PENDING_FALSE)
         }, null, null)
     }

@@ -12,7 +12,6 @@ import android.hardware.camera2.*
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.MediaRecorder
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Looper
@@ -87,7 +86,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
     }
 
     private fun allPermissionsGranted(): Boolean {
-        return cameraPermissionsGranted() && storagePermissionsGranted()
+        return cameraPermissionsGranted()
     }
 
     private fun requestNonGrantedPermissions() {
@@ -95,10 +94,6 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
 
         if (!cameraPermissionsGranted()) {
             permissions.add(Manifest.permission.CAMERA)
-        }
-
-        if (!storagePermissionsGranted()) {
-            permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
 
         requestPermissions(permissions.toTypedArray(), REQUEST_PERMISSIONS_CODE)
@@ -124,29 +119,11 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
             return finishWithMessage(R.string.error_camera_permission_not_granted)
         }
 
-        if (!storagePermissionsGranted()) {
-            return finishWithMessage(R.string.error_storage_permission_not_granted)
-        }
-
         onAllPermissionGranted()
     }
 
     private fun cameraPermissionsGranted(): Boolean {
         return checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun storagePermissionsGranted(): Boolean {
-        Log.d(TAG, "Android API Level: ${Build.VERSION.SDK_INT}")
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            Log.d(TAG, "Environment.isExternalStorageLegacy: ${Environment.isExternalStorageLegacy()}")
-
-            if (!Environment.isExternalStorageLegacy()) {
-                return true
-            }
-        }
-
-        return checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun onAllPermissionGranted() {
@@ -275,6 +252,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
 
     private fun setupVideoFile() {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        mDeleteVideoFile = true
 
         try {
             mVideoFile = MediaStoreFile(
@@ -351,7 +329,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
             Surface.ROTATION_90 -> Surface.ROTATION_0
             Surface.ROTATION_180 -> Surface.ROTATION_270
             Surface.ROTATION_270 -> Surface.ROTATION_180
-            else -> throw RuntimeException("Invalid display rotation")
+            else -> throw IllegalArgumentException("Invalid display rotation")
         }
     }
 
@@ -361,7 +339,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
             Surface.ROTATION_90 -> 90
             Surface.ROTATION_180 -> 180
             Surface.ROTATION_270 -> 270
-            else -> throw RuntimeException("Invalid surface rotation")
+            else -> throw IllegalArgumentException("Invalid surface rotation")
         }
     }
 
