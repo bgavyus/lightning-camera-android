@@ -11,7 +11,7 @@ import java.nio.file.Paths
 class MediaStoreFile(
     contentResolver: ContentResolver, mode: String, mimeType: String, collection: Uri,
     relativePath: String, name: String
-) {
+) : PendingFile {
     companion object {
         const val IS_PENDING_TRUE = 1
         const val IS_PENDING_FALSE = 0
@@ -38,9 +38,23 @@ class MediaStoreFile(
     private val mFile = contentResolver.openFileDescriptor(mUri, mode)
         ?: throw IOException("Failed to open $mUri")
 
-    val fileDescriptor
+    override val descriptor
         get() = mFile.fileDescriptor
             ?: throw IOException("Failed to get file descriptor for $mUri")
+
+    override fun save() {
+        close()
+        markAsDone()
+    }
+
+    override fun discard() {
+        close()
+        delete()
+    }
+
+    private fun close() {
+        mFile.close()
+    }
 
     private fun markAsDone() {
         mContentResolver.update(mUri, ContentValues().apply {
@@ -49,12 +63,7 @@ class MediaStoreFile(
         }, null, null)
     }
 
-    fun close() {
-        mFile.close()
-        markAsDone()
-    }
-
-    fun delete() {
+    private fun delete() {
         val rowsDeleted = mContentResolver.delete(mUri, null, null)
 
         if (rowsDeleted != 1) {

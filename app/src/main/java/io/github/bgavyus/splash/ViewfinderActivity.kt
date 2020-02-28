@@ -9,9 +9,9 @@ import android.graphics.Matrix
 import android.graphics.RectF
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
-import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.MediaRecorder
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Looper
@@ -44,16 +44,16 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
         private const val VIDEO_OUTPUT_FORMAT = MediaRecorder.OutputFormat.MPEG_4
         private const val VIDEO_FILE_EXTENSION = "mp4"
         private const val VIDEO_PLAYBACK_FPS = 5
+        private const val BIT_RATE_FACTOR = 0.2
     }
 
     private val mOnReleaseCallbacks = ArrayDeque<() -> Unit>()
     private var mDeleteVideoFile = true
 
     private lateinit var mRecorder: StatefulMediaRecorder
-    private lateinit var mRecorderSurface: Surface
-    private lateinit var mVideoFile: MediaStoreFile
+    private lateinit var mVideoFile: PendingFile
     private lateinit var mTextureView: TextureView
-    private lateinit var mViewfinderSurface: Surface
+    private lateinit var mSurface: Surface
     private lateinit var mFpsRange: Range<Int>
     private lateinit var mVideoSize: Size
     private lateinit var mDetector: LightningDetector
@@ -70,19 +70,17 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
     override fun onResume() {
         Log.d(TAG, "Activity.onResume")
         super.onResume()
-        prepare()
+        initPermissions()
     }
 
-    private fun prepare() {
+    private fun initPermissions() {
         if (!allPermissionsGranted()) {
             Log.i(TAG, "Requesting permissions")
             requestNonGrantedPermissions()
             return
         }
 
-        prepareRecorder()
-        prepareTextureView()
-        prepareCamera()
+        initTextureView()
     }
 
     private fun allPermissionsGranted(): Boolean {
@@ -131,30 +129,40 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
         recreate()
     }
 
-    private fun prepareRecorder() {
-        mRecorder = StatefulMediaRecorder().apply { registerOnReleaseCallback(::release) }
-        mRecorderSurface =
-            MediaCodec.createPersistentInputSurface().apply { registerOnReleaseCallback(::release) }
-    }
-
-    @SuppressLint("Recycle")
-    private fun prepareTextureView() {
-        mTextureView = viewfinder_texture_view
-
-        try {
-            mTextureView.surfaceTexture = SurfaceTexture(false).apply {
-                registerOnReleaseCallback(::release)
-                mViewfinderSurface = Surface(this).apply {
-                    registerOnReleaseCallback(::release)
-                }
+    private fun initTextureView() {
+        mTextureView = texture_view.apply {
+            if (isAvailable) {
+                Log.d(TAG, "TextureView.isAvailable")
+                initSurface()
+            } else {
+                surfaceTextureListener = this@ViewfinderActivity
             }
-        } catch (_: Surface.OutOfResourcesException) {
-            return finishWithMessage(R.string.error_out_of_resources)
         }
     }
 
+    override fun onSurfaceTextureAvailable(
+        surfaceTexture: SurfaceTexture?,
+        width: Int,
+        height: Int
+    ) {
+        Log.d(TAG, "onSurfaceTextureAvailable(width = $width, height = $height)")
+        assert(surfaceTexture == mTextureView.surfaceTexture)
+        mTextureView.surfaceTextureListener = null
+        initSurface()
+    }
+
+    private fun initSurface() {
+        try {
+            mSurface = Surface(mTextureView.surfaceTexture)
+        } catch (_: Surface.OutOfResourcesException) {
+            return finishWithMessage(R.string.error_out_of_resources)
+        }
+
+        initCamera()
+    }
+
     @SuppressLint("MissingPermission")
-    private fun prepareCamera() {
+    private fun initCamera() {
         val cameraManager = getSystemService(CameraManager::class.java)
             ?: return finishWithMessage(R.string.error_camera_generic)
 
@@ -208,22 +216,23 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
                 mVideoSize
             ).apply { registerOnReleaseCallback(::release) }
 
-            mTextureView.surfaceTextureListener = this@ViewfinderActivity
-            registerOnReleaseCallback {
-                Log.d(TAG, "Removing surfaceTextureListener")
-                mTextureView.surfaceTextureListener = null
+            mTextureView.apply {
+                surfaceTextureListener = this@ViewfinderActivity
+                registerOnReleaseCallback {
+                    Log.d(TAG, "Removing surfaceTextureListener")
+                    surfaceTextureListener = null
+                }
             }
 
-            setupVideoFile()
-            setupRecorder()
+            initVideoFile()
+            initRecorder()
             setViewfinderSize()
 
             try {
                 camera.createConstrainedHighSpeedCaptureSession(
-                    listOf(
-                        mViewfinderSurface,
-                        mRecorderSurface
-                    ), cameraCaptureSessionStateCallback, null
+                    listOf(mSurface, mRecorder.surface),
+                    cameraCaptureSessionStateCallback,
+                    null
                 )
             } catch (error: CameraAccessException) {
                 return finishWithMessage(cameraAccessExceptionToResourceId(error))
@@ -250,20 +259,24 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
         }
     }
 
-    private fun setupVideoFile() {
+    private fun initVideoFile() {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         mDeleteVideoFile = true
 
         try {
-            mVideoFile = MediaStoreFile(
-                contentResolver, mode = "w", mimeType = VIDEO_MIME_TYPE,
-                collection = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                relativePath = Paths.get(
-                    Environment.DIRECTORY_MOVIES,
-                    getString(R.string.video_folder_name)
-                ).toString(),
-                name = "${getString(R.string.video_file_prefix)}_$timestamp.$VIDEO_FILE_EXTENSION"
-            )
+            mVideoFile = if (Build.VERSION.SDK_INT >= 29) {
+                MediaStoreFile(
+                    contentResolver, mode = "w", mimeType = VIDEO_MIME_TYPE,
+                    collection = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    relativePath = Paths.get(
+                        Environment.DIRECTORY_MOVIES,
+                        getString(R.string.video_folder_name)
+                    ).toString(),
+                    name = "${getString(R.string.video_file_prefix)}_$timestamp.$VIDEO_FILE_EXTENSION"
+                )
+            } else {
+                LegacyStorageFile(this)
+            }
         } catch (_: IOException) {
             return finishWithMessage(R.string.error_io)
         }
@@ -273,15 +286,15 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
 
             if (mDeleteVideoFile) {
                 Log.i(TAG, "Deleting video file")
-                mVideoFile.delete()
+                mVideoFile.discard()
+            } else {
+                mVideoFile.save()
             }
         }
-
-        registerOnReleaseCallback(mVideoFile::close)
     }
 
-    private fun setupRecorder() {
-        mRecorder.apply {
+    private fun initRecorder() {
+        mRecorder = StatefulMediaRecorder().apply {
             setOnErrorListener(this@ViewfinderActivity)
 
             assert(state == RecorderState.Initial)
@@ -289,14 +302,15 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
 
             assert(state == RecorderState.Initialized)
             setOutputFormat(VIDEO_OUTPUT_FORMAT)
-
-            setInputSurface(mRecorderSurface)
-            setVideoEncoder(VIDEO_ENCODER)
-            setVideoSize(mVideoSize.width, mVideoSize.height)
-            setOutputFile(mVideoFile.fileDescriptor)
-            setCaptureRate(mFpsRange.upper.toDouble())
-            setVideoEncodingBitRate(Int.MAX_VALUE)
             setVideoFrameRate(VIDEO_PLAYBACK_FPS)
+            setVideoSize(mVideoSize.width, mVideoSize.height)
+
+            val encodingBitRate =
+                (BIT_RATE_FACTOR * mFpsRange.upper * mVideoSize.width * mVideoSize.height).toInt()
+            Log.d(TAG, "Encoding Bit Rate: $encodingBitRate")
+            setVideoEncodingBitRate(encodingBitRate)
+
+            setCaptureRate(mFpsRange.upper.toDouble())
             setOrientationHint(
                 surfaceRotationToDegrees(
                     displayRotationToRecorderRotation(
@@ -306,6 +320,8 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
             )
 
             assert(state == RecorderState.DataSourceConfigured)
+            setVideoEncoder(VIDEO_ENCODER)
+            setOutputFile(mVideoFile.descriptor)
             prepare()
 
             registerOnReleaseCallback {
@@ -319,6 +335,8 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
                         mDeleteVideoFile = true
                     }
                 }
+
+                release()
             }
         }
     }
@@ -369,8 +387,8 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
                     createHighSpeedRequestList(
                         device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
                             set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mFpsRange)
-                            addTarget(mViewfinderSurface)
-                            addTarget(mRecorderSurface)
+                            addTarget(mSurface)
+                            addTarget(mRecorder.surface)
                         }.build()
                     ), null, null
                 )
@@ -481,12 +499,9 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
         finishWithMessage(R.string.error_recorder)
     }
 
-    override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
-        Log.d(TAG, "onSurfaceTextureSizeChanged(width = $width, height = $height)")
-    }
-
-    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
+    override fun onSurfaceTextureDestroyed(surfaceTexture: SurfaceTexture?): Boolean {
         Log.d(TAG, "onSurfaceTextureDestroyed")
+        assert(surfaceTexture == mTextureView.surfaceTexture)
         return true
     }
 
@@ -497,9 +512,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
     }
 
     override fun uncaughtException(t: Thread, e: Throwable) {
-        Log.d(TAG, "uncaughtException(t = $t, e = $e)")
-        Log.w(TAG, "Uncaught Exception")
-
+        Log.e(TAG, "Uncaught Exception from $t", e)
         finishWithMessage(R.string.error_uncaught)
     }
 
