@@ -9,30 +9,30 @@ import android.renderscript.ScriptIntrinsicHistogram
 import android.util.Size
 import android.view.TextureView
 
-class LightningDetector(context: Context, textureView: TextureView, videoSize: Size) {
+class LightningDetector(context: Context, textureView: TextureView, videoSize: Size) : Detector {
     private val mHistogram = IntArray(0x100)
-    private val renderScript = RenderScript.create(context)
+    private val mRenderScript = RenderScript.create(context)
     private var mTextureView = textureView
     private var mInputBitmap =
-        Bitmap.createBitmap(videoSize.width, videoSize.height, Bitmap.Config.ARGB_8888, false)
-    private var mInputAllocation = Allocation.createFromBitmap(renderScript, mInputBitmap)
+        Bitmap.createBitmap(videoSize.width, videoSize.height, Bitmap.Config.ARGB_8888)
+    private var mInputAllocation = Allocation.createFromBitmap(mRenderScript, mInputBitmap)
     private var mOutputAllocation =
-        Allocation.createSized(renderScript, Element.I32(renderScript), mHistogram.size)
+        Allocation.createSized(mRenderScript, Element.I32(mRenderScript), mHistogram.size)
     private var mHistogramKernel =
-        ScriptIntrinsicHistogram.create(renderScript, Element.U8_4(renderScript))
+        ScriptIntrinsicHistogram.create(mRenderScript, Element.U8_4(mRenderScript))
             .apply { setOutput(mOutputAllocation) }
 
-    fun hasLightning(): Boolean {
+    override fun detected(): Boolean {
         mTextureView.getBitmap(mInputBitmap)
         mHistogramKernel.forEach_Dot(mInputAllocation)
         mOutputAllocation.copyTo(mHistogram)
         return mHistogram.last() > 0
     }
 
-    fun release() {
+    override fun release() {
         mHistogramKernel.destroy()
         mOutputAllocation.destroy()
         mInputAllocation.destroy()
-        renderScript.destroy()
+        mRenderScript.destroy()
     }
 }
