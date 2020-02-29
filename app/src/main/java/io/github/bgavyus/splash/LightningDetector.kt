@@ -9,30 +9,30 @@ import android.renderscript.ScriptIntrinsicHistogram
 import android.util.Size
 import android.view.TextureView
 
-class LightningDetector(context: Context, textureView: TextureView, videoSize: Size) : Detector {
-    private val mHistogram = IntArray(0x100)
-    private val mRenderScript = RenderScript.create(context)
-    private var mTextureView = textureView
-    private var mInputBitmap =
+class LightningDetector(context: Context, private var textureView: TextureView, videoSize: Size) :
+    Detector {
+    private val histogram = IntArray(0x100)
+    private val renderScript = RenderScript.create(context)
+    private var inputBitmap =
         Bitmap.createBitmap(videoSize.width, videoSize.height, Bitmap.Config.ARGB_8888)
-    private var mInputAllocation = Allocation.createFromBitmap(mRenderScript, mInputBitmap)
-    private var mOutputAllocation =
-        Allocation.createSized(mRenderScript, Element.I32(mRenderScript), mHistogram.size)
-    private var mHistogramKernel =
-        ScriptIntrinsicHistogram.create(mRenderScript, Element.U8_4(mRenderScript))
-            .apply { setOutput(mOutputAllocation) }
+    private var inputAllocation = Allocation.createFromBitmap(renderScript, inputBitmap)
+    private var outputAllocation =
+        Allocation.createSized(renderScript, Element.I32(renderScript), histogram.size)
+    private var histogramKernel =
+        ScriptIntrinsicHistogram.create(renderScript, Element.U8_4(renderScript))
+            .apply { setOutput(outputAllocation) }
 
     override fun detected(): Boolean {
-        mTextureView.getBitmap(mInputBitmap)
-        mHistogramKernel.forEach_Dot(mInputAllocation)
-        mOutputAllocation.copyTo(mHistogram)
-        return mHistogram.last() > 0
+        textureView.getBitmap(inputBitmap)
+        histogramKernel.forEach_Dot(inputAllocation)
+        outputAllocation.copyTo(histogram)
+        return histogram.last() > 0
     }
 
     override fun release() {
-        mHistogramKernel.destroy()
-        mOutputAllocation.destroy()
-        mInputAllocation.destroy()
-        mRenderScript.destroy()
+        histogramKernel.destroy()
+        outputAllocation.destroy()
+        inputAllocation.destroy()
+        renderScript.destroy()
     }
 }

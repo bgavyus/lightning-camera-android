@@ -2,8 +2,6 @@ package io.github.bgavyus.splash
 
 import java.io.FileDescriptor
 
-interface PendingFile {
+interface PendingFile : PendingOperation {
     val descriptor: FileDescriptor
-    fun save()
-    fun discard()
 }

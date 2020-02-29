@@ -3,6 +3,7 @@
     <string name="app_name">ספלאש</string>
 
     <string name="error_camera_permission_not_granted">לא ניתנה הרשאה לגשת למצלמה</string>
+    <string name="error_storage_permission_not_granted">לא ניתנה הרשאה לגשת לאחסון</string>
     <string name="error_high_speed_camera_not_available">הילוך איטי לא זמין</string>
     <string name="error_camera_device">שגיאה במצלמה</string>
     <string name="error_camera_disabled">המצלמה הושבתה</string>
