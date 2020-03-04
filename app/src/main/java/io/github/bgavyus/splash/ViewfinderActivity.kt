@@ -15,7 +15,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Looper
-import android.provider.MediaStore
 import android.util.Log
 import android.util.Range
 import android.util.Size
@@ -64,6 +63,12 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
         setContentView(R.layout.activity_viewfinder)
         Thread.setDefaultUncaughtExceptionHandler(this)
+
+        if (isStorageScoped()) {
+            Log.d(TAG, "Running in scoped storage mode")
+        } else {
+            Log.d(TAG, "Running in legacy storage mode")
+        }
     }
 
     override fun onResume() {
@@ -133,11 +138,9 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
 
     private fun storagePermissionsGranted(): Boolean {
         if (isStorageScoped()) {
-            Log.d(TAG, "Running in scoped storage mode")
             return true
         }
 
-        Log.d(TAG, "Running in legacy storage mode")
         return checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
     }
 
@@ -285,7 +288,8 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
     }
 
     private fun initVideoFile() {
-        val path = listOf(Environment.DIRECTORY_MOVIES, getString(R.string.video_folder_name))
+        val standardDirectory = StandardDirectory.Movies
+        val appDirName = getString(R.string.video_folder_name)
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val fileName = "${getString(R.string.video_file_prefix)}_$timestamp.$VIDEO_FILE_EXTENSION"
         videoFileHasValidContent = false
@@ -295,15 +299,16 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
                 PendingScopedStorageFile(
                     context = this,
                     mimeType = VIDEO_MIME_TYPE,
-                    storage = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    path = path,
+                    standardDirectory = standardDirectory,
+                    appDirName = appDirName,
                     name = fileName
                 )
             } else {
                 PendingLegacyStorageFile(
                     context = this,
                     mimeType = VIDEO_MIME_TYPE,
-                    path = path,
+                    standardDirectory = standardDirectory,
+                    appDirName = appDirName,
                     name = fileName
                 )
             }

@@ -2,7 +2,6 @@ package io.github.bgavyus.splash
 
 import android.content.ContentValues
 import android.content.Context
-import android.net.Uri
 import android.provider.MediaStore
 import android.text.format.DateUtils
 import java.io.File
@@ -11,8 +10,8 @@ import java.io.IOException
 class PendingScopedStorageFile(
     context: Context,
     mimeType: String,
-    storage: Uri,
-    path: Iterable<String>,
+    standardDirectory: StandardDirectory,
+    appDirName: String,
     name: String
 ) : PendingFile {
     companion object {
@@ -21,21 +20,41 @@ class PendingScopedStorageFile(
     }
 
     private val contentResolver = context.contentResolver
-    private val uri = contentResolver.insert(storage, ContentValues().apply {
+    private val externalStorage = when (standardDirectory) {
+        StandardDirectory.Music,
+        StandardDirectory.Podcasts,
+        StandardDirectory.Ringtones,
+        StandardDirectory.Alarms,
+        StandardDirectory.Notifications,
+        StandardDirectory.Audiobooks -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+
+        StandardDirectory.Pictures,
+        StandardDirectory.Screenshots -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+
+        StandardDirectory.Movies,
+        StandardDirectory.Dcim -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+
+        StandardDirectory.Downloads,
+        StandardDirectory.Documents -> MediaStore.Downloads.EXTERNAL_CONTENT_URI
+    }
+
+    private val uri = contentResolver.insert(externalStorage, ContentValues().apply {
         put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
         put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-        put(MediaStore.MediaColumns.RELATIVE_PATH, path.joinToString(File.separator))
+        put(
+            MediaStore.MediaColumns.RELATIVE_PATH,
+            listOf(standardDirectory.value, appDirName).joinToString(File.separator)
+        )
         put(MediaStore.MediaColumns.IS_PENDING, IS_PENDING_TRUE)
         put(
             MediaStore.MediaColumns.DATE_EXPIRES,
             (System.currentTimeMillis() + DateUtils.DAY_IN_MILLIS) / 1000
         )
     }) ?: throw IOException(
-        "Failed to create ${storage
-            .buildUpon()
-            .appendPath(path.joinToString(File.separator))
-            .appendPath(name)
-            .build()}"
+        "Failed to create ${externalStorage.buildUpon()
+            .appendPath(standardDirectory.value)
+            .appendPath(appDirName)
+            .appendPath(name)}"
     )
 
     private val file = contentResolver.openFileDescriptor(uri, "w")
