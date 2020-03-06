@@ -1,22 +1,25 @@
 package io.github.bgavyus.splash
 
+import android.content.ContentValues
 import android.content.Context
+import android.net.Uri
 import android.os.Environment
+import android.provider.MediaStore
 import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException
 
 class PendingLegacyStorageFile(
-    context: Context,
-    mimeType: String,
-    standardDirectory: StandardDirectory,
-    appDirName: String,
+    private val context: Context,
+    private val mimeType: String,
+    private val standardDirectory: StandardDirectory,
+    appDirectoryName: String,
     private val name: String
 ) : PendingFile {
 
     private val parentDirectory = File(
         Environment.getExternalStoragePublicDirectory(standardDirectory.value),
-        appDirName
+        appDirectoryName
     ).apply {
         if (!exists()) {
             if (!mkdirs()) {
@@ -53,5 +56,19 @@ class PendingLegacyStorageFile(
         if (!tempFile.renameTo(file)) {
             throw IOException("Failed to rename ${tempFile.absolutePath} to ${file.absolutePath}")
         }
+
+        addToMediaStore(file)
+    }
+
+    private fun addToMediaStore(file: File): Uri {
+        return context.contentResolver.insert(
+            standardDirectory.externalStorage,
+            ContentValues().apply {
+                put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+                put(MediaStore.MediaColumns.DATA, file.absolutePath)
+            }) ?: throw IOException(
+            "Failed to add file to media store: $file"
+        )
     }
 }

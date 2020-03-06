@@ -11,7 +11,7 @@ class PendingScopedStorageFile(
     context: Context,
     mimeType: String,
     standardDirectory: StandardDirectory,
-    appDirName: String,
+    appDirectoryName: String,
     name: String
 ) : PendingFile {
     companion object {
@@ -20,30 +20,13 @@ class PendingScopedStorageFile(
     }
 
     private val contentResolver = context.contentResolver
-    private val externalStorage = when (standardDirectory) {
-        StandardDirectory.Music,
-        StandardDirectory.Podcasts,
-        StandardDirectory.Ringtones,
-        StandardDirectory.Alarms,
-        StandardDirectory.Notifications,
-        StandardDirectory.Audiobooks -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
 
-        StandardDirectory.Pictures,
-        StandardDirectory.Screenshots -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-
-        StandardDirectory.Movies,
-        StandardDirectory.Dcim -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-
-        StandardDirectory.Downloads,
-        StandardDirectory.Documents -> MediaStore.Downloads.EXTERNAL_CONTENT_URI
-    }
-
-    private val uri = contentResolver.insert(externalStorage, ContentValues().apply {
+    private val uri = contentResolver.insert(standardDirectory.externalStorage, ContentValues().apply {
         put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
         put(MediaStore.MediaColumns.DISPLAY_NAME, name)
         put(
             MediaStore.MediaColumns.RELATIVE_PATH,
-            listOf(standardDirectory.value, appDirName).joinToString(File.separator)
+            listOf(standardDirectory.value, appDirectoryName).joinToString(File.separator)
         )
         put(MediaStore.MediaColumns.IS_PENDING, IS_PENDING_TRUE)
         put(
@@ -51,9 +34,9 @@ class PendingScopedStorageFile(
             (System.currentTimeMillis() + DateUtils.DAY_IN_MILLIS) / 1000
         )
     }) ?: throw IOException(
-        "Failed to create ${externalStorage.buildUpon()
+        "Failed to create ${standardDirectory.externalStorage.buildUpon()
             .appendPath(standardDirectory.value)
-            .appendPath(appDirName)
+            .appendPath(appDirectoryName)
             .appendPath(name)}"
     )
 

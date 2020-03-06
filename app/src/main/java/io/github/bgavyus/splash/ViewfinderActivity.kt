@@ -199,12 +199,12 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
             fpsRange = configs.highSpeedVideoFpsRanges.maxBy { it.lower + it.upper }
                 ?: return finishWithMessage(R.string.error_high_speed_camera_not_available)
 
-            Log.i(TAG, "FPS Range: $fpsRange")
+            Log.d(TAG, "FPS Range: $fpsRange")
 
             videoSize = configs.getHighSpeedVideoSizesFor(fpsRange).maxBy { it.width * it.height }
                 ?: return finishWithMessage(R.string.error_high_speed_camera_not_available)
 
-            Log.i(TAG, "Video Size: $videoSize")
+            Log.d(TAG, "Video Size: $videoSize")
 
             cameraManager.openCamera(cameraId, cameraDeviceStateCallback, null)
         } catch (error: CameraAccessException) {
@@ -289,7 +289,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
 
     private fun initVideoFile() {
         val standardDirectory = StandardDirectory.Movies
-        val appDirName = getString(R.string.video_folder_name)
+        val appDirectoryName = getString(R.string.video_folder_name)
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val fileName = "${getString(R.string.video_file_prefix)}_$timestamp.$VIDEO_FILE_EXTENSION"
         videoFileHasValidContent = false
@@ -300,7 +300,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
                     context = this,
                     mimeType = VIDEO_MIME_TYPE,
                     standardDirectory = standardDirectory,
-                    appDirName = appDirName,
+                    appDirectoryName = appDirectoryName,
                     name = fileName
                 )
             } else {
@@ -308,7 +308,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
                     context = this,
                     mimeType = VIDEO_MIME_TYPE,
                     standardDirectory = standardDirectory,
-                    appDirName = appDirName,
+                    appDirectoryName = appDirectoryName,
                     name = fileName
                 )
             }
@@ -323,6 +323,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
                 Log.i(TAG, "Saving video")
                 videoFile.save()
             } else {
+                Log.i(TAG, "Discarding video")
                 videoFile.discard()
             }
         }
