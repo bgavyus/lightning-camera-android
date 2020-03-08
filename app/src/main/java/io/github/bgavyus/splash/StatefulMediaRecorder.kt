@@ -2,17 +2,6 @@ package io.github.bgavyus.splash
 
 import android.media.MediaRecorder
 
-enum class RecorderState {
-    Initial,
-    Initialized,
-    DataSourceConfigured,
-    Prepared,
-    Recording,
-    Released,
-    Error,
-    Paused
-}
-
 class StatefulMediaRecorder : MediaRecorder() {
     private var _state = RecorderState.Initial
     private var onErrorListener: OnErrorListener? = null
