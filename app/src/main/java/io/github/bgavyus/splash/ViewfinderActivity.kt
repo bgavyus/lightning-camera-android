@@ -27,7 +27,7 @@ import kotlinx.android.synthetic.main.activity_viewfinder.*
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.max
+import kotlin.math.min
 
 
 class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
@@ -475,7 +475,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
         }
 
         if (recording && !detected) {
-            loss()
+            lose()
         }
     }
 
@@ -491,7 +491,7 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
         }
     }
 
-    private fun loss() {
+    private fun lose() {
         Log.i(TAG, "Losing")
         recorder.pause()
     }
@@ -523,21 +523,28 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
         val bufferRect = RectF(0f, 0f, bufferSize.height.toFloat(), bufferSize.width.toFloat())
         val centerX = viewRect.centerX()
         val centerY = viewRect.centerY()
+        val scale = min(viewSize.width, viewSize.height).toFloat() / bufferSize.height
 
-        if (Surface.ROTATION_90 == rotation || Surface.ROTATION_270 == rotation) {
-            bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
-            matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
-            val scale = max(
-                viewSize.height.toFloat() / bufferSize.height,
-                viewSize.width.toFloat() / bufferSize.width
-            )
-            matrix.postScale(scale, scale, centerX, centerY)
-            matrix.postRotate(90f * (rotation - 2), centerX, centerY)
-        } else if (Surface.ROTATION_180 == rotation) {
-            matrix.postRotate(180f, centerX, centerY)
-        }
+        bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
+        matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
+        matrix.postScale(scale, scale, centerX, centerY)
+        matrix.postRotate(
+            surfaceRotationToDegrees(displayRotationToMatrixRotation(rotation)).toFloat(),
+            centerX,
+            centerY
+        )
 
         return matrix
+    }
+
+    private fun displayRotationToMatrixRotation(displayRotation: Int): Int {
+        return when (displayRotation) {
+            Surface.ROTATION_0 -> Surface.ROTATION_0
+            Surface.ROTATION_90 -> Surface.ROTATION_270
+            Surface.ROTATION_180 -> Surface.ROTATION_180
+            Surface.ROTATION_270 -> Surface.ROTATION_90
+            else -> throw IllegalArgumentException("Invalid display rotation")
+        }
     }
 
     override fun onError(mr: MediaRecorder?, what: Int, extra: Int) {
@@ -569,9 +576,8 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
     }
 
     private fun getDefaultString(resourceId: Int): String {
-        return createConfigurationContext(Configuration().apply { setLocale(Locale.ROOT) }).getString(
-            resourceId
-        )
+        val config = Configuration().apply { setLocale(Locale.ROOT) }
+        return createConfigurationContext(config).getString(resourceId)
     }
 
     private fun showMessage(resourceId: Int) {

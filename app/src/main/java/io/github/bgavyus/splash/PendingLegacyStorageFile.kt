@@ -9,6 +9,7 @@ import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException
 
+@Suppress("DEPRECATION")
 class PendingLegacyStorageFile(
     private val context: Context,
     private val mimeType: String,
@@ -39,18 +40,7 @@ class PendingLegacyStorageFile(
 
     override fun save() {
         close()
-        rename()
-    }
 
-    override fun discard() {
-        close()
-    }
-
-    private fun close() {
-        tempFileOutputStream.close()
-    }
-
-    private fun rename() {
         val file = File(parentDirectory, name)
 
         if (!tempFile.renameTo(file)) {
@@ -70,5 +60,13 @@ class PendingLegacyStorageFile(
             }) ?: throw IOException(
             "Failed to add file to media store: $file"
         )
+    }
+
+    override fun discard() {
+        close()
+    }
+
+    private fun close() {
+        tempFileOutputStream.close()
     }
 }
