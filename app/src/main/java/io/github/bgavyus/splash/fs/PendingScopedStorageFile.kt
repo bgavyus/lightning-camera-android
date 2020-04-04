@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash
+package io.github.bgavyus.splash.fs
 
 import android.content.ContentValues
 import android.content.Context
@@ -28,7 +28,9 @@ class PendingScopedStorageFile(
             MediaStore.MediaColumns.RELATIVE_PATH,
             listOf(standardDirectory.value, appDirectoryName).joinToString(File.separator)
         )
-        put(MediaStore.MediaColumns.IS_PENDING, IS_PENDING_TRUE)
+        put(MediaStore.MediaColumns.IS_PENDING,
+            IS_PENDING_TRUE
+        )
         put(
             MediaStore.MediaColumns.DATE_EXPIRES,
             (System.currentTimeMillis() + DateUtils.DAY_IN_MILLIS) / 1000
@@ -64,7 +66,9 @@ class PendingScopedStorageFile(
     private fun markAsDone() {
         contentResolver.update(uri, ContentValues().apply {
             putNull(MediaStore.MediaColumns.DATE_EXPIRES)
-            put(MediaStore.MediaColumns.IS_PENDING, IS_PENDING_FALSE)
+            put(MediaStore.MediaColumns.IS_PENDING,
+                IS_PENDING_FALSE
+            )
         }, null, null)
     }
 

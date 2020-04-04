@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash
+package io.github.bgavyus.splash.fs
 
 interface PendingOperation {
 	fun save()
