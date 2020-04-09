@@ -1,39 +1,28 @@
 package io.github.bgavyus.splash
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.pm.PackageManager
-import android.content.res.Configuration
-import android.graphics.Matrix
-import android.graphics.RectF
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.MediaRecorder
 import android.os.Bundle
-import android.os.Looper
 import android.util.Log
 import android.util.Range
 import android.util.Size
-import android.view.Gravity
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
-import android.widget.Toast
-import io.github.bgavyus.splash.fs.isStorageScoped
+import io.github.bgavyus.splash.filesystem.isStorageScoped
+import io.github.bgavyus.splash.permissions.PermissionGroup
+import io.github.bgavyus.splash.permissions.PermissionsActivity
 import kotlinx.android.synthetic.main.activity_viewfinder.*
 import java.io.IOException
-import java.util.*
-import kotlin.math.min
 
 
-class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
+class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureListener,
     MediaRecorder.OnErrorListener, Thread.UncaughtExceptionHandler {
 
     companion object {
         private val TAG = ViewfinderActivity::class.simpleName
-
-        private const val REQUEST_PERMISSIONS_CODE = 0
     }
 
     private val releaseQueue = ReleaseQueue()
@@ -55,14 +44,13 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
         setContentView(R.layout.activity_viewfinder)
         Thread.setDefaultUncaughtExceptionHandler(this)
 
-        if (isStorageScoped()) {
-            Log.d(TAG, "Running in scoped storage mode")
-        } else {
-            Log.d(TAG, "Running in legacy storage mode")
-        }
-
-		Log.d(TAG, "Device Orientation: $deviceOrientation")
+		logState()
     }
+
+	private fun logState() {
+		Log.d(TAG, "Device Orientation: $deviceOrientation")
+		Log.d(TAG, "Running in ${if (isStorageScoped()) "scoped" else "legacy"} storage mode")
+	}
 
     override fun onResume() {
         Log.d(TAG, "Activity.onResume")
@@ -80,69 +68,21 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
         initSurfaceTexture()
     }
 
-    private fun allPermissionsGranted(): Boolean {
-        return cameraPermissionsGranted() && storagePermissionsGranted()
-    }
+	override fun onPermissionDenied(group: PermissionGroup) {
+		Log.d(TAG, "onPermissionDenied(group = $group)")
 
-    private fun requestNonGrantedPermissions() {
-        val permissions = ArrayList<String>()
+		finishWithMessage(when (group) {
+			PermissionGroup.Camera -> R.string.error_camera_permission_not_granted
+			PermissionGroup.Storage -> R.string.error_storage_permission_not_granted
+		})
+	}
 
-        if (!cameraPermissionsGranted()) {
-            permissions.add(Manifest.permission.CAMERA)
-        }
+	override fun onAllPermissionsGranted() {
+		Log.d(TAG, "onAllPermissionGranted")
+		recreate()
+	}
 
-        if (!storagePermissionsGranted()) {
-            permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        }
-
-        requestPermissions(permissions.toTypedArray(), REQUEST_PERMISSIONS_CODE)
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        Log.d(
-            TAG,
-            "onRequestPermissionsResult(requestCode = $requestCode, permissions = ${permissions.joinToString()}, grantResults = ${grantResults.joinToString()})"
-        )
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (requestCode != REQUEST_PERMISSIONS_CODE) {
-            Log.w(TAG, "Got unknown request permission result: $requestCode")
-            return
-        }
-
-        if (!cameraPermissionsGranted()) {
-            return finishWithMessage(R.string.error_camera_permission_not_granted)
-        }
-
-        if (!storagePermissionsGranted()) {
-            return finishWithMessage(R.string.error_storage_permission_not_granted)
-        }
-
-        onAllPermissionGranted()
-    }
-
-    private fun cameraPermissionsGranted(): Boolean {
-        return checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun storagePermissionsGranted(): Boolean {
-        if (isStorageScoped()) {
-            return true
-        }
-
-        return checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun onAllPermissionGranted() {
-        Log.d(TAG, "onAllPermissionGranted")
-        recreate()
-    }
-
-    private fun initSurfaceTexture() {
+	private fun initSurfaceTexture() {
         texture_view.run {
             textureView = this
 
@@ -414,22 +354,6 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
         textureView.setTransform(matrix)
     }
 
-    private fun getTransformMatrix(viewSize: Size, bufferSize: Size, rotation: Rotation): Matrix {
-        val matrix = Matrix()
-        val viewRect = RectF(0f, 0f, viewSize.width.toFloat(), viewSize.height.toFloat())
-        val bufferRect = RectF(0f, 0f, bufferSize.height.toFloat(), bufferSize.width.toFloat())
-        val centerX = viewRect.centerX()
-        val centerY = viewRect.centerY()
-        val scale = min(viewSize.width, viewSize.height).toFloat() / bufferSize.height
-
-        bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
-        matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
-        matrix.postScale(scale, scale, centerX, centerY)
-        matrix.postRotate(rotation.degrees.toFloat(), centerX, centerY)
-
-        return matrix
-    }
-
     override fun onError(mr: MediaRecorder?, what: Int, extra: Int) {
         Log.d(TAG, "MediaRecorder.onError(what = $what, extra = $extra)")
         finishWithMessage(R.string.error_recorder)
@@ -453,25 +377,9 @@ class ViewfinderActivity : Activity(), TextureView.SurfaceTextureListener,
     }
 
     private fun finishWithMessage(resourceId: Int) {
-        Log.d(TAG, "finishWithMessage: ${getDefaultString(resourceId)}")
-        showMessage(resourceId)
+        Log.d(TAG, "finishWithMessage: ${getDefaultString(this, resourceId)}")
+        showMessage(applicationContext, resourceId)
         finish()
-    }
-
-    private fun getDefaultString(resourceId: Int): String {
-        val config = Configuration().apply { setLocale(Locale.ROOT) }
-        return createConfigurationContext(config).getString(resourceId)
-    }
-
-    private fun showMessage(resourceId: Int) {
-        Thread {
-            Looper.prepare()
-            Toast.makeText(applicationContext, resourceId, Toast.LENGTH_LONG).run {
-                setGravity(Gravity.CENTER, 0, 0)
-                show()
-            }
-            Looper.loop()
-        }.start()
     }
 
     override fun finish() {

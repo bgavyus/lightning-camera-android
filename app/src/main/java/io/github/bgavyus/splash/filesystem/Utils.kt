@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash.fs
+package io.github.bgavyus.splash.filesystem
 
 import android.os.Build
 import android.os.Environment

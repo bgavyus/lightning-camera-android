@@ -3,10 +3,10 @@ package io.github.bgavyus.splash
 import android.content.Context
 import android.media.MediaFormat
 import android.util.Log
-import io.github.bgavyus.splash.fs.PendingLegacyStorageFile
-import io.github.bgavyus.splash.fs.PendingScopedStorageFile
-import io.github.bgavyus.splash.fs.StandardDirectory
-import io.github.bgavyus.splash.fs.isStorageScoped
+import io.github.bgavyus.splash.filesystem.PendingLegacyStorageFile
+import io.github.bgavyus.splash.filesystem.PendingScopedStorageFile
+import io.github.bgavyus.splash.filesystem.StandardDirectory
+import io.github.bgavyus.splash.filesystem.isStorageScoped
 import java.text.SimpleDateFormat
 import java.util.*
 
