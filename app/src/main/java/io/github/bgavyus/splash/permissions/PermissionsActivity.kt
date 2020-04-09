@@ -4,7 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.util.Log
-import io.github.bgavyus.splash.storage.isStorageScoped
+import io.github.bgavyus.splash.storage.Storage
 import java.util.*
 
 abstract class PermissionsActivity: Activity() {
@@ -66,7 +66,7 @@ abstract class PermissionsActivity: Activity() {
 	}
 
 	private fun storagePermissionsGranted(): Boolean {
-		if (isStorageScoped()) {
+		if (Storage.scoped) {
 			return true
 		}
 

@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash
+package io.github.bgavyus.splash.common
 
 import android.content.Context
 import android.view.Surface
@@ -21,11 +21,15 @@ enum class Rotation(val surfaceRotation: Int) {
 		}
 
 		private fun fromOrdinal(index: Int): Rotation {
-			return rotations[Math.floorMod(index, rotationsCount)]
+			return rotations[Math.floorMod(index,
+				rotationsCount
+			)]
 		}
 
 		fun fromDegrees(degrees: Int): Rotation {
-			return fromOrdinal(degrees / degreesPerRotation)
+			return fromOrdinal(
+				degrees / degreesPerRotation
+			)
 		}
 	}
 
@@ -33,21 +37,29 @@ enum class Rotation(val surfaceRotation: Int) {
 		get() = ordinal * degreesPerRotation
 
 	operator fun unaryMinus(): Rotation {
-		return fromOrdinal(-ordinal)
+		return fromOrdinal(
+			-ordinal
+		)
 	}
 
 	operator fun plus(other: Rotation): Rotation {
-		return fromOrdinal(ordinal + other.ordinal)
+		return fromOrdinal(
+			ordinal + other.ordinal
+		)
 	}
 
 	operator fun minus(other: Rotation): Rotation {
-		return fromOrdinal(ordinal - other.ordinal)
+		return fromOrdinal(
+			ordinal - other.ordinal
+		)
 	}
 }
 
 val Context.displayRotation: Rotation
 	get() = getSystemService(WindowManager::class.java)?.let {
-		Rotation.fromSurfaceRotation(it.defaultDisplay.rotation)
+		Rotation.fromSurfaceRotation(
+			it.defaultDisplay.rotation
+		)
 	} ?: throw RuntimeException("Failed to get display rotation")
 
 val Context.deviceOrientation: Rotation

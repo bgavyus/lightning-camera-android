@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash
+package io.github.bgavyus.splash.common
 
 import android.content.Context
 import android.content.res.Configuration

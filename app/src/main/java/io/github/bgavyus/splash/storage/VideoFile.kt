@@ -1,12 +1,9 @@
-package io.github.bgavyus.splash
+package io.github.bgavyus.splash.storage
 
 import android.content.Context
 import android.media.MediaFormat
 import android.util.Log
-import io.github.bgavyus.splash.storage.PendingLegacyStorageFile
-import io.github.bgavyus.splash.storage.PendingScopedStorageFile
-import io.github.bgavyus.splash.storage.StandardDirectory
-import io.github.bgavyus.splash.storage.isStorageScoped
+import io.github.bgavyus.splash.R
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -22,25 +19,12 @@ class VideoFile(context: Context) {
         val standardDirectory = StandardDirectory.Movies
         val appDirectoryName = context.getString(R.string.video_folder_name)
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val fileName =
-            "${context.getString(R.string.video_file_prefix)}_$timestamp.${VIDEO_FILE_EXTENSION}"
+        val fileName = "${context.getString(R.string.video_file_prefix)}_$timestamp.$VIDEO_FILE_EXTENSION"
 
-        if (isStorageScoped()) {
-            PendingScopedStorageFile(
-                context = context,
-                mimeType = VIDEO_MIME_TYPE,
-                standardDirectory = standardDirectory,
-                appDirectoryName = appDirectoryName,
-                name = fileName
-            )
+        if (Storage.scoped) {
+            PendingScopedStorageFile(context, VIDEO_MIME_TYPE, standardDirectory, appDirectoryName, fileName)
         } else {
-            PendingLegacyStorageFile(
-                context = context,
-                mimeType = VIDEO_MIME_TYPE,
-                standardDirectory = standardDirectory,
-                appDirectoryName = appDirectoryName,
-                name = fileName
-            )
+            PendingLegacyStorageFile(context, VIDEO_MIME_TYPE, standardDirectory, appDirectoryName, fileName)
         }
     }()
 

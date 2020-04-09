@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash
+package io.github.bgavyus.splash.recording
 
 enum class RecorderState {
     Initial,

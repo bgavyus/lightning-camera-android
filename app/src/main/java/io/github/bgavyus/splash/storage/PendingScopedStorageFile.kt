@@ -1,12 +1,15 @@
 package io.github.bgavyus.splash.storage
 
+import android.annotation.TargetApi
 import android.content.ContentValues
 import android.content.Context
+import android.os.Build
 import android.provider.MediaStore
 import android.text.format.DateUtils
 import java.io.File
 import java.io.IOException
 
+@TargetApi(Build.VERSION_CODES.Q)
 class PendingScopedStorageFile(
     context: Context,
     mimeType: String,

@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash
+package io.github.bgavyus.splash.common
 
 import android.util.Log
 import java.util.*

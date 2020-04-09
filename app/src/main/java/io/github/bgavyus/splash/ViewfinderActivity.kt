@@ -11,9 +11,16 @@ import android.util.Size
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
-import io.github.bgavyus.splash.storage.isStorageScoped
+import io.github.bgavyus.splash.common.*
+import io.github.bgavyus.splash.detection.Detector
+import io.github.bgavyus.splash.detection.LightningDetector
+import io.github.bgavyus.splash.storage.Storage
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
+import io.github.bgavyus.splash.recording.RecorderState
+import io.github.bgavyus.splash.recording.SlowMotionRecorder
+import io.github.bgavyus.splash.recording.StatefulMediaRecorder
+import io.github.bgavyus.splash.storage.VideoFile
 import kotlinx.android.synthetic.main.activity_viewfinder.*
 import java.io.IOException
 
@@ -49,7 +56,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
 
 	private fun logState() {
 		Log.d(TAG, "Device Orientation: $deviceOrientation")
-		Log.d(TAG, "Running in ${if (isStorageScoped()) "scoped" else "legacy"} storage mode")
+		Log.d(TAG, "Running in ${if (Storage.scoped) "scoped" else "legacy"} storage mode")
 	}
 
     override fun onResume() {
@@ -209,11 +216,9 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     }
 
     private fun initDetector() {
-        detector = LightningDetector(
-            this,
-            textureView,
-            videoSize
-        ).apply { releaseQueue.push(::release) }
+        detector = LightningDetector(this, textureView, videoSize).apply {
+			releaseQueue.push(::release)
+		}
     }
 
     private fun initSurfaceTextureListener() {
@@ -228,7 +233,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
 
     private fun initVideoFile() {
         try {
-            videoFile = VideoFile(context = this).apply {
+            videoFile = VideoFile(this).apply {
                 releaseQueue.push(::close)
             }
         } catch (_: IOException) {
@@ -237,12 +242,8 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     }
 
     private fun initRecorder() {
-        recorder = SlowMotionRecorder(
-            videoFile,
-            videoSize,
-            fpsRange,
-			cameraOrientation + deviceOrientation
-        ).apply {
+		val rotation = cameraOrientation + deviceOrientation
+        recorder = SlowMotionRecorder(videoFile, videoSize, fpsRange, rotation).apply {
             setOnErrorListener(this@ViewfinderActivity)
             releaseQueue.push(::release)
         }
@@ -378,7 +379,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
 
     private fun finishWithMessage(resourceId: Int) {
         Log.d(TAG, "finishWithMessage: ${getDefaultString(this, resourceId)}")
-        showMessage(applicationContext, resourceId)
+		showMessage(applicationContext, resourceId)
         finish()
     }
 

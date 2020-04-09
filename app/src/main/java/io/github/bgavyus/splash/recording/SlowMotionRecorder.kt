@@ -1,13 +1,16 @@
-package io.github.bgavyus.splash
+package io.github.bgavyus.splash.recording
 
 import android.util.Log
 import android.util.Range
 import android.util.Size
+import io.github.bgavyus.splash.common.Rotation
+import io.github.bgavyus.splash.storage.VideoFile
 
 class SlowMotionRecorder(private val videoFile: VideoFile,
 						 videoSize: Size,
 						 fpsRange: Range<Int>,
-						 rotation: Rotation): StatefulMediaRecorder() {
+						 rotation: Rotation
+): StatefulMediaRecorder() {
 	companion object {
 		private val TAG = SlowMotionRecorder::class.simpleName
 
