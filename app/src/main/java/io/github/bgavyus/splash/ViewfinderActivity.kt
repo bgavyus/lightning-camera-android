@@ -11,7 +11,7 @@ import android.util.Size
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
-import io.github.bgavyus.splash.filesystem.isStorageScoped
+import io.github.bgavyus.splash.storage.isStorageScoped
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
 import kotlinx.android.synthetic.main.activity_viewfinder.*

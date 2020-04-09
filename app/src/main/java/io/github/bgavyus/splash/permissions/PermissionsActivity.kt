@@ -4,7 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.util.Log
-import io.github.bgavyus.splash.filesystem.isStorageScoped
+import io.github.bgavyus.splash.storage.isStorageScoped
 import java.util.*
 
 abstract class PermissionsActivity: Activity() {
