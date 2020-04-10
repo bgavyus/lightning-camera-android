@@ -1,16 +1,17 @@
 package io.github.bgavyus.splash
 
-import android.annotation.SuppressLint
 import android.graphics.SurfaceTexture
-import android.hardware.camera2.*
 import android.media.MediaRecorder
 import android.os.Bundle
 import android.util.Log
-import android.util.Range
 import android.util.Size
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
+import io.github.bgavyus.splash.camera.CameraError
+import io.github.bgavyus.splash.camera.CameraErrorType
+import io.github.bgavyus.splash.camera.CameraEventListener
+import io.github.bgavyus.splash.camera.HighSpeedCamera
 import io.github.bgavyus.splash.common.*
 import io.github.bgavyus.splash.detection.Detector
 import io.github.bgavyus.splash.detection.LightningDetector
@@ -18,7 +19,7 @@ import io.github.bgavyus.splash.storage.Storage
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
 import io.github.bgavyus.splash.recording.RecorderState
-import io.github.bgavyus.splash.recording.SlowMotionRecorder
+import io.github.bgavyus.splash.recording.HighSpeedRecorder
 import io.github.bgavyus.splash.recording.StatefulMediaRecorder
 import io.github.bgavyus.splash.storage.VideoFile
 import kotlinx.android.synthetic.main.activity_viewfinder.*
@@ -26,6 +27,7 @@ import java.io.IOException
 
 
 class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureListener,
+	CameraEventListener,
     MediaRecorder.OnErrorListener, Thread.UncaughtExceptionHandler {
 
     companion object {
@@ -38,9 +40,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     private lateinit var videoFile: VideoFile
     private lateinit var textureView: TextureView
     private lateinit var surface: Surface
-    private lateinit var fpsRange: Range<Int>
-    private lateinit var videoSize: Size
-    private lateinit var cameraOrientation: Rotation
+    private lateinit var camera: HighSpeedCamera
     private lateinit var detector: Detector
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,6 +56,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
 
 	private fun logState() {
 		Log.d(TAG, "Device Orientation: $deviceOrientation")
+		Log.d(TAG, "Display FPS: ${windowManager.defaultDisplay.refreshRate}")
 		Log.d(TAG, "Running in ${if (Storage.scoped) "scoped" else "legacy"} storage mode")
 	}
 
@@ -123,184 +124,71 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
         initCamera()
     }
 
-    @SuppressLint("MissingPermission")
     private fun initCamera() {
-        val cameraManager = getSystemService(CameraManager::class.java)
-            ?: return finishWithMessage(R.string.error_camera_generic)
-
-        try {
-            val cameraId = getHighSpeedCameraId(cameraManager)
-                ?: return finishWithMessage(R.string.error_high_speed_camera_not_available)
-
-            val characteristics = cameraManager.getCameraCharacteristics(cameraId)
-            val configs = characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]
-                ?: return finishWithMessage(R.string.error_camera_generic)
-
-            fpsRange = configs.highSpeedVideoFpsRanges.maxBy { it.lower + it.upper }
-                ?: return finishWithMessage(R.string.error_high_speed_camera_not_available)
-
-            Log.d(TAG, "FPS Range: $fpsRange")
-
-            videoSize = configs.getHighSpeedVideoSizesFor(fpsRange).maxBy { it.width * it.height }
-                ?: return finishWithMessage(R.string.error_high_speed_camera_not_available)
-
-            Log.d(TAG, "Video Size: $videoSize")
-
-            cameraOrientation = characteristics[CameraCharacteristics.SENSOR_ORIENTATION]?.let {
-                Rotation.fromDegrees(it)
-            } ?: return finishWithMessage(R.string.error_camera_generic)
-
-			Log.d(TAG, "Camera Orientation: $cameraOrientation")
-
-            cameraManager.openCamera(cameraId, cameraDeviceStateCallback, null)
-        } catch (error: CameraAccessException) {
-            return finishWithMessage(cameraAccessExceptionToResourceId(error))
-        }
+		try {
+			HighSpeedCamera(context = this, listener = this).run {
+				camera = this
+				releaseQueue.push(::release)
+				onCameraAvailable()
+				stream()
+			}
+		} catch (error: CameraError) {
+			onCameraError(error.type)
+		}
     }
 
-    private fun getHighSpeedCameraId(cameraManager: CameraManager): String? {
-        return cameraManager.cameraIdList.firstOrNull {
-            val characteristics = cameraManager.getCameraCharacteristics(it)
-            val capabilities = characteristics[CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES]
-                ?: return@firstOrNull false
+	private fun onCameraAvailable() {
+		initDetector()
+		initVideoFile()
+	}
 
-            return@firstOrNull CameraMetadata.REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO in capabilities
-        }
-    }
-
-    private val cameraDeviceStateCallback = object : CameraDevice.StateCallback() {
-        override fun onOpened(camera: CameraDevice) {
-            Log.d(TAG, "CameraDevice.onOpened")
-            releaseQueue.push(camera::close)
-
-            if (!textureView.isShown) {
-                Log.d(TAG, "Not shown while in onOpened")
-                return
-            }
-
-            initDetector()
-            initSurfaceTextureListener()
-            initVideoFile()
-            initRecorder()
-            setSurfaceTextureSize()
-
-            try {
-                camera.createConstrainedHighSpeedCaptureSession(
-                    listOf(surface, recorder.surface),
-                    cameraCaptureSessionStateCallback,
-                    null
-                )
-            } catch (error: CameraAccessException) {
-                return finishWithMessage(cameraAccessExceptionToResourceId(error))
-            }
-        }
-
-        override fun onDisconnected(camera: CameraDevice) {
-            Log.d(TAG, "CameraDevice.onDisconnected")
-            camera.close()
-        }
-
-        override fun onError(camera: CameraDevice, error: Int) {
-            Log.d(TAG, "CameraDevice.onError(error = $error)")
-
-            val resourceId = when (error) {
-                ERROR_CAMERA_IN_USE -> R.string.error_camera_in_use
-                ERROR_MAX_CAMERAS_IN_USE -> R.string.error_max_cameras_in_use
-                ERROR_CAMERA_DISABLED -> R.string.error_camera_disabled
-                ERROR_CAMERA_DEVICE -> R.string.error_camera_device
-                else -> R.string.error_camera_generic
-            }
-
-            finishWithMessage(resourceId)
-        }
-    }
-
-    private fun initDetector() {
-        detector = LightningDetector(this, textureView, videoSize).apply {
+	private fun initDetector() {
+        detector = LightningDetector(context = this, textureView = textureView, videoSize = camera.videoSize).apply {
 			releaseQueue.push(::release)
 		}
     }
 
-    private fun initSurfaceTextureListener() {
-        textureView.run {
-            surfaceTextureListener = this@ViewfinderActivity
-            releaseQueue.push {
-                Log.d(TAG, "Removing surfaceTextureListener")
-                surfaceTextureListener = null
-            }
-        }
-    }
-
     private fun initVideoFile() {
         try {
-            videoFile = VideoFile(this).apply {
+            videoFile = VideoFile(contentResolver, getString(R.string.video_folder_name)).apply {
                 releaseQueue.push(::close)
             }
         } catch (_: IOException) {
             return finishWithMessage(R.string.error_io)
         }
+
+		initRecorder()
     }
 
     private fun initRecorder() {
-		val rotation = cameraOrientation + deviceOrientation
-        recorder = SlowMotionRecorder(videoFile, videoSize, fpsRange, rotation).apply {
+		val rotation = camera.sensorOrientation + deviceOrientation
+        recorder = HighSpeedRecorder(videoFile, camera.videoSize, camera.fpsRange, rotation).apply {
             setOnErrorListener(this@ViewfinderActivity)
             releaseQueue.push(::release)
         }
     }
 
-	private val cameraCaptureSessionStateCallback = object : CameraCaptureSession.StateCallback() {
-        override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
-            Log.d(TAG, "CameraCaptureSession.onConfigured")
+	override fun onCameraSurfacesNeeded(): List<Surface> {
+		setSurfaceTextureSize()
+		applyTransform()
+		return listOf(surface, recorder.surface)
+	}
 
-            if (!textureView.isShown) {
-                Log.d(TAG, "Not shown while in onConfigured")
-                return
-            }
+	override fun onCameraStreaming() {
+		initSurfaceTextureListener()
+	}
 
-            setSurfaceTextureSize()
-            applyTransform()
-            startCaptureSession(cameraCaptureSession as CameraConstrainedHighSpeedCaptureSession)
-        }
+	private fun initSurfaceTextureListener() {
+		textureView.run {
+			surfaceTextureListener = this@ViewfinderActivity
+			releaseQueue.push {
+				Log.d(TAG, "Removing surfaceTextureListener")
+				surfaceTextureListener = null
+			}
+		}
+	}
 
-        override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession) {
-            Log.d(TAG, "CameraCaptureSession.onConfigureFailed")
-        }
-    }
-
-    private fun startCaptureSession(captureSession: CameraConstrainedHighSpeedCaptureSession) {
-        try {
-            captureSession.run {
-                setRepeatingBurst(
-                    createHighSpeedRequestList(
-                        device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
-                            set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, fpsRange)
-                            addTarget(surface)
-                            addTarget(recorder.surface)
-                        }.build()
-                    ), null, null
-                )
-
-                releaseQueue.push(::close)
-            }
-        } catch (error: CameraAccessException) {
-            return finishWithMessage(cameraAccessExceptionToResourceId(error))
-        } catch (_: IllegalStateException) {
-            return finishWithMessage(R.string.error_camera_generic)
-        }
-    }
-
-    private fun cameraAccessExceptionToResourceId(error: CameraAccessException): Int {
-        return when (error.reason) {
-            CameraAccessException.CAMERA_IN_USE -> R.string.error_camera_in_use
-            CameraAccessException.MAX_CAMERAS_IN_USE -> R.string.error_max_cameras_in_use
-            CameraAccessException.CAMERA_DISABLED -> R.string.error_camera_disabled
-            CameraAccessException.CAMERA_ERROR -> R.string.error_camera_device
-            else -> R.string.error_camera_generic
-        }
-    }
-
-    override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture?) {
+	override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture?) {
         handleFrame()
     }
 
@@ -346,16 +234,35 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     }
 
     private fun setSurfaceTextureSize() {
-        textureView.surfaceTexture.setDefaultBufferSize(videoSize.width, videoSize.height)
+		if (!textureView.isShown) {
+			Log.w(TAG, "Texture view is hidden while setting surface size")
+		}
+
+		camera.videoSize.run {
+			textureView.surfaceTexture.setDefaultBufferSize(width, height)
+		}
     }
 
     private fun applyTransform() {
         val viewSize = Size(textureView.width, textureView.height)
-        val matrix = getTransformMatrix(viewSize, videoSize, deviceOrientation)
+        val matrix = getTransformMatrix(viewSize, camera.videoSize, deviceOrientation)
         textureView.setTransform(matrix)
     }
 
-    override fun onError(mr: MediaRecorder?, what: Int, extra: Int) {
+	override fun onCameraError(type: CameraErrorType) {
+		finishWithMessage(when (type) {
+			CameraErrorType.HighSpeedNotAvailable -> R.string.error_high_speed_camera_not_available
+			CameraErrorType.InUse -> R.string.error_camera_in_use
+			CameraErrorType.MaxInUse -> R.string.error_max_cameras_in_use
+			CameraErrorType.Disabled -> R.string.error_camera_disabled
+			CameraErrorType.Device -> R.string.error_camera_device
+			CameraErrorType.Disconnected -> R.string.error_camera_disconnected
+			CameraErrorType.ConfigureFailed -> R.string.error_camera_generic
+			CameraErrorType.Generic -> R.string.error_camera_generic
+		})
+	}
+
+	override fun onError(mr: MediaRecorder?, what: Int, extra: Int) {
         Log.d(TAG, "MediaRecorder.onError(what = $what, extra = $extra)")
         finishWithMessage(R.string.error_recorder)
     }
@@ -372,13 +279,13 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
         release()
     }
 
-    override fun uncaughtException(t: Thread, e: Throwable) {
-        Log.e(TAG, "Uncaught Exception from $t", e)
+    override fun uncaughtException(thread: Thread, error: Throwable) {
+        Log.e(TAG, "Uncaught Exception from $thread", error)
         finishWithMessage(R.string.error_uncaught)
     }
 
     private fun finishWithMessage(resourceId: Int) {
-        Log.d(TAG, "finishWithMessage: ${getDefaultString(this, resourceId)}")
+        Log.d(TAG, "finishWithMessage: ${getDefaultString(applicationContext,  resourceId)}")
 		showMessage(applicationContext, resourceId)
         finish()
     }

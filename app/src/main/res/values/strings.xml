@@ -2,7 +2,6 @@
     <string name="app_name">Splash</string>
 
     <string name="video_folder_name" translatable="false">Splash</string>
-    <string name="video_file_prefix" translatable="false">VID</string>
 
     <string name="error_camera_permission_not_granted">No permission to access camera</string>
     <string name="error_storage_permission_not_granted">No permission to access storage</string>

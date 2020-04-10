@@ -33,8 +33,7 @@ enum class Rotation(val surfaceRotation: Int) {
 		}
 	}
 
-	val degrees: Int
-		get() = ordinal * degreesPerRotation
+	val degrees: Int get() = ordinal * degreesPerRotation
 
 	operator fun unaryMinus(): Rotation {
 		return fromOrdinal(
@@ -55,12 +54,10 @@ enum class Rotation(val surfaceRotation: Int) {
 	}
 }
 
-val Context.displayRotation: Rotation
-	get() = getSystemService(WindowManager::class.java)?.let {
-		Rotation.fromSurfaceRotation(
-			it.defaultDisplay.rotation
-		)
-	} ?: throw RuntimeException("Failed to get display rotation")
+val Context.displayRotation: Rotation get() = getSystemService(WindowManager::class.java)?.let {
+	Rotation.fromSurfaceRotation(
+		it.defaultDisplay.rotation
+	)
+} ?: throw RuntimeException("Failed to get display rotation")
 
-val Context.deviceOrientation: Rotation
-	get() = -displayRotation
+val Context.deviceOrientation: Rotation get() = -displayRotation

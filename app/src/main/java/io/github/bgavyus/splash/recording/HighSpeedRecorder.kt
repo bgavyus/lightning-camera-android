@@ -6,13 +6,13 @@ import android.util.Size
 import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.storage.VideoFile
 
-class SlowMotionRecorder(private val videoFile: VideoFile,
-						 videoSize: Size,
-						 fpsRange: Range<Int>,
-						 rotation: Rotation
+class HighSpeedRecorder(private val videoFile: VideoFile,
+						videoSize: Size,
+						fpsRange: Range<Int>,
+						rotation: Rotation
 ): StatefulMediaRecorder() {
 	companion object {
-		private val TAG = SlowMotionRecorder::class.simpleName
+		private val TAG = HighSpeedRecorder::class.simpleName
 
 		private const val VIDEO_ENCODER = VideoEncoder.H264
 		private const val VIDEO_OUTPUT_FORMAT = OutputFormat.MPEG_4

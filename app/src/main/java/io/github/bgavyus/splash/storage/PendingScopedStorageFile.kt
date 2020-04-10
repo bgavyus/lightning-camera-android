@@ -1,6 +1,7 @@
 package io.github.bgavyus.splash.storage
 
 import android.annotation.TargetApi
+import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
 import android.os.Build
@@ -11,18 +12,16 @@ import java.io.IOException
 
 @TargetApi(Build.VERSION_CODES.Q)
 class PendingScopedStorageFile(
-    context: Context,
-    mimeType: String,
-    standardDirectory: StandardDirectory,
-    appDirectoryName: String,
-    name: String
+	private val contentResolver: ContentResolver,
+	mimeType: String,
+	standardDirectory: StandardDirectory,
+	appDirectoryName: String,
+	name: String
 ) : PendingFile {
     companion object {
         const val IS_PENDING_TRUE = 1
         const val IS_PENDING_FALSE = 0
     }
-
-    private val contentResolver = context.contentResolver
 
     private val uri = contentResolver.insert(standardDirectory.externalStorage, ContentValues().apply {
         put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
@@ -48,9 +47,8 @@ class PendingScopedStorageFile(
     private val file = contentResolver.openFileDescriptor(uri, "w")
         ?: throw IOException("Failed to open $uri")
 
-    override val descriptor
-        get() = file.fileDescriptor
-            ?: throw IOException("Failed to get file descriptor for $uri")
+    override val descriptor get() = file.fileDescriptor
+		?: throw IOException("Failed to get file descriptor for $uri")
 
     override fun save() {
         close()
