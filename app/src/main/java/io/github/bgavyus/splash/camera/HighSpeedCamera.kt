@@ -16,9 +16,11 @@ class HighSpeedCamera(context: Context, val listener: CameraEventListener) {
 		private val TAG = HighSpeedCamera::class.simpleName
 	}
 
-	private val releaseQueue = ReleaseQueue()
-	private val cameraManager: CameraManager
+	private val cameraManager: CameraManager = context.getSystemService(CameraManager::class.java)
+		?: throw CameraError(CameraErrorType.Generic)
+
 	private val cameraId: String
+	private val releaseQueue = ReleaseQueue()
 
 	val sensorOrientation: Rotation
 	val fpsRange: Range<Int>
@@ -26,9 +28,6 @@ class HighSpeedCamera(context: Context, val listener: CameraEventListener) {
 
 	init {
 		try {
-			cameraManager = context.getSystemService(CameraManager::class.java)
-				?: throw CameraError(CameraErrorType.Generic)
-
 			cameraId = cameraManager.cameraIdList.firstOrNull {
 				val characteristics = cameraManager.getCameraCharacteristics(it)
 				val capabilities = characteristics[CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES]

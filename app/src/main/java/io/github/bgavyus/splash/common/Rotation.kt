@@ -3,7 +3,6 @@ package io.github.bgavyus.splash.common
 import android.content.Context
 import android.view.Surface
 import android.view.WindowManager
-import java.lang.RuntimeException
 
 enum class Rotation(val surfaceRotation: Int) {
 	Natural(Surface.ROTATION_0),
@@ -54,10 +53,8 @@ enum class Rotation(val surfaceRotation: Int) {
 	}
 }
 
-val Context.displayRotation: Rotation get() = getSystemService(WindowManager::class.java)?.let {
-	Rotation.fromSurfaceRotation(
-		it.defaultDisplay.rotation
-	)
-} ?: throw RuntimeException("Failed to get display rotation")
+val Context.displayRotation: Rotation get() = getSystemService(WindowManager::class.java)
+	?.let { Rotation.fromSurfaceRotation(it.defaultDisplay.rotation) }
+	?: throw RuntimeException("Failed to get display rotation")
 
 val Context.deviceOrientation: Rotation get() = -displayRotation
