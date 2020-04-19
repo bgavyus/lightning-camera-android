@@ -8,10 +8,10 @@ class ReleaseQueue : ArrayDeque<() -> Unit>() {
         private val TAG = ReleaseQueue::class.simpleName
     }
 
-    fun releaseAll() {
+    fun release() {
         while (!isEmpty()) {
             val callback = pop()
-            Log.d(TAG, "Releasing: $callback")
+            Log.v(TAG, "Releasing: $callback")
 
             try {
                 callback.invoke()

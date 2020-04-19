@@ -46,6 +46,6 @@ class LightningDetector(context: Context, private val textureView: TextureView, 
     }
 
     override fun release() {
-        releaseQueue.releaseAll()
+        releaseQueue.release()
     }
 }

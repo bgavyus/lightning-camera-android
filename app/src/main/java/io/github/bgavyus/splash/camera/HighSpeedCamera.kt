@@ -157,6 +157,6 @@ class HighSpeedCamera(context: Context, val listener: CameraEventListener) :
     }
 
     fun release() {
-        releaseQueue.releaseAll()
+        releaseQueue.release()
     }
 }

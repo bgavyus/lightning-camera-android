@@ -127,7 +127,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
 
     private fun initCamera() {
         try {
-            HighSpeedCamera(context = this, listener = this).run {
+            HighSpeedCamera(context = applicationContext, listener = this).run {
                 camera = this
                 releaseQueue.push(::release)
                 onCameraAvailable()
@@ -145,7 +145,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
 
     private fun initDetector() {
         detector = LightningDetector(
-            context = this,
+            context = applicationContext,
             textureView = textureView,
             videoSize = camera.videoSize
         ).apply {
@@ -304,6 +304,6 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     }
 
     private fun release() {
-        releaseQueue.releaseAll()
+        releaseQueue.release()
     }
 }
