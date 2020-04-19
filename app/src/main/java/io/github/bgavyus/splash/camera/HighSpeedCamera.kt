@@ -1,7 +1,6 @@
 package io.github.bgavyus.splash.camera
 
 import android.annotation.SuppressLint
-import android.annotation.TargetApi
 import android.content.Context
 import android.hardware.camera2.*
 import android.hardware.camera2.params.OutputConfiguration
@@ -79,6 +78,7 @@ class HighSpeedCamera(val context: Context, val listener: CameraEventListener) :
             val surfaces = listener.onSurfacesNeeded()
 
             try {
+                @Suppress("DEPRECATION")
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
                     camera.createConstrainedHighSpeedCaptureSession(
                         surfaces,
