@@ -9,7 +9,7 @@ import android.os.Build
 import android.util.Log
 import android.util.Range
 import android.util.Size
-import io.github.bgavyus.splash.common.ReleaseQueue
+import io.github.bgavyus.splash.common.ReleaseStack
 import io.github.bgavyus.splash.common.Rotation
 
 
@@ -24,7 +24,7 @@ class HighSpeedCamera(val context: Context, val listener: CameraEventListener) :
         ?: throw CameraError(CameraErrorType.Generic)
 
     private val cameraId: String
-    private val releaseQueue = ReleaseQueue()
+    private val releaseStack = ReleaseStack()
 
     val sensorOrientation: Rotation
     val fpsRange: Range<Int>
@@ -74,7 +74,7 @@ class HighSpeedCamera(val context: Context, val listener: CameraEventListener) :
     private val cameraDeviceStateCallback = object : CameraDevice.StateCallback() {
         override fun onOpened(camera: CameraDevice) {
             Log.d(TAG, "CameraDevice.onOpened")
-            releaseQueue.push(camera::close)
+            releaseStack.push(camera::close)
             val surfaces = listener.onSurfacesNeeded()
 
             try {
@@ -147,7 +147,7 @@ class HighSpeedCamera(val context: Context, val listener: CameraEventListener) :
                     ), null, null
                 )
 
-                releaseQueue.push(::close)
+                releaseStack.push(::close)
             }
         } catch (error: CameraAccessException) {
             onError(accessExceptionToErrorType(error))
@@ -172,6 +172,6 @@ class HighSpeedCamera(val context: Context, val listener: CameraEventListener) :
     }
 
     fun release() {
-        releaseQueue.release()
+        releaseStack.release()
     }
 }

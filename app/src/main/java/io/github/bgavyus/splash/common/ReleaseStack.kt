@@ -3,9 +3,9 @@ package io.github.bgavyus.splash.common
 import android.util.Log
 import java.util.*
 
-class ReleaseQueue : ArrayDeque<() -> Unit>() {
+class ReleaseStack : ArrayDeque<() -> Unit>() {
     companion object {
-        private val TAG = ReleaseQueue::class.simpleName
+        private val TAG = ReleaseStack::class.simpleName
     }
 
     fun release() {

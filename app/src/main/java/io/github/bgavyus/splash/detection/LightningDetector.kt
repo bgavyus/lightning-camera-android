@@ -6,7 +6,7 @@ import android.renderscript.Allocation
 import android.renderscript.RenderScript
 import android.util.Size
 import android.view.TextureView
-import io.github.bgavyus.splash.common.ReleaseQueue
+import io.github.bgavyus.splash.common.ReleaseStack
 
 class LightningDetector(context: Context, private val textureView: TextureView, videoSize: Size) :
     Detector {
@@ -15,20 +15,20 @@ class LightningDetector(context: Context, private val textureView: TextureView, 
         private const val ZERO: Short = 0
     }
 
-    private val releaseQueue = ReleaseQueue()
+    private val releaseStack = ReleaseStack()
     private val renderScript = RenderScript.create(context).apply {
-        releaseQueue.push(::destroy)
+        releaseStack.push(::destroy)
     }
 
     private val inputBitmap =
         Bitmap.createBitmap(videoSize.width, videoSize.height, Bitmap.Config.ARGB_8888)
 
     private val bitmapAllocation = Allocation.createFromBitmap(renderScript, inputBitmap).apply {
-        releaseQueue.push(::destroy)
+        releaseStack.push(::destroy)
     }
 
     private val script = ScriptC_lightning(renderScript).apply {
-        releaseQueue.push(::destroy)
+        releaseStack.push(::destroy)
     }
 
     override fun detected(): Boolean {
@@ -38,6 +38,6 @@ class LightningDetector(context: Context, private val textureView: TextureView, 
     }
 
     override fun release() {
-        releaseQueue.release()
+        releaseStack.release()
     }
 }

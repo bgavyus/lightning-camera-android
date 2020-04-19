@@ -33,7 +33,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
         private val TAG = ViewfinderActivity::class.simpleName
     }
 
-    private val releaseQueue = ReleaseQueue()
+    private val releaseStack = ReleaseStack()
 
     private lateinit var recorder: StatefulMediaRecorder
     private lateinit var videoFile: VideoFile
@@ -129,7 +129,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
         try {
             HighSpeedCamera(context = applicationContext, listener = this).run {
                 camera = this
-                releaseQueue.push(::release)
+                releaseStack.push(::release)
                 onCameraAvailable()
                 stream()
             }
@@ -149,14 +149,14 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
             textureView = textureView,
             videoSize = camera.videoSize
         ).apply {
-            releaseQueue.push(::release)
+            releaseStack.push(::release)
         }
     }
 
     private fun initVideoFile() {
         try {
             videoFile = VideoFile(contentResolver, getString(R.string.video_folder_name)).apply {
-                releaseQueue.push(::close)
+                releaseStack.push(::close)
             }
         } catch (_: IOException) {
             return finishWithMessage(R.string.error_io)
@@ -169,7 +169,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
         val rotation = camera.sensorOrientation + deviceOrientation
         recorder = HighSpeedRecorder(videoFile, camera.videoSize, camera.fpsRange, rotation).apply {
             setOnErrorListener(this@ViewfinderActivity)
-            releaseQueue.push(::release)
+            releaseStack.push(::release)
         }
     }
 
@@ -186,7 +186,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     private fun initSurfaceTextureListener() {
         textureView.run {
             surfaceTextureListener = this@ViewfinderActivity
-            releaseQueue.push {
+            releaseStack.push {
                 Log.d(TAG, "Removing surfaceTextureListener")
                 surfaceTextureListener = null
             }
@@ -304,6 +304,6 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     }
 
     private fun release() {
-        releaseQueue.release()
+        releaseStack.release()
     }
 }
