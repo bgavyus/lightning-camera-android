@@ -1,8 +1,12 @@
 package io.github.bgavyus.splash.camera
 
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
 import android.content.Context
 import android.hardware.camera2.*
+import android.hardware.camera2.params.OutputConfiguration
+import android.hardware.camera2.params.SessionConfiguration
+import android.os.Build
 import android.util.Log
 import android.util.Range
 import android.util.Size
@@ -11,7 +15,7 @@ import io.github.bgavyus.splash.common.Rotation
 
 
 @SuppressLint("MissingPermission")
-class HighSpeedCamera(context: Context, val listener: CameraEventListener) :
+class HighSpeedCamera(val context: Context, val listener: CameraEventListener) :
     CameraCaptureSession.CaptureCallback() {
     companion object {
         private val TAG = HighSpeedCamera::class.simpleName
@@ -75,11 +79,22 @@ class HighSpeedCamera(context: Context, val listener: CameraEventListener) :
             val surfaces = listener.onSurfacesNeeded()
 
             try {
-                camera.createConstrainedHighSpeedCaptureSession(
-                    surfaces,
-                    cameraCaptureSessionStateCallback,
-                    null
-                )
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                    camera.createConstrainedHighSpeedCaptureSession(
+                        surfaces,
+                        cameraCaptureSessionStateCallback,
+                        null
+                    )
+                } else {
+                    camera.createCaptureSession(
+                        SessionConfiguration(
+                            SessionConfiguration.SESSION_HIGH_SPEED,
+                            surfaces.map(::OutputConfiguration),
+                            context.mainExecutor,
+                            cameraCaptureSessionStateCallback
+                        )
+                    )
+                }
             } catch (error: CameraAccessException) {
                 onError(accessExceptionToErrorType(error))
             }
