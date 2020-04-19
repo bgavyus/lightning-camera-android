@@ -15,20 +15,19 @@ import io.github.bgavyus.splash.camera.HighSpeedCamera
 import io.github.bgavyus.splash.common.*
 import io.github.bgavyus.splash.detection.Detector
 import io.github.bgavyus.splash.detection.LightningDetector
-import io.github.bgavyus.splash.storage.Storage
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
-import io.github.bgavyus.splash.recording.RecorderState
 import io.github.bgavyus.splash.recording.HighSpeedRecorder
+import io.github.bgavyus.splash.recording.RecorderState
 import io.github.bgavyus.splash.recording.StatefulMediaRecorder
+import io.github.bgavyus.splash.storage.Storage
 import io.github.bgavyus.splash.storage.VideoFile
 import kotlinx.android.synthetic.main.activity_viewfinder.*
 import java.io.IOException
 
 
 class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureListener,
-	CameraEventListener,
-    MediaRecorder.OnErrorListener, Thread.UncaughtExceptionHandler {
+    CameraEventListener, MediaRecorder.OnErrorListener, Thread.UncaughtExceptionHandler {
 
     companion object {
         private val TAG = ViewfinderActivity::class.simpleName
@@ -51,14 +50,14 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
         setContentView(R.layout.activity_viewfinder)
         Thread.setDefaultUncaughtExceptionHandler(this)
 
-		logState()
+        logState()
     }
 
-	private fun logState() {
-		Log.d(TAG, "Device Orientation: $deviceOrientation")
-		Log.d(TAG, "Display FPS: ${windowManager.defaultDisplay.refreshRate}")
-		Log.d(TAG, "Running in ${if (Storage.scoped) "scoped" else "legacy"} storage mode")
-	}
+    private fun logState() {
+        Log.d(TAG, "Device Orientation: $deviceOrientation")
+        Log.d(TAG, "Display FPS: ${windowManager.defaultDisplay.refreshRate}")
+        Log.d(TAG, "Running in ${if (Storage.scoped) "scoped" else "legacy"} storage mode")
+    }
 
     override fun onResume() {
         Log.d(TAG, "Activity.onResume")
@@ -76,21 +75,23 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
         initSurfaceTexture()
     }
 
-	override fun onPermissionDenied(group: PermissionGroup) {
-		Log.d(TAG, "onPermissionDenied(group = $group)")
+    override fun onPermissionDenied(group: PermissionGroup) {
+        Log.d(TAG, "onPermissionDenied(group = $group)")
 
-		finishWithMessage(when (group) {
-			PermissionGroup.Camera -> R.string.error_camera_permission_not_granted
-			PermissionGroup.Storage -> R.string.error_storage_permission_not_granted
-		})
-	}
+        finishWithMessage(
+            when (group) {
+                PermissionGroup.Camera -> R.string.error_camera_permission_not_granted
+                PermissionGroup.Storage -> R.string.error_storage_permission_not_granted
+            }
+        )
+    }
 
-	override fun onAllPermissionsGranted() {
-		Log.d(TAG, "onAllPermissionGranted")
-		recreate()
-	}
+    override fun onAllPermissionsGranted() {
+        Log.d(TAG, "onAllPermissionGranted")
+        recreate()
+    }
 
-	private fun initSurfaceTexture() {
+    private fun initSurfaceTexture() {
         texture_view.run {
             textureView = this
 
@@ -125,27 +126,31 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     }
 
     private fun initCamera() {
-		try {
-			HighSpeedCamera(context = this, listener = this).run {
-				camera = this
-				releaseQueue.push(::release)
-				onCameraAvailable()
-				stream()
-			}
-		} catch (error: CameraError) {
-			onCameraError(error.type)
-		}
+        try {
+            HighSpeedCamera(context = this, listener = this).run {
+                camera = this
+                releaseQueue.push(::release)
+                onCameraAvailable()
+                stream()
+            }
+        } catch (error: CameraError) {
+            onCameraError(error.type)
+        }
     }
 
-	private fun onCameraAvailable() {
-		initDetector()
-		initVideoFile()
-	}
+    private fun onCameraAvailable() {
+        initDetector()
+        initVideoFile()
+    }
 
-	private fun initDetector() {
-        detector = LightningDetector(context = this, textureView = textureView, videoSize = camera.videoSize).apply {
-			releaseQueue.push(::release)
-		}
+    private fun initDetector() {
+        detector = LightningDetector(
+            context = this,
+            textureView = textureView,
+            videoSize = camera.videoSize
+        ).apply {
+            releaseQueue.push(::release)
+        }
     }
 
     private fun initVideoFile() {
@@ -157,38 +162,38 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
             return finishWithMessage(R.string.error_io)
         }
 
-		initRecorder()
+        initRecorder()
     }
 
     private fun initRecorder() {
-		val rotation = camera.sensorOrientation + deviceOrientation
+        val rotation = camera.sensorOrientation + deviceOrientation
         recorder = HighSpeedRecorder(videoFile, camera.videoSize, camera.fpsRange, rotation).apply {
             setOnErrorListener(this@ViewfinderActivity)
             releaseQueue.push(::release)
         }
     }
 
-	override fun onCameraSurfacesNeeded(): List<Surface> {
-		setSurfaceTextureSize()
-		applyTransform()
-		return listOf(surface, recorder.surface)
-	}
+    override fun onSurfacesNeeded(): List<Surface> {
+        setSurfaceTextureSize()
+        applyTransform()
+        return listOf(surface, recorder.surface)
+    }
 
-	override fun onCameraStreaming() {
-		initSurfaceTextureListener()
-	}
+    override fun onStreaming() {
+        initSurfaceTextureListener()
+    }
 
-	private fun initSurfaceTextureListener() {
-		textureView.run {
-			surfaceTextureListener = this@ViewfinderActivity
-			releaseQueue.push {
-				Log.d(TAG, "Removing surfaceTextureListener")
-				surfaceTextureListener = null
-			}
-		}
-	}
+    private fun initSurfaceTextureListener() {
+        textureView.run {
+            surfaceTextureListener = this@ViewfinderActivity
+            releaseQueue.push {
+                Log.d(TAG, "Removing surfaceTextureListener")
+                surfaceTextureListener = null
+            }
+        }
+    }
 
-	override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture?) {
+    override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture?) {
         handleFrame()
     }
 
@@ -234,13 +239,13 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     }
 
     private fun setSurfaceTextureSize() {
-		if (!textureView.isShown) {
-			Log.w(TAG, "Texture view is hidden while setting surface size")
-		}
+        if (!textureView.isShown) {
+            Log.w(TAG, "Texture view is hidden while setting surface size")
+        }
 
-		camera.videoSize.run {
-			textureView.surfaceTexture.setDefaultBufferSize(width, height)
-		}
+        camera.videoSize.run {
+            textureView.surfaceTexture.setDefaultBufferSize(width, height)
+        }
     }
 
     private fun applyTransform() {
@@ -249,20 +254,22 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
         textureView.setTransform(matrix)
     }
 
-	override fun onCameraError(type: CameraErrorType) {
-		finishWithMessage(when (type) {
-			CameraErrorType.HighSpeedNotAvailable -> R.string.error_high_speed_camera_not_available
-			CameraErrorType.InUse -> R.string.error_camera_in_use
-			CameraErrorType.MaxInUse -> R.string.error_max_cameras_in_use
-			CameraErrorType.Disabled -> R.string.error_camera_disabled
-			CameraErrorType.Device -> R.string.error_camera_device
-			CameraErrorType.Disconnected -> R.string.error_camera_disconnected
-			CameraErrorType.ConfigureFailed -> R.string.error_camera_generic
-			CameraErrorType.Generic -> R.string.error_camera_generic
-		})
-	}
+    override fun onCameraError(type: CameraErrorType) {
+        finishWithMessage(
+            when (type) {
+                CameraErrorType.HighSpeedNotAvailable -> R.string.error_high_speed_camera_not_available
+                CameraErrorType.InUse -> R.string.error_camera_in_use
+                CameraErrorType.MaxInUse -> R.string.error_max_cameras_in_use
+                CameraErrorType.Disabled -> R.string.error_camera_disabled
+                CameraErrorType.Device -> R.string.error_camera_device
+                CameraErrorType.Disconnected -> R.string.error_camera_disconnected
+                CameraErrorType.ConfigureFailed -> R.string.error_camera_generic
+                CameraErrorType.Generic -> R.string.error_camera_generic
+            }
+        )
+    }
 
-	override fun onError(mr: MediaRecorder?, what: Int, extra: Int) {
+    override fun onError(mr: MediaRecorder?, what: Int, extra: Int) {
         Log.d(TAG, "MediaRecorder.onError(what = $what, extra = $extra)")
         finishWithMessage(R.string.error_recorder)
     }
@@ -285,8 +292,8 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     }
 
     private fun finishWithMessage(resourceId: Int) {
-        Log.d(TAG, "finishWithMessage: ${getDefaultString(applicationContext,  resourceId)}")
-		showMessage(applicationContext, resourceId)
+        Log.d(TAG, "finishWithMessage: ${getDefaultString(applicationContext, resourceId)}")
+        showMessage(applicationContext, resourceId)
         finish()
     }
 

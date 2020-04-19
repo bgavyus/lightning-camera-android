@@ -4,6 +4,6 @@ import io.github.bgavyus.splash.common.PendingOperation
 import java.io.FileDescriptor
 
 interface PendingFile :
-	PendingOperation {
+    PendingOperation {
     val descriptor: FileDescriptor
 }

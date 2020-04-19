@@ -3,8 +3,8 @@ package io.github.bgavyus.splash.recording
 import android.media.MediaRecorder
 
 open class StatefulMediaRecorder : MediaRecorder() {
-	var state = RecorderState.Initial
-		private set
+    var state = RecorderState.Initial
+        private set
 
     private var onErrorListener: OnErrorListener? = null
 

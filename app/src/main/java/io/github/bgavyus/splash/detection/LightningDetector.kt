@@ -11,9 +11,9 @@ import android.view.TextureView
 import io.github.bgavyus.splash.common.ReleaseQueue
 
 class LightningDetector(context: Context, private val textureView: TextureView, videoSize: Size) :
-	Detector {
-    private val releaseQueue =
-		ReleaseQueue()
+    Detector {
+
+    private val releaseQueue = ReleaseQueue()
     private val histogram = IntArray(0x100)
     private val renderScript = RenderScript.create(context).apply {
         releaseQueue.push(::destroy)

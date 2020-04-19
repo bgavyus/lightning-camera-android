@@ -1,10 +1,8 @@
 package io.github.bgavyus.splash.storage
 
 import android.content.ContentResolver
-import android.content.Context
 import android.media.MediaFormat
 import android.util.Log
-import io.github.bgavyus.splash.R
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -22,9 +20,21 @@ class VideoFile(contentResolver: ContentResolver, appDirectoryName: String) {
         val fileName = "VID_$timestamp.$VIDEO_FILE_EXTENSION"
 
         if (Storage.scoped) {
-            PendingScopedStorageFile(contentResolver, VIDEO_MIME_TYPE, standardDirectory, appDirectoryName, fileName)
+            PendingScopedStorageFile(
+                contentResolver,
+                VIDEO_MIME_TYPE,
+                standardDirectory,
+                appDirectoryName,
+                fileName
+            )
         } else {
-            PendingLegacyStorageFile(contentResolver, VIDEO_MIME_TYPE, standardDirectory, appDirectoryName, fileName)
+            PendingLegacyStorageFile(
+                contentResolver,
+                VIDEO_MIME_TYPE,
+                standardDirectory,
+                appDirectoryName,
+                fileName
+            )
         }
     }()
 

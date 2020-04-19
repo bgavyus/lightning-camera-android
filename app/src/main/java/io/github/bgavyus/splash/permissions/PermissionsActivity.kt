@@ -7,72 +7,73 @@ import android.util.Log
 import io.github.bgavyus.splash.storage.Storage
 import java.util.*
 
-abstract class PermissionsActivity: Activity() {
-	companion object {
-		private val TAG = PermissionsActivity::class.simpleName
+abstract class PermissionsActivity : Activity() {
+    companion object {
+        private val TAG = PermissionsActivity::class.simpleName
 
-		private const val REQUEST_PERMISSIONS_CODE = 0
-	}
+        private const val REQUEST_PERMISSIONS_CODE = 0
+    }
 
-	fun allPermissionsGranted(): Boolean {
-		return cameraPermissionsGranted() && storagePermissionsGranted()
-	}
+    fun allPermissionsGranted(): Boolean {
+        return cameraPermissionsGranted() && storagePermissionsGranted()
+    }
 
-	fun requestNonGrantedPermissions() {
-		val permissions = ArrayList<String>()
+    fun requestNonGrantedPermissions() {
+        val permissions = ArrayList<String>()
 
-		if (!cameraPermissionsGranted()) {
-			permissions.add(Manifest.permission.CAMERA)
-		}
+        if (!cameraPermissionsGranted()) {
+            permissions.add(Manifest.permission.CAMERA)
+        }
 
-		if (!storagePermissionsGranted()) {
-			permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-		}
+        if (!storagePermissionsGranted()) {
+            permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        }
 
-		requestPermissions(permissions.toTypedArray(),
-			REQUEST_PERMISSIONS_CODE
-		)
-	}
+        requestPermissions(
+            permissions.toTypedArray(),
+            REQUEST_PERMISSIONS_CODE
+        )
+    }
 
-	override fun onRequestPermissionsResult(
-		requestCode: Int,
-		permissions: Array<out String>,
-		grantResults: IntArray
-	) {
-		Log.d(
-			TAG,
-			"onRequestPermissionsResult(requestCode = $requestCode, permissions = ${permissions.joinToString()}, grantResults = ${grantResults.joinToString()})"
-		)
-		super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        Log.d(
+            TAG,
+            "onRequestPermissionsResult(requestCode = $requestCode, permissions = ${permissions.joinToString()}, grantResults = ${grantResults.joinToString()})"
+        )
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-		if (requestCode != REQUEST_PERMISSIONS_CODE) {
-			Log.w(TAG, "Got unknown request permission result: $requestCode")
-			return
-		}
+        if (requestCode != REQUEST_PERMISSIONS_CODE) {
+            Log.w(TAG, "Got unknown request permission result: $requestCode")
+            return
+        }
 
-		if (!cameraPermissionsGranted()) {
-			return onPermissionDenied(PermissionGroup.Camera)
-		}
+        if (!cameraPermissionsGranted()) {
+            return onPermissionDenied(PermissionGroup.Camera)
+        }
 
-		if (!storagePermissionsGranted()) {
-			return onPermissionDenied(PermissionGroup.Storage)
-		}
+        if (!storagePermissionsGranted()) {
+            return onPermissionDenied(PermissionGroup.Storage)
+        }
 
-		onAllPermissionsGranted()
-	}
+        onAllPermissionsGranted()
+    }
 
-	private fun cameraPermissionsGranted(): Boolean {
-		return checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-	}
+    private fun cameraPermissionsGranted(): Boolean {
+        return checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+    }
 
-	private fun storagePermissionsGranted(): Boolean {
-		if (Storage.scoped) {
-			return true
-		}
+    private fun storagePermissionsGranted(): Boolean {
+        if (Storage.scoped) {
+            return true
+        }
 
-		return checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-	}
+        return checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+    }
 
-	abstract fun onPermissionDenied(group: PermissionGroup)
-	abstract fun onAllPermissionsGranted()
+    abstract fun onPermissionDenied(group: PermissionGroup)
+    abstract fun onAllPermissionsGranted()
 }
