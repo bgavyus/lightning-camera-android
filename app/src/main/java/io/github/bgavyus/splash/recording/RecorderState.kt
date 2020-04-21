@@ -6,7 +6,7 @@ enum class RecorderState {
     DataSourceConfigured,
     Prepared,
     Recording,
+    Paused,
     Released,
-    Error,
-    Paused
+    Error
 }

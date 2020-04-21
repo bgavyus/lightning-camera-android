@@ -3,9 +3,7 @@ package io.github.bgavyus.splash.recording
 import android.media.MediaRecorder
 
 open class StatefulMediaRecorder : MediaRecorder() {
-    var state = RecorderState.Initial
-        private set
-
+    private var state = RecorderState.Initial
     private var onErrorListener: OnErrorListener? = null
 
     init {
@@ -68,4 +66,13 @@ open class StatefulMediaRecorder : MediaRecorder() {
         super.resume()
         state = RecorderState.Recording
     }
+
+    val initial get() = state == RecorderState.Initial
+    val initialized get() = state == RecorderState.Initialized
+    val dataSourceConfigured get() = state == RecorderState.DataSourceConfigured
+    val prepared get() = state == RecorderState.Prepared
+    val recording get() = state == RecorderState.Recording
+    val paused get() = state == RecorderState.Paused
+    val released get() = state == RecorderState.Released
+    val error get() = state == RecorderState.Error
 }

@@ -20,11 +20,11 @@ class HighSpeedCamera(val context: Context, val listener: CameraEventListener) :
         private val TAG = HighSpeedCamera::class.simpleName
     }
 
+    private val releaseStack = ReleaseStack()
     private val cameraManager: CameraManager = context.getSystemService(CameraManager::class.java)
         ?: throw CameraError(CameraErrorType.Generic)
 
     private val cameraId: String
-    private val releaseStack = ReleaseStack()
 
     val sensorOrientation: Rotation
     val fpsRange: Range<Int>
@@ -43,7 +43,7 @@ class HighSpeedCamera(val context: Context, val listener: CameraEventListener) :
 
             val characteristics = cameraManager.getCameraCharacteristics(cameraId)
 
-            val configs = characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]
+            val config = characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]
                 ?: throw CameraError(CameraErrorType.Generic)
 
             sensorOrientation = characteristics[CameraCharacteristics.SENSOR_ORIENTATION]
@@ -51,11 +51,11 @@ class HighSpeedCamera(val context: Context, val listener: CameraEventListener) :
                 ?.also { Log.d(TAG, "Camera Orientation: $it") }
                 ?: throw CameraError(CameraErrorType.Generic)
 
-            fpsRange = configs.highSpeedVideoFpsRanges.maxBy { it.lower + it.upper }
+            fpsRange = config.highSpeedVideoFpsRanges.maxBy { it.lower + it.upper }
                 ?.also { Log.d(TAG, "FPS Range: $it") }
                 ?: throw CameraError(CameraErrorType.HighSpeedNotAvailable)
 
-            videoSize = configs.getHighSpeedVideoSizesFor(fpsRange).maxBy { it.width * it.height }
+            videoSize = config.getHighSpeedVideoSizesFor(fpsRange).maxBy { it.width * it.height }
                 ?.also { Log.d(TAG, "Video Size: $it") }
                 ?: throw CameraError(CameraErrorType.HighSpeedNotAvailable)
         } catch (error: CameraAccessException) {
@@ -78,8 +78,8 @@ class HighSpeedCamera(val context: Context, val listener: CameraEventListener) :
             val surfaces = listener.onSurfacesNeeded()
 
             try {
-                @Suppress("DEPRECATION")
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                    @Suppress("DEPRECATION")
                     camera.createConstrainedHighSpeedCaptureSession(
                         surfaces,
                         cameraCaptureSessionStateCallback,

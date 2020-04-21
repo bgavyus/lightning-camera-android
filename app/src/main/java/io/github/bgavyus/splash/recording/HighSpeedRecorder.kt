@@ -22,10 +22,10 @@ class HighSpeedRecorder(
     }
 
     init {
-        assert(state == RecorderState.Initial)
+        assert(initial)
         setVideoSource(VideoSource.SURFACE)
 
-        assert(state == RecorderState.Initialized)
+        assert(initialized)
         setOutputFormat(VIDEO_OUTPUT_FORMAT)
         setVideoFrameRate(VIDEO_PLAYBACK_FPS)
         setVideoSize(videoSize.width, videoSize.height)
@@ -38,15 +38,15 @@ class HighSpeedRecorder(
         setCaptureRate(fpsRange.upper.toDouble())
         setOrientationHint(rotation.degrees)
 
-        assert(state == RecorderState.DataSourceConfigured)
+        assert(dataSourceConfigured)
         setVideoEncoder(VIDEO_ENCODER)
         setOutputFile(videoFile.descriptor)
         prepare()
     }
 
     override fun release() {
-        if (state == RecorderState.Recording || state == RecorderState.Paused) {
-            Log.d(TAG, "Recorder state on release: $state")
+        if (recording || paused) {
+            Log.d(TAG, "Recording on release")
 
             try {
                 stop()

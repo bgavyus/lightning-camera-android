@@ -18,7 +18,6 @@ import io.github.bgavyus.splash.detection.LightningDetector
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
 import io.github.bgavyus.splash.recording.HighSpeedRecorder
-import io.github.bgavyus.splash.recording.RecorderState
 import io.github.bgavyus.splash.recording.StatefulMediaRecorder
 import io.github.bgavyus.splash.storage.Storage
 import io.github.bgavyus.splash.storage.VideoFile
@@ -72,7 +71,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
             return
         }
 
-        initSurfaceTexture()
+        onPermissionsAvailable()
     }
 
     override fun onPermissionDenied(group: PermissionGroup) {
@@ -91,13 +90,33 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
         recreate()
     }
 
+    private fun onPermissionsAvailable() {
+        initCamera()
+    }
+
+    private fun initCamera() {
+        try {
+            HighSpeedCamera(context = applicationContext, listener = this).run {
+                camera = this
+                releaseStack.push(::release)
+                onCameraAvailable()
+            }
+        } catch (error: CameraError) {
+            onCameraError(error.type)
+        }
+    }
+
+    private fun onCameraAvailable() {
+        initSurfaceTexture()
+    }
+
     private fun initSurfaceTexture() {
         texture_view.run {
             textureView = this
 
             if (isAvailable) {
                 Log.d(TAG, "TextureView.isAvailable")
-                initSurface()
+                onSurfaceTextureAvailable()
             } else {
                 surfaceTextureListener = this@ViewfinderActivity
             }
@@ -112,6 +131,10 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
         Log.d(TAG, "onSurfaceTextureAvailable(width = $width, height = $height)")
         assert(surfaceTexture == textureView.surfaceTexture)
         textureView.surfaceTextureListener = null
+        onSurfaceTextureAvailable()
+    }
+
+    private fun onSurfaceTextureAvailable() {
         initSurface()
     }
 
@@ -122,25 +145,11 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
             return finishWithMessage(R.string.error_out_of_resources)
         }
 
-        initCamera()
+        onSurfaceAvailable()
     }
 
-    private fun initCamera() {
-        try {
-            HighSpeedCamera(context = applicationContext, listener = this).run {
-                camera = this
-                releaseStack.push(::release)
-                onCameraAvailable()
-                stream()
-            }
-        } catch (error: CameraError) {
-            onCameraError(error.type)
-        }
-    }
-
-    private fun onCameraAvailable() {
+    private fun onSurfaceAvailable() {
         initDetector()
-        initVideoFile()
     }
 
     private fun initDetector() {
@@ -151,6 +160,12 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
         ).apply {
             releaseStack.push(::release)
         }
+
+        onDetectorAvailable()
+    }
+
+    private fun onDetectorAvailable() {
+        initVideoFile()
     }
 
     private fun initVideoFile() {
@@ -162,6 +177,10 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
             return finishWithMessage(R.string.error_io)
         }
 
+        onVideoFileAvailable()
+    }
+
+    private fun onVideoFileAvailable() {
         initRecorder()
     }
 
@@ -170,6 +189,20 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
         recorder = HighSpeedRecorder(videoFile, camera.videoSize, camera.fpsRange, rotation).apply {
             setOnErrorListener(this@ViewfinderActivity)
             releaseStack.push(::release)
+        }
+
+        onRecorderAvailable()
+    }
+
+    private fun onRecorderAvailable() {
+        stream()
+    }
+
+    private fun stream() {
+        try {
+            camera.stream()
+        } catch (error: CameraError) {
+            onCameraError(error.type)
         }
     }
 
@@ -194,18 +227,21 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     }
 
     override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture?) {
-        handleFrame()
+        onFrameAvailable()
     }
 
-    private fun handleFrame() {
-        val detected = detector.detected()
-        val recording = recorder.state == RecorderState.Recording
+    private fun onFrameAvailable() {
+        correlate()
+    }
 
-        if (detected && !recording) {
+    private fun correlate() {
+        val detected = detector.detected()
+
+        if (detected && !recorder.recording) {
             record()
         }
 
-        if (recording && !detected) {
+        if (recorder.recording && !detected) {
             lose()
         }
     }
@@ -213,7 +249,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     private fun record() {
         Log.i(TAG, "Recording")
 
-        if (recorder.state == RecorderState.Prepared) {
+        if (recorder.prepared) {
             Log.d(TAG, "Recorder state is Prepared")
             recorder.start()
             videoFile.contentValid = true
