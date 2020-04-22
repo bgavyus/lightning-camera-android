@@ -1,7 +1,6 @@
 package io.github.bgavyus.splash.camera
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.hardware.camera2.*
 import android.hardware.camera2.params.OutputConfiguration
 import android.hardware.camera2.params.SessionConfiguration
@@ -9,21 +8,23 @@ import android.os.Build
 import android.util.Log
 import android.util.Range
 import android.util.Size
+import io.github.bgavyus.splash.App
 import io.github.bgavyus.splash.common.ReleaseStack
 import io.github.bgavyus.splash.common.Rotation
 
 
 @SuppressLint("MissingPermission")
-class HighSpeedCamera(val context: Context, val listener: CameraEventListener) :
+class HighSpeedCamera(val listener: CameraListener) :
     CameraCaptureSession.CaptureCallback() {
     companion object {
         private val TAG = HighSpeedCamera::class.simpleName
     }
 
     private val releaseStack = ReleaseStack()
-    private val cameraManager: CameraManager = context.getSystemService(CameraManager::class.java)
-        ?: throw CameraError(CameraErrorType.Generic)
 
+    private val cameraManager: CameraManager =
+        App.shared.getSystemService(CameraManager::class.java)
+            ?: throw CameraError(CameraErrorType.Generic)
     private val cameraId: String
 
     val sensorOrientation: Rotation

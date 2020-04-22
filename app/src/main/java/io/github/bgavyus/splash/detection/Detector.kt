@@ -1,6 +1,19 @@
 package io.github.bgavyus.splash.detection
 
-interface Detector {
-    fun detected(): Boolean
-    fun release()
+abstract class Detector(private val listener: DetectionListener) {
+    private var lastDetected = false
+
+    internal fun propagate(detected: Boolean) {
+        if (detected == lastDetected) {
+            return
+        }
+
+        lastDetected = detected
+
+        if (detected) {
+            listener.onSubjectEnter()
+        } else {
+            listener.onSubjectExit()
+        }
+    }
 }

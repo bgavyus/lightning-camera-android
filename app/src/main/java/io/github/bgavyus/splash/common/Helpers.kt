@@ -1,6 +1,5 @@
 package io.github.bgavyus.splash.common
 
-import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Matrix
 import android.graphics.RectF
@@ -8,18 +7,19 @@ import android.os.Looper
 import android.util.Size
 import android.view.Gravity
 import android.widget.Toast
+import io.github.bgavyus.splash.App
 import java.util.*
 import kotlin.math.min
 
-fun getDefaultString(context: Context, resourceId: Int): String {
+fun getDefaultString(resourceId: Int): String {
     val config = Configuration().apply { setLocale(Locale.ROOT) }
-    return context.createConfigurationContext(config).getString(resourceId)
+    return App.shared.createConfigurationContext(config).getString(resourceId)
 }
 
-fun showMessage(context: Context, resourceId: Int) {
+fun showMessage(resourceId: Int) {
     Thread {
         Looper.prepare()
-        Toast.makeText(context, resourceId, Toast.LENGTH_LONG).run {
+        Toast.makeText(App.shared, resourceId, Toast.LENGTH_LONG).run {
             setGravity(Gravity.CENTER, 0, 0)
             show()
         }

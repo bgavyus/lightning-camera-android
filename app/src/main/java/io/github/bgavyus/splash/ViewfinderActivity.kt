@@ -10,10 +10,10 @@ import android.view.TextureView
 import android.view.View
 import io.github.bgavyus.splash.camera.CameraError
 import io.github.bgavyus.splash.camera.CameraErrorType
-import io.github.bgavyus.splash.camera.CameraEventListener
+import io.github.bgavyus.splash.camera.CameraListener
 import io.github.bgavyus.splash.camera.HighSpeedCamera
 import io.github.bgavyus.splash.common.*
-import io.github.bgavyus.splash.detection.Detector
+import io.github.bgavyus.splash.detection.DetectionListener
 import io.github.bgavyus.splash.detection.LightningDetector
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
@@ -26,7 +26,8 @@ import java.io.IOException
 
 
 class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureListener,
-    CameraEventListener, MediaRecorder.OnErrorListener, Thread.UncaughtExceptionHandler {
+    CameraListener, MediaRecorder.OnErrorListener, Thread.UncaughtExceptionHandler,
+    DetectionListener {
 
     companion object {
         private val TAG = ViewfinderActivity::class.simpleName
@@ -39,7 +40,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     private lateinit var textureView: TextureView
     private lateinit var surface: Surface
     private lateinit var camera: HighSpeedCamera
-    private lateinit var detector: Detector
+    private lateinit var detector: LightningDetector
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "Activity.onCreate(savedInstanceState = $savedInstanceState)")
@@ -96,7 +97,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
 
     private fun initCamera() {
         try {
-            HighSpeedCamera(context = applicationContext, listener = this).run {
+            HighSpeedCamera(listener = this).run {
                 camera = this
                 releaseStack.push(::release)
                 onCameraAvailable()
@@ -153,11 +154,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     }
 
     private fun initDetector() {
-        detector = LightningDetector(
-            context = applicationContext,
-            textureView = textureView,
-            videoSize = camera.videoSize
-        ).apply {
+        detector = LightningDetector(textureView.bitmap, this).apply {
             releaseStack.push(::release)
         }
 
@@ -170,7 +167,7 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
 
     private fun initVideoFile() {
         try {
-            videoFile = VideoFile(contentResolver, getString(R.string.video_folder_name)).apply {
+            videoFile = VideoFile(getString(R.string.video_folder_name)).apply {
                 releaseStack.push(::close)
             }
         } catch (_: IOException) {
@@ -231,31 +228,27 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     }
 
     private fun onFrameAvailable() {
-        correlate()
+        textureView.getBitmap(detector.bitmap)
+        detector.process()
     }
 
-    private fun correlate() {
-        val detected = detector.detected()
-
-        if (detected && !recorder.recording) {
-            record()
-        }
-
-        if (recorder.recording && !detected) {
-            lose()
-        }
+    override fun onSubjectEnter() {
+        record()
     }
 
     private fun record() {
         Log.i(TAG, "Recording")
 
         if (recorder.prepared) {
-            Log.d(TAG, "Recorder state is Prepared")
+            Log.d(TAG, "Recorder is starting")
             recorder.start()
-            videoFile.contentValid = true
         } else {
             recorder.resume()
         }
+    }
+
+    override fun onSubjectExit() {
+        lose()
     }
 
     private fun lose() {
@@ -323,13 +316,13 @@ class ViewfinderActivity : PermissionsActivity(), TextureView.SurfaceTextureList
     }
 
     override fun uncaughtException(thread: Thread, error: Throwable) {
-        Log.e(TAG, "Uncaught Exception from $thread", error)
+        Log.e(TAG, "Uncaught Exception from ${thread.name}", error)
         finishWithMessage(R.string.error_uncaught)
     }
 
     private fun finishWithMessage(resourceId: Int) {
-        Log.d(TAG, "finishWithMessage: ${getDefaultString(applicationContext, resourceId)}")
-        showMessage(applicationContext, resourceId)
+        Log.d(TAG, "finishWithMessage: ${getDefaultString(resourceId)}")
+        showMessage(resourceId)
         finish()
     }
 

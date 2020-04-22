@@ -44,6 +44,11 @@ class HighSpeedRecorder(
         prepare()
     }
 
+    override fun start() {
+        super.start()
+        videoFile.contentValid = true
+    }
+
     override fun release() {
         if (recording || paused) {
             Log.d(TAG, "Recording on release")

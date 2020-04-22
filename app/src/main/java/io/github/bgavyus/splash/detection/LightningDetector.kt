@@ -1,43 +1,37 @@
 package io.github.bgavyus.splash.detection
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.renderscript.Allocation
 import android.renderscript.RenderScript
-import android.util.Size
-import android.view.TextureView
+import io.github.bgavyus.splash.App
 import io.github.bgavyus.splash.common.ReleaseStack
 
-class LightningDetector(context: Context, private val textureView: TextureView, videoSize: Size) :
-    Detector {
+class LightningDetector(val bitmap: Bitmap, listener: DetectionListener) :
+    Detector(listener) {
 
     companion object {
         private const val ZERO: Short = 0
     }
 
     private val releaseStack = ReleaseStack()
-    private val renderScript = RenderScript.create(context).apply {
+    private val rs = RenderScript.create(App.shared).apply {
         releaseStack.push(::destroy)
     }
 
-    private val inputBitmap =
-        Bitmap.createBitmap(videoSize.width, videoSize.height, Bitmap.Config.ARGB_8888)
-
-    private val bitmapAllocation = Allocation.createFromBitmap(renderScript, inputBitmap).apply {
+    private val script = ScriptC_lightning(rs).apply {
         releaseStack.push(::destroy)
     }
 
-    private val script = ScriptC_lightning(renderScript).apply {
+    private val inputAllocation = Allocation.createFromBitmap(rs, bitmap).apply {
         releaseStack.push(::destroy)
     }
 
-    override fun detected(): Boolean {
-        textureView.getBitmap(inputBitmap)
-        bitmapAllocation.syncAll(Allocation.USAGE_SCRIPT)
-        return script.reduce_detected(bitmapAllocation).get() != ZERO
+    fun process() {
+        inputAllocation.syncAll(Allocation.USAGE_SCRIPT)
+        propagate(script.reduce_detected(inputAllocation).get() != ZERO)
     }
 
-    override fun release() {
+    fun release() {
         releaseStack.release()
     }
 }

@@ -1,17 +1,16 @@
 package io.github.bgavyus.splash.storage
 
 import android.annotation.TargetApi
-import android.content.ContentResolver
 import android.content.ContentValues
 import android.os.Build
 import android.provider.MediaStore
 import android.text.format.DateUtils
+import io.github.bgavyus.splash.App
 import java.io.File
 import java.io.IOException
 
 @TargetApi(Build.VERSION_CODES.Q)
 class PendingScopedStorageFile(
-    private val contentResolver: ContentResolver,
     mimeType: String,
     standardDirectory: StandardDirectory,
     appDirectoryName: String,
@@ -22,6 +21,8 @@ class PendingScopedStorageFile(
         const val IS_PENDING_FALSE = 0
     }
 
+    private val contentResolver = App.shared.contentResolver
+
     private val uri =
         contentResolver.insert(standardDirectory.externalStorage, ContentValues().apply {
             put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
@@ -30,10 +31,7 @@ class PendingScopedStorageFile(
                 MediaStore.MediaColumns.RELATIVE_PATH,
                 listOf(standardDirectory.value, appDirectoryName).joinToString(File.separator)
             )
-            put(
-                MediaStore.MediaColumns.IS_PENDING,
-                IS_PENDING_TRUE
-            )
+            put(MediaStore.MediaColumns.IS_PENDING, IS_PENDING_TRUE)
             put(
                 MediaStore.MediaColumns.DATE_EXPIRES,
                 (System.currentTimeMillis() + DateUtils.DAY_IN_MILLIS) / 1000

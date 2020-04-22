@@ -1,17 +1,16 @@
 package io.github.bgavyus.splash.storage
 
-import android.content.ContentResolver
 import android.content.ContentValues
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
+import io.github.bgavyus.splash.App
 import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException
 
 @Suppress("DEPRECATION")
 class PendingLegacyStorageFile(
-    private val contentResolver: ContentResolver,
     private val mimeType: String,
     private val standardDirectory: StandardDirectory,
     appDirectoryName: String,
@@ -50,7 +49,7 @@ class PendingLegacyStorageFile(
     }
 
     private fun addToMediaStore(file: File): Uri {
-        return contentResolver.insert(
+        return App.shared.contentResolver.insert(
             standardDirectory.externalStorage,
             ContentValues().apply {
                 put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
