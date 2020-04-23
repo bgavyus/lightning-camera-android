@@ -6,7 +6,7 @@ import android.renderscript.RenderScript
 import io.github.bgavyus.splash.App
 import io.github.bgavyus.splash.common.ReleaseStack
 
-class LightningDetector(val bitmap: Bitmap, listener: DetectionListener) :
+class LightningDetector(inputBitmap: Bitmap, listener: DetectionListener) :
     Detector(listener) {
 
     companion object {
@@ -22,13 +22,14 @@ class LightningDetector(val bitmap: Bitmap, listener: DetectionListener) :
         releaseStack.push(::destroy)
     }
 
-    private val inputAllocation = Allocation.createFromBitmap(rs, bitmap).apply {
+    private val inputAllocation = Allocation.createFromBitmap(rs, inputBitmap).apply {
         releaseStack.push(::destroy)
     }
 
     fun process() {
         inputAllocation.syncAll(Allocation.USAGE_SCRIPT)
-        propagate(script.reduce_detected(inputAllocation).get() != ZERO)
+        val detected = script.reduce_detected(inputAllocation).get() != ZERO
+        propagate(detected)
     }
 
     fun release() {

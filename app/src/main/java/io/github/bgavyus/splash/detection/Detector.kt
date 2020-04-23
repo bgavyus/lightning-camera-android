@@ -11,9 +11,9 @@ abstract class Detector(private val listener: DetectionListener) {
         lastDetected = detected
 
         if (detected) {
-            listener.onSubjectEnter()
+            listener.onSubjectEntered()
         } else {
-            listener.onSubjectExit()
+            listener.onSubjectLeft()
         }
     }
 }

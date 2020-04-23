@@ -44,9 +44,22 @@ class HighSpeedRecorder(
         prepare()
     }
 
+    fun record() {
+        if (prepared) {
+            Log.d(TAG, "Recorder is starting")
+            start()
+        } else {
+            resume()
+        }
+    }
+
     override fun start() {
         super.start()
         videoFile.contentValid = true
+    }
+
+    fun loss() {
+        pause()
     }
 
     override fun release() {

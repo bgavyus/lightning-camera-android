@@ -4,6 +4,6 @@ import android.view.Surface
 
 interface CameraListener {
     fun onSurfacesNeeded(): List<Surface>
-    fun onStreaming()
+    fun onCameraStreamStarted()
     fun onCameraError(type: CameraErrorType)
 }

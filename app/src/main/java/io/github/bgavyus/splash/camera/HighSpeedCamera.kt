@@ -5,6 +5,8 @@ import android.hardware.camera2.*
 import android.hardware.camera2.params.OutputConfiguration
 import android.hardware.camera2.params.SessionConfiguration
 import android.os.Build
+import android.os.Handler
+import android.os.HandlerThread
 import android.util.Log
 import android.util.Range
 import android.util.Size
@@ -25,6 +27,8 @@ class HighSpeedCamera(val listener: CameraListener) :
     private val cameraManager: CameraManager =
         App.shared.getSystemService(CameraManager::class.java)
             ?: throw CameraError(CameraErrorType.Generic)
+
+    private val handler = Handler(App.shared.mainLooper)
     private val cameraId: String
 
     val sensorOrientation: Rotation
@@ -64,9 +68,9 @@ class HighSpeedCamera(val listener: CameraListener) :
         }
     }
 
-    fun stream() {
+    fun startStreaming() {
         try {
-            cameraManager.openCamera(cameraId, cameraDeviceStateCallback, null)
+            cameraManager.openCamera(cameraId, cameraDeviceStateCallback, handler)
         } catch (error: CameraAccessException) {
             throw CameraError(accessExceptionToErrorType(error))
         }
@@ -84,14 +88,14 @@ class HighSpeedCamera(val listener: CameraListener) :
                     camera.createConstrainedHighSpeedCaptureSession(
                         surfaces,
                         cameraCaptureSessionStateCallback,
-                        null
+                        handler
                     )
                 } else {
                     camera.createCaptureSession(
                         SessionConfiguration(
                             SessionConfiguration.SESSION_HIGH_SPEED,
                             surfaces.map(::OutputConfiguration),
-                            context.mainExecutor,
+                            { handler.post(it) },
                             cameraCaptureSessionStateCallback
                         )
                     )
@@ -125,7 +129,7 @@ class HighSpeedCamera(val listener: CameraListener) :
         override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
             Log.d(TAG, "CameraCaptureSession.onConfigured")
             startCaptureSession(cameraCaptureSession as CameraConstrainedHighSpeedCaptureSession)
-            listener.onStreaming()
+            listener.onCameraStreamStarted()
         }
 
         override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession) {
