@@ -18,6 +18,7 @@ class TextureFrameDuplicator(
 ) : FrameDuplicator, TextureView.SurfaceTextureListener {
 
     private lateinit var surface: Surface
+    private lateinit var bitmap: Bitmap
 
     init {
         if (textureView.isAvailable) {
@@ -75,8 +76,6 @@ class TextureFrameDuplicator(
         textureView.setTransform(matrix)
     }
 
-    private lateinit var bitmap: Bitmap
-
     override val outputBitmap: Bitmap
         get() {
             if (!::bitmap.isInitialized) {
@@ -91,11 +90,8 @@ class TextureFrameDuplicator(
     }
 
     override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {
-        listener.onFrameAvailable()
-    }
-
-    override fun propagate() {
         textureView.getBitmap(bitmap)
+        listener.onFrameAvailable()
     }
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {

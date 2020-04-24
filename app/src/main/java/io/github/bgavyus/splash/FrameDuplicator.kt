@@ -7,7 +7,6 @@ interface FrameDuplicator {
     val inputSurface: Surface
     val outputBitmap: Bitmap
 
-    fun propagate()
     fun startStreaming()
     fun stopStreaming()
 }

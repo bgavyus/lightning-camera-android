@@ -185,7 +185,6 @@ class ViewfinderActivity : PermissionsActivity(), CameraListener, MediaRecorder.
     }
 
     private fun detect() {
-        frameDuplicator.propagate()
         detector.process()
     }
 
