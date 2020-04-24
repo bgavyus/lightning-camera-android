@@ -5,18 +5,18 @@ import android.view.WindowManager
 
 class App : Application() {
     companion object {
-        lateinit var shared: App
+        lateinit var context: App
+
+        private val windowManager
+            get() = context.getSystemService(WindowManager::class.java)
+                ?: throw RuntimeException("Failed to get window manager service")
+
+        val deviceOrientation: Rotation
+            get() = -Rotation.fromSurfaceRotation(windowManager.defaultDisplay.rotation)
     }
 
     override fun onCreate() {
         super.onCreate()
-        shared = this
+        context = this
     }
-
-    private val displayRotation: Rotation
-        get() = getSystemService(WindowManager::class.java)
-            ?.let { Rotation.fromSurfaceRotation(it.defaultDisplay.rotation) }
-            ?: throw RuntimeException("Failed to get display rotation")
-
-    val deviceOrientation: Rotation get() = -displayRotation
 }

@@ -24,10 +24,10 @@ class HighSpeedCamera(val listener: CameraListener) :
     private val releaseStack = ReleaseStack()
 
     private val cameraManager: CameraManager =
-        App.shared.getSystemService(CameraManager::class.java)
+        App.context.getSystemService(CameraManager::class.java)
             ?: throw CameraError(CameraErrorType.Generic)
 
-    private val handler = Handler(App.shared.mainLooper)
+    private val handler = Handler(App.context.mainLooper)
     private val cameraId: String
 
     val sensorOrientation: Rotation

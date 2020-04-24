@@ -49,7 +49,7 @@ class PendingLegacyStorageFile(
     }
 
     private fun addToMediaStore(file: File): Uri {
-        return App.shared.contentResolver.insert(
+        return App.context.contentResolver.insert(
             standardDirectory.externalStorage,
             ContentValues().apply {
                 put(MediaStore.MediaColumns.MIME_TYPE, mimeType)

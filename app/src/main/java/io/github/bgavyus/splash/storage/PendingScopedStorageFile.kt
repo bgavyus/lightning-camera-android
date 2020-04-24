@@ -21,7 +21,7 @@ class PendingScopedStorageFile(
         const val IS_PENDING_FALSE = 0
     }
 
-    private val contentResolver = App.shared.contentResolver
+    private val contentResolver = App.context.contentResolver
 
     private val uri =
         contentResolver.insert(standardDirectory.externalStorage, ContentValues().apply {

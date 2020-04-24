@@ -1,6 +1,5 @@
 package io.github.bgavyus.splash.flow
 
-import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.RectF
@@ -34,7 +33,6 @@ class TextureFrameDuplicator(
         loadSurface()
     }
 
-    @SuppressLint("Recycle")
     private fun loadSurface() {
         setBufferSize()
         surface = Surface(textureView.surfaceTexture)
@@ -72,7 +70,7 @@ class TextureFrameDuplicator(
         bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
         matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
         matrix.postScale(scale, scale, centerX, centerY)
-        matrix.postRotate(App.shared.deviceOrientation.degrees.toFloat(), centerX, centerY)
+        matrix.postRotate(App.deviceOrientation.degrees.toFloat(), centerX, centerY)
 
         textureView.setTransform(matrix)
     }

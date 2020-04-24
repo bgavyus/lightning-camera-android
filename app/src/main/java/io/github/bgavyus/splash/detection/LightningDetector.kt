@@ -14,7 +14,7 @@ class LightningDetector(inputBitmap: Bitmap, listener: DetectionListener) :
     }
 
     private val releaseStack = ReleaseStack()
-    private val rs = RenderScript.create(App.shared).apply {
+    private val rs = RenderScript.create(App.context).apply {
         releaseStack.push(::destroy)
     }
 

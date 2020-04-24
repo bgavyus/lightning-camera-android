@@ -53,7 +53,7 @@ class ViewfinderActivity : PermissionsActivity(), CameraListener, MediaRecorder.
     }
 
     private fun logState() {
-        Log.d(TAG, "Device Orientation: ${App.shared.deviceOrientation}")
+        Log.d(TAG, "Device Orientation: ${App.deviceOrientation}")
         Log.d(TAG, "Display FPS: ${windowManager.defaultDisplay.refreshRate}")
         Log.d(TAG, "Running in ${if (Storage.scoped) "scoped" else "legacy"} storage mode")
     }
@@ -96,7 +96,7 @@ class ViewfinderActivity : PermissionsActivity(), CameraListener, MediaRecorder.
 
     private fun initCamera() {
         try {
-            HighSpeedCamera(listener = this).run {
+            HighSpeedCamera(this).run {
                 camera = this
                 releaseStack.push(::release)
                 onCameraAvailable()
@@ -133,7 +133,7 @@ class ViewfinderActivity : PermissionsActivity(), CameraListener, MediaRecorder.
 
     private fun initVideoFile() {
         try {
-            videoFile = VideoFile(getString(R.string.video_folder_name)).apply {
+            videoFile = VideoFile(App.context.getString(R.string.video_folder_name)).apply {
                 releaseStack.push(::close)
             }
         } catch (_: IOException) {
@@ -148,7 +148,7 @@ class ViewfinderActivity : PermissionsActivity(), CameraListener, MediaRecorder.
     }
 
     private fun initRecorder() {
-        val rotation = camera.sensorOrientation + App.shared.deviceOrientation
+        val rotation = camera.sensorOrientation + App.deviceOrientation
         recorder = HighSpeedRecorder(videoFile, camera.videoSize, camera.fpsRange, rotation).apply {
             setOnErrorListener(this@ViewfinderActivity)
             releaseStack.push(::release)
