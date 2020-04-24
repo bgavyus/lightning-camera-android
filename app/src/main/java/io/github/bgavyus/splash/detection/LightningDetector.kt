@@ -3,7 +3,7 @@ package io.github.bgavyus.splash.detection
 import android.graphics.Bitmap
 import android.renderscript.Allocation
 import android.renderscript.RenderScript
-import io.github.bgavyus.splash.App
+import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.ReleaseStack
 
 class LightningDetector(inputBitmap: Bitmap, listener: DetectionListener) :

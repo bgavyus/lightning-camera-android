@@ -4,7 +4,7 @@ import android.content.ContentValues
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
-import io.github.bgavyus.splash.App
+import io.github.bgavyus.splash.common.App
 import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException

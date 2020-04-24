@@ -9,11 +9,15 @@ import io.github.bgavyus.splash.camera.CameraError
 import io.github.bgavyus.splash.camera.CameraErrorType
 import io.github.bgavyus.splash.camera.CameraListener
 import io.github.bgavyus.splash.camera.HighSpeedCamera
+import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.ReleaseStack
 import io.github.bgavyus.splash.common.getDefaultString
 import io.github.bgavyus.splash.common.showMessage
 import io.github.bgavyus.splash.detection.DetectionListener
 import io.github.bgavyus.splash.detection.LightningDetector
+import io.github.bgavyus.splash.flow.FrameDuplicator
+import io.github.bgavyus.splash.flow.FrameDuplicatorListener
+import io.github.bgavyus.splash.flow.TextureFrameDuplicator
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
 import io.github.bgavyus.splash.recording.HighSpeedRecorder

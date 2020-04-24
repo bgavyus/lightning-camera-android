@@ -5,7 +5,7 @@ import android.content.ContentValues
 import android.os.Build
 import android.provider.MediaStore
 import android.text.format.DateUtils
-import io.github.bgavyus.splash.App
+import io.github.bgavyus.splash.common.App
 import java.io.File
 import java.io.IOException
 

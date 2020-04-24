@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import android.os.Looper
 import android.view.Gravity
 import android.widget.Toast
-import io.github.bgavyus.splash.App
 import java.util.*
 
 fun getDefaultString(resourceId: Int): String {

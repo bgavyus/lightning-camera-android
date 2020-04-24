@@ -1,8 +1,7 @@
-package io.github.bgavyus.splash
+package io.github.bgavyus.splash.common
 
 import android.app.Application
 import android.view.WindowManager
-import io.github.bgavyus.splash.common.Rotation
 
 class App : Application() {
     companion object {

@@ -6,11 +6,10 @@ import android.hardware.camera2.params.OutputConfiguration
 import android.hardware.camera2.params.SessionConfiguration
 import android.os.Build
 import android.os.Handler
-import android.os.HandlerThread
 import android.util.Log
 import android.util.Range
 import android.util.Size
-import io.github.bgavyus.splash.App
+import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.ReleaseStack
 import io.github.bgavyus.splash.common.Rotation
 

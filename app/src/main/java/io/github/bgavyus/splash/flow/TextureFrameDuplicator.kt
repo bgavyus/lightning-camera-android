@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash
+package io.github.bgavyus.splash.flow
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
@@ -9,6 +9,7 @@ import android.util.Size
 import android.util.SizeF
 import android.view.Surface
 import android.view.TextureView
+import io.github.bgavyus.splash.common.App
 import kotlin.math.min
 
 class TextureFrameDuplicator(
