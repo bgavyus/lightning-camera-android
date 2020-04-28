@@ -1,6 +1,6 @@
 package io.github.bgavyus.splash.common
 
-interface PendingOperation {
+interface TentativeOperation {
     fun save()
     fun discard()
 }

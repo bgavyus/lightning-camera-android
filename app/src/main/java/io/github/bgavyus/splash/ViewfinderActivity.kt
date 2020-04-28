@@ -1,6 +1,5 @@
 package io.github.bgavyus.splash
 
-import android.media.MediaRecorder
 import android.os.Bundle
 import android.util.Log
 import android.view.Surface
@@ -10,36 +9,39 @@ import io.github.bgavyus.splash.camera.CameraErrorType
 import io.github.bgavyus.splash.camera.CameraListener
 import io.github.bgavyus.splash.camera.HighSpeedCamera
 import io.github.bgavyus.splash.common.App
-import io.github.bgavyus.splash.common.ReleaseStack
+import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.common.getDefaultString
 import io.github.bgavyus.splash.common.showMessage
 import io.github.bgavyus.splash.detection.DetectionListener
+import io.github.bgavyus.splash.detection.Detector
 import io.github.bgavyus.splash.detection.LightningDetector
 import io.github.bgavyus.splash.flow.FrameDuplicator
 import io.github.bgavyus.splash.flow.FrameDuplicatorListener
 import io.github.bgavyus.splash.flow.TextureFrameDuplicator
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
+import io.github.bgavyus.splash.recording.Recorder
+import io.github.bgavyus.splash.recording.RecorderListener
 import io.github.bgavyus.splash.recording.HighSpeedRecorder
 import io.github.bgavyus.splash.storage.Storage
 import io.github.bgavyus.splash.storage.VideoFile
 import kotlinx.android.synthetic.main.activity_viewfinder.*
 import java.io.IOException
 
-class ViewfinderActivity : PermissionsActivity(), CameraListener, MediaRecorder.OnErrorListener,
-    Thread.UncaughtExceptionHandler, DetectionListener, FrameDuplicatorListener {
+class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandler, CameraListener,
+    DetectionListener, FrameDuplicatorListener, RecorderListener {
 
     companion object {
         private val TAG = ViewfinderActivity::class.simpleName
     }
 
-    private val releaseStack = ReleaseStack()
+    private val closeStack = CloseStack()
 
-    private lateinit var recorder: HighSpeedRecorder
+    private lateinit var recorder: Recorder
     private lateinit var videoFile: VideoFile
     private lateinit var frameDuplicator: FrameDuplicator
     private lateinit var camera: HighSpeedCamera
-    private lateinit var detector: LightningDetector
+    private lateinit var detector: Detector
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "Activity.onCreate(savedInstanceState = $savedInstanceState)")
@@ -98,7 +100,7 @@ class ViewfinderActivity : PermissionsActivity(), CameraListener, MediaRecorder.
         try {
             HighSpeedCamera(this).run {
                 camera = this
-                releaseStack.push(::release)
+                closeStack.push(::close)
                 onCameraAvailable()
             }
         } catch (error: CameraError) {
@@ -121,7 +123,7 @@ class ViewfinderActivity : PermissionsActivity(), CameraListener, MediaRecorder.
 
     private fun initDetector() {
         detector = LightningDetector(frameDuplicator.outputBitmap, this).apply {
-            releaseStack.push(::release)
+            closeStack.push(::close)
         }
 
         onDetectorAvailable()
@@ -133,8 +135,8 @@ class ViewfinderActivity : PermissionsActivity(), CameraListener, MediaRecorder.
 
     private fun initVideoFile() {
         try {
-            videoFile = VideoFile(App.context.getString(R.string.video_folder_name)).apply {
-                releaseStack.push(::close)
+            videoFile = VideoFile().apply {
+                closeStack.push(::close)
             }
         } catch (_: IOException) {
             return finishWithMessage(R.string.error_io)
@@ -149,10 +151,10 @@ class ViewfinderActivity : PermissionsActivity(), CameraListener, MediaRecorder.
 
     private fun initRecorder() {
         val rotation = camera.sensorOrientation + App.deviceOrientation
-        recorder = HighSpeedRecorder(videoFile, camera.videoSize, camera.fpsRange, rotation).apply {
-            setOnErrorListener(this@ViewfinderActivity)
-            releaseStack.push(::release)
-        }
+        recorder = HighSpeedRecorder(videoFile, camera.videoSize, camera.fpsRange, rotation, this)
+            .apply {
+                closeStack.push(::close)
+            }
 
         onRecorderAvailable()
     }
@@ -170,7 +172,7 @@ class ViewfinderActivity : PermissionsActivity(), CameraListener, MediaRecorder.
     }
 
     override fun onSurfacesNeeded(): List<Surface> {
-        return listOf(frameDuplicator.inputSurface, recorder.surface)
+        return listOf(frameDuplicator.inputSurface, recorder.inputSurface)
     }
 
     override fun onCameraStreamStarted() {
@@ -180,7 +182,7 @@ class ViewfinderActivity : PermissionsActivity(), CameraListener, MediaRecorder.
     private fun initFrameStream() {
         frameDuplicator.run {
             startStreaming()
-            releaseStack.push(::stopStreaming)
+            closeStack.push(::stopStreaming)
         }
     }
 
@@ -189,7 +191,7 @@ class ViewfinderActivity : PermissionsActivity(), CameraListener, MediaRecorder.
     }
 
     private fun detect() {
-        detector.process()
+        detector.detect()
     }
 
     override fun onSubjectEntered() {
@@ -225,15 +227,14 @@ class ViewfinderActivity : PermissionsActivity(), CameraListener, MediaRecorder.
         )
     }
 
-    override fun onError(mr: MediaRecorder?, what: Int, extra: Int) {
-        Log.d(TAG, "MediaRecorder.onError(what = $what, extra = $extra)")
+    override fun onRecorderError() {
         finishWithMessage(R.string.error_recorder)
     }
 
     override fun onPause() {
         Log.d(TAG, "Activity.onPause")
         super.onPause()
-        release()
+        close()
     }
 
     override fun uncaughtException(thread: Thread, error: Throwable) {
@@ -250,10 +251,10 @@ class ViewfinderActivity : PermissionsActivity(), CameraListener, MediaRecorder.
     override fun finish() {
         Log.d(TAG, "finish")
         super.finish()
-        release()
+        close()
     }
 
-    private fun release() {
-        releaseStack.release()
+    private fun close() {
+        closeStack.close()
     }
 }

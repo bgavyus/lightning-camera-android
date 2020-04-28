@@ -10,18 +10,18 @@ import android.util.Log
 import android.util.Range
 import android.util.Size
 import io.github.bgavyus.splash.common.App
-import io.github.bgavyus.splash.common.ReleaseStack
+import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.common.Rotation
 
 
 @SuppressLint("MissingPermission")
 class HighSpeedCamera(val listener: CameraListener) :
-    CameraCaptureSession.CaptureCallback() {
+    CameraCaptureSession.CaptureCallback(), AutoCloseable {
     companion object {
         private val TAG = HighSpeedCamera::class.simpleName
     }
 
-    private val releaseStack = ReleaseStack()
+    private val closeStack = CloseStack()
 
     private val cameraManager: CameraManager =
         App.context.getSystemService(CameraManager::class.java)
@@ -78,7 +78,7 @@ class HighSpeedCamera(val listener: CameraListener) :
     private val cameraDeviceStateCallback = object : CameraDevice.StateCallback() {
         override fun onOpened(camera: CameraDevice) {
             Log.d(TAG, "CameraDevice.onOpened")
-            releaseStack.push(camera::close)
+            closeStack.push(camera::close)
             val surfaces = listener.onSurfacesNeeded()
 
             try {
@@ -151,7 +151,7 @@ class HighSpeedCamera(val listener: CameraListener) :
                     ), null, null
                 )
 
-                releaseStack.push(::close)
+                closeStack.push(::close)
             }
         } catch (error: CameraAccessException) {
             onError(accessExceptionToErrorType(error))
@@ -171,11 +171,11 @@ class HighSpeedCamera(val listener: CameraListener) :
     }
 
     private fun onError(type: CameraErrorType) {
-        release()
+        close()
         listener.onCameraError(type)
     }
 
-    fun release() {
-        releaseStack.release()
+    override fun close() {
+        closeStack.close()
     }
 }

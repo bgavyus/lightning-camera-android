@@ -10,12 +10,12 @@ import java.io.FileDescriptor
 import java.io.IOException
 
 @Suppress("DEPRECATION")
-class PendingLegacyStorageFile(
+class TentativeLegacyStorageFile(
     private val mimeType: String,
     private val standardDirectory: StandardDirectory,
     appDirectoryName: String,
     private val name: String
-) : PendingFile {
+) : TentativeFile {
 
     private val parentDirectory = File(
         Environment.getExternalStoragePublicDirectory(standardDirectory.value),
@@ -35,10 +35,13 @@ class PendingLegacyStorageFile(
     private val tempFileOutputStream = tempFile.outputStream()
 
     override val descriptor: FileDescriptor get() = tempFileOutputStream.fd
+    override val path: String get() = tempFile.path
+
+    override fun close() {
+        tempFileOutputStream.close()
+    }
 
     override fun save() {
-        close()
-
         val file = File(parentDirectory, name)
 
         if (!tempFile.renameTo(file)) {
@@ -60,11 +63,5 @@ class PendingLegacyStorageFile(
         )
     }
 
-    override fun discard() {
-        close()
-    }
-
-    private fun close() {
-        tempFileOutputStream.close()
-    }
+    override fun discard() {}
 }

@@ -1,9 +1,10 @@
 package io.github.bgavyus.splash.detection
 
-abstract class Detector(private val listener: DetectionListener) {
+abstract class Detector(private val listener: DetectionListener) :
+    AutoCloseable {
     private var lastDetected = false
 
-    internal fun propagate(detected: Boolean) {
+    private fun propagate(detected: Boolean) {
         if (detected == lastDetected) {
             return
         }
@@ -15,5 +16,11 @@ abstract class Detector(private val listener: DetectionListener) {
         } else {
             listener.onSubjectLeft()
         }
+    }
+
+    abstract fun detected(): Boolean
+
+    fun detect() {
+        propagate(detected())
     }
 }

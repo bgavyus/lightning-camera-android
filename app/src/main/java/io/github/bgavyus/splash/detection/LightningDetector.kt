@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import android.renderscript.Allocation
 import android.renderscript.RenderScript
 import io.github.bgavyus.splash.common.App
-import io.github.bgavyus.splash.common.ReleaseStack
+import io.github.bgavyus.splash.common.CloseStack
 
 class LightningDetector(inputBitmap: Bitmap, listener: DetectionListener) :
     Detector(listener) {
@@ -13,26 +13,25 @@ class LightningDetector(inputBitmap: Bitmap, listener: DetectionListener) :
         private const val ZERO: Short = 0
     }
 
-    private val releaseStack = ReleaseStack()
+    private val closeStack = CloseStack()
     private val rs = RenderScript.create(App.context).apply {
-        releaseStack.push(::destroy)
+        closeStack.push(::destroy)
     }
 
     private val script = ScriptC_lightning(rs).apply {
-        releaseStack.push(::destroy)
+        closeStack.push(::destroy)
     }
 
     private val inputAllocation = Allocation.createFromBitmap(rs, inputBitmap).apply {
-        releaseStack.push(::destroy)
+        closeStack.push(::destroy)
     }
 
-    fun process() {
+    override fun detected(): Boolean {
         inputAllocation.syncAll(Allocation.USAGE_SCRIPT)
-        val detected = script.reduce_detected(inputAllocation).get() != ZERO
-        propagate(detected)
+        return script.reduce_detected(inputAllocation).get() != ZERO
     }
 
-    fun release() {
-        releaseStack.release()
+    override fun close() {
+        closeStack.close()
     }
 }

@@ -10,12 +10,12 @@ import java.io.File
 import java.io.IOException
 
 @TargetApi(Build.VERSION_CODES.Q)
-class PendingScopedStorageFile(
+class TentativeScopedStorageFile(
     mimeType: String,
     standardDirectory: StandardDirectory,
     appDirectoryName: String,
     name: String
-) : PendingFile {
+) : TentativeFile {
     companion object {
         const val IS_PENDING_TRUE = 1
         const val IS_PENDING_FALSE = 0
@@ -50,21 +50,13 @@ class PendingScopedStorageFile(
         get() = file.fileDescriptor
             ?: throw IOException("Failed to get file descriptor for $uri")
 
-    override fun save() {
-        close()
-        markAsDone()
-    }
+    override val path: String get() = throw NotImplementedError()
 
-    override fun discard() {
-        close()
-        delete()
-    }
-
-    private fun close() {
+    override fun close() {
         file.close()
     }
 
-    private fun markAsDone() {
+    override fun save() {
         contentResolver.update(uri, ContentValues().apply {
             putNull(MediaStore.MediaColumns.DATE_EXPIRES)
             put(
@@ -74,7 +66,7 @@ class PendingScopedStorageFile(
         }, null, null)
     }
 
-    private fun delete() {
+    override fun discard() {
         val rowsDeleted = contentResolver.delete(uri, null, null)
 
         if (rowsDeleted != 1) {
