@@ -23,7 +23,7 @@ enum class Rotation(val surfaceRotation: Int) {
         }
 
         private fun fromOrdinal(index: Int): Rotation {
-            return rotations[floorMod(index, rotationsCount)]
+            return rotations[Math.floorMod(index, rotationsCount)]
         }
     }
 

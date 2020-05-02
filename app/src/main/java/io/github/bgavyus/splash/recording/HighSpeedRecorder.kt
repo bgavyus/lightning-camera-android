@@ -44,6 +44,7 @@ class HighSpeedRecorder(
         setOutputFile(file.descriptor)
         prepare()
         start()
+        pause()
     }
 
     override fun record() {

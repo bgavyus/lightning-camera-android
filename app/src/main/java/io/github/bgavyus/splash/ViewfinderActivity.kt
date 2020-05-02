@@ -10,8 +10,6 @@ import io.github.bgavyus.splash.camera.CameraListener
 import io.github.bgavyus.splash.camera.HighSpeedCamera
 import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.CloseStack
-import io.github.bgavyus.splash.common.getDefaultString
-import io.github.bgavyus.splash.common.showMessage
 import io.github.bgavyus.splash.detection.DetectionListener
 import io.github.bgavyus.splash.detection.Detector
 import io.github.bgavyus.splash.detection.LightningDetector
@@ -242,8 +240,8 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
     }
 
     private fun finishWithMessage(resourceId: Int) {
-        Log.d(TAG, "finishWithMessage: ${getDefaultString(resourceId)}")
-        showMessage(resourceId)
+        Log.d(TAG, "finishWithMessage: ${App.getDefaultString(resourceId)}")
+        App.showMessage(resourceId)
         finish()
     }
 
