@@ -12,7 +12,6 @@
     <string name="error_camera_in_use">המצלמה בשימוש אפליקציה אחרת</string>
     <string name="error_max_cameras_in_use">יותר מדי מצלמות בשימוש</string>
     <string name="error_recorder">שגיאה בהקלטה</string>
-    <string name="error_out_of_resources">נגמרו המשאבים</string>
     <string name="error_io">לא ניתן לגשת לקבצים</string>
     <string name="error_uncaught">באג</string>
 </resources>

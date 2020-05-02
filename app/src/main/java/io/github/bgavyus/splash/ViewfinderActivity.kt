@@ -20,9 +20,9 @@ import io.github.bgavyus.splash.flow.FrameDuplicatorListener
 import io.github.bgavyus.splash.flow.TextureFrameDuplicator
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
+import io.github.bgavyus.splash.recording.HighSpeedRecorder
 import io.github.bgavyus.splash.recording.Recorder
 import io.github.bgavyus.splash.recording.RecorderListener
-import io.github.bgavyus.splash.recording.HighSpeedRecorder
 import io.github.bgavyus.splash.storage.Storage
 import io.github.bgavyus.splash.storage.VideoFile
 import kotlinx.android.synthetic.main.activity_viewfinder.*
@@ -194,8 +194,8 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         detector.detect()
     }
 
-    override fun onSubjectEntered() {
-        Log.i(TAG, "Subject entered")
+    override fun onDetectionStarted() {
+        Log.i(TAG, "Detection Started")
         record()
     }
 
@@ -203,8 +203,8 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         recorder.record()
     }
 
-    override fun onSubjectLeft() {
-        Log.i(TAG, "Subject left")
+    override fun onDetectionEnded() {
+        Log.i(TAG, "Detection Ended")
         lose()
     }
 
@@ -238,7 +238,6 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
     }
 
     override fun uncaughtException(thread: Thread, error: Throwable) {
-        Log.e(TAG, "Uncaught Exception from ${thread.name}", error)
         finishWithMessage(R.string.error_uncaught)
     }
 

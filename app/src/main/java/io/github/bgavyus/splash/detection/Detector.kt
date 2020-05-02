@@ -12,15 +12,15 @@ abstract class Detector(private val listener: DetectionListener) :
         lastDetected = detected
 
         if (detected) {
-            listener.onSubjectEntered()
+            listener.onDetectionStarted()
         } else {
-            listener.onSubjectLeft()
+            listener.onDetectionEnded()
         }
     }
 
     abstract fun detected(): Boolean
 
-    fun detect() {
+    open fun detect() {
         propagate(detected())
     }
 }

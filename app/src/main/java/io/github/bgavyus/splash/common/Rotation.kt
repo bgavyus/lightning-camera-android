@@ -9,25 +9,21 @@ enum class Rotation(val surfaceRotation: Int) {
     Left(Surface.ROTATION_270);
 
     companion object {
+        private const val FULL_CYCLE_DEGREES = 360
         private val rotations = values()
         private val rotationsCount = rotations.count()
-        private val degreesPerRotation = 360 / rotationsCount
+        private val degreesPerRotation = FULL_CYCLE_DEGREES / rotationsCount
 
         fun fromSurfaceRotation(surfaceRotation: Int): Rotation {
             return rotations.first { it.surfaceRotation == surfaceRotation }
         }
 
-        private fun fromOrdinal(index: Int): Rotation {
-            return rotations[Math.floorMod(
-                index,
-                rotationsCount
-            )]
+        fun fromDegrees(degrees: Int): Rotation {
+            return fromOrdinal(degrees / degreesPerRotation)
         }
 
-        fun fromDegrees(degrees: Int): Rotation {
-            return fromOrdinal(
-                degrees / degreesPerRotation
-            )
+        private fun fromOrdinal(index: Int): Rotation {
+            return rotations[floorMod(index, rotationsCount)]
         }
     }
 
