@@ -18,9 +18,9 @@ import io.github.bgavyus.splash.flow.FrameDuplicatorListener
 import io.github.bgavyus.splash.flow.TextureFrameDuplicator
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
-import io.github.bgavyus.splash.recording.HighSpeedRecorder
 import io.github.bgavyus.splash.recording.Recorder
 import io.github.bgavyus.splash.recording.RecorderListener
+import io.github.bgavyus.splash.recording.RetroRecorder
 import io.github.bgavyus.splash.storage.Storage
 import io.github.bgavyus.splash.storage.VideoFile
 import kotlinx.android.synthetic.main.activity_viewfinder.*
@@ -149,7 +149,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
 
     private fun initRecorder() {
         val rotation = camera.sensorOrientation + App.deviceOrientation
-        recorder = HighSpeedRecorder(videoFile, camera.videoSize, camera.fpsRange, rotation, this)
+        recorder = RetroRecorder(videoFile, camera.videoSize, camera.fpsRange, rotation, this)
             .apply {
                 closeStack.push(::close)
             }

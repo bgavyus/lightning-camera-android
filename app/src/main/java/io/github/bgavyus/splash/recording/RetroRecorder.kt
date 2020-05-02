@@ -13,7 +13,7 @@ import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.storage.StorageFile
 
-class CodecRecorder(
+class RetroRecorder(
     private val file: StorageFile,
     size: Size,
     fpsRange: Range<Int>,
@@ -21,7 +21,7 @@ class CodecRecorder(
     private val listener: RecorderListener
 ) : Recorder {
     companion object {
-        private val TAG = CodecRecorder::class.simpleName
+        private val TAG = RetroRecorder::class.simpleName
 
         private const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
         private const val MICROS_IN_UNIT = 1_000_000
@@ -43,40 +43,28 @@ class CodecRecorder(
         closeStack.push(::release)
     }
 
-    private lateinit var muxer: MediaWriter
+    private lateinit var writer: RetroMediaWriter
 
     private val mediaCodecCallback = object : MediaCodec.Callback() {
         override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
             Log.d(TAG, "onOutputFormatChanged(format = $format)")
 
-            if (::muxer.isInitialized) {
+            if (::writer.isInitialized) {
                 Log.e(TAG, "Format was already set")
                 onError()
                 return
             }
 
-            muxer = MediaWriter(file, format, rotation).apply {
+            writer = RetroMediaWriter(file, format, rotation).apply {
                 closeStack.push(::close)
             }
         }
-
-        var lastPts = 0L
 
         override fun onOutputBufferAvailable(
             codec: MediaCodec, index: Int, info: MediaCodec.BufferInfo
         ) {
             try {
-                val timeSpan = info.presentationTimeUs - lastPts
-                val framesSkipped = PLAYBACK_FPS * timeSpan / MICROS_IN_UNIT - 1
-                lastPts = info.presentationTimeUs
-
-                if (framesSkipped > 0) {
-                    Log.w(TAG, "Frames Skipped: $framesSkipped")
-                }
-
-                if (!recording) {
-                    return
-                }
+                trackSkippedFrames(info.presentationTimeUs)
 
                 if (info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG != 0) {
                     return
@@ -89,11 +77,25 @@ class CodecRecorder(
                 val buffer = encoder.getOutputBuffer(index)
                     ?: return
 
-                muxer.write(buffer, info)
+                writer.write(buffer, info)
                 file.valid = true
             } finally {
                 encoder.releaseOutputBuffer(index, false)
             }
+        }
+
+        var lastPts = 0L
+
+        fun trackSkippedFrames(pts: Long) {
+            if (lastPts > 0) {
+                val framesSkipped = PLAYBACK_FPS * (pts - lastPts) / MICROS_IN_UNIT - 1
+
+                if (framesSkipped > 0) {
+                    Log.w(TAG, "Frames Skipped: $framesSkipped")
+                }
+            }
+
+            lastPts = pts
         }
 
         override fun onError(codec: MediaCodec, e: MediaCodec.CodecException) {
@@ -135,14 +137,12 @@ class CodecRecorder(
         }
     }
 
-    private var recording = false
-
     override fun record() {
-        recording = true
+        writer.stream()
     }
 
     override fun loss() {
-        recording = false
+        writer.hold()
     }
 
     fun onError() {

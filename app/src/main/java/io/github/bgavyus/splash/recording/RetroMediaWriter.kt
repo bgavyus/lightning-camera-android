@@ -9,7 +9,7 @@ import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.storage.StorageFile
 import java.nio.ByteBuffer
 
-class MediaWriter(file: StorageFile, format: MediaFormat, rotation: Rotation) : AutoCloseable {
+class RetroMediaWriter(file: StorageFile, format: MediaFormat, rotation: Rotation) : AutoCloseable {
     companion object {
         private const val OUTPUT_FORMAT = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
     }
@@ -27,8 +27,20 @@ class MediaWriter(file: StorageFile, format: MediaFormat, rotation: Rotation) : 
         start()
     }
 
+    private var recording = false
+
     fun write(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-        muxer.writeSampleData(track, buffer, info)
+        if (recording) {
+            muxer.writeSampleData(track, buffer, info)
+        }
+    }
+    
+    fun stream() {
+        recording = true
+    }
+    
+    fun hold() {
+        recording = false
     }
 
     override fun close() {

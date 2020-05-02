@@ -59,7 +59,7 @@ class HighSpeedCamera(val listener: CameraListener) :
                 ?.also { Log.d(TAG, "FPS Range: $it") }
                 ?: throw CameraError(CameraErrorType.HighSpeedNotAvailable)
 
-            videoSize = config.getHighSpeedVideoSizesFor(fpsRange).maxBy { it.width * it.height }
+            videoSize = config.getHighSpeedVideoSizesFor(fpsRange).minBy { it.width * it.height }
                 ?.also { Log.d(TAG, "Video Size: $it") }
                 ?: throw CameraError(CameraErrorType.HighSpeedNotAvailable)
         } catch (error: CameraAccessException) {
