@@ -25,7 +25,7 @@ class RetroRecorder(
 
         private const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
         private const val MICROS_IN_UNIT = 1_000_000
-        private const val KEY_FRAME_INTERVAL_FRAMES = 30
+        private const val KEY_FRAME_INTERVAL_FRAMES = 1
         private const val BIT_RATE_FACTOR = 0.2
         private const val PLAYBACK_FPS = 5
     }

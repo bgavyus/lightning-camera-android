@@ -30,20 +30,14 @@ enum class Rotation(val surfaceRotation: Int) {
     val degrees: Int get() = ordinal * degreesPerRotation
 
     operator fun unaryMinus(): Rotation {
-        return fromOrdinal(
-            -ordinal
-        )
+        return fromOrdinal(-ordinal)
     }
 
     operator fun plus(other: Rotation): Rotation {
-        return fromOrdinal(
-            ordinal + other.ordinal
-        )
+        return fromOrdinal(ordinal + other.ordinal)
     }
 
     operator fun minus(other: Rotation): Rotation {
-        return fromOrdinal(
-            ordinal - other.ordinal
-        )
+        return fromOrdinal(ordinal - other.ordinal)
     }
 }

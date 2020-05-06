@@ -22,6 +22,7 @@ import io.github.bgavyus.splash.recording.Recorder
 import io.github.bgavyus.splash.recording.RecorderListener
 import io.github.bgavyus.splash.recording.RetroRecorder
 import io.github.bgavyus.splash.storage.Storage
+import io.github.bgavyus.splash.storage.StorageFile
 import io.github.bgavyus.splash.storage.VideoFile
 import kotlinx.android.synthetic.main.activity_viewfinder.*
 import java.io.IOException
@@ -36,7 +37,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
     private val closeStack = CloseStack()
 
     private lateinit var recorder: Recorder
-    private lateinit var videoFile: VideoFile
+    private lateinit var file: StorageFile
     private lateinit var frameDuplicator: FrameDuplicator
     private lateinit var camera: HighSpeedCamera
     private lateinit var detector: Detector
@@ -133,7 +134,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
 
     private fun initVideoFile() {
         try {
-            videoFile = VideoFile().apply {
+            file = VideoFile().apply {
                 closeStack.push(::close)
             }
         } catch (_: IOException) {
@@ -149,7 +150,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
 
     private fun initRecorder() {
         val rotation = camera.sensorOrientation + App.deviceOrientation
-        recorder = RetroRecorder(videoFile, camera.videoSize, camera.fpsRange, rotation, this)
+        recorder = RetroRecorder(file, camera.videoSize, camera.fpsRange, rotation, this)
             .apply {
                 closeStack.push(::close)
             }
