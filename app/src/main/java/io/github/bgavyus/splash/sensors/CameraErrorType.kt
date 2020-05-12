@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash.camera
+package io.github.bgavyus.splash.sensors
 
 enum class CameraErrorType {
     HighSpeedNotAvailable,

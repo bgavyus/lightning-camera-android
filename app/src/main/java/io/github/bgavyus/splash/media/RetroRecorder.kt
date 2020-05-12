@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash.recording
+package io.github.bgavyus.splash.media
 
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
@@ -14,7 +14,7 @@ import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.storage.StorageFile
 
 class RetroRecorder(
-    private val file: StorageFile,
+    file: StorageFile,
     size: Size,
     fpsRange: Range<Int>,
     rotation: Rotation,
@@ -24,10 +24,12 @@ class RetroRecorder(
         private val TAG = RetroRecorder::class.simpleName
 
         private const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
-        private const val MICROS_IN_UNIT = 1_000_000
+        private const val MILLIS_IN_UNIT = 1_000
+        private const val MICROS_IN_UNIT = 1_000 * MILLIS_IN_UNIT
         private const val KEY_FRAME_INTERVAL_FRAMES = 1
-        private const val BIT_RATE_FACTOR = 0.2
+        private const val COMPRESSION_RATIO = 5
         private const val PLAYBACK_FPS = 5
+        private const val BUFFER_TIME_MILLI_SECONDS = 50
     }
 
     private val closeStack = CloseStack()
@@ -43,19 +45,21 @@ class RetroRecorder(
         closeStack.push(::release)
     }
 
-    private lateinit var writer: RetroMediaWriter
+    private val sink = SampleSink(
+        size = fpsRange.upper * BUFFER_TIME_MILLI_SECONDS / MILLIS_IN_UNIT,
+        maxSampleSize = size.area
+    ).apply {
+        closeStack.push(::close)
+    }
+
+    private var recording = false
+    private lateinit var writer: Writer
 
     private val mediaCodecCallback = object : MediaCodec.Callback() {
         override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
             Log.d(TAG, "onOutputFormatChanged(format = $format)")
 
-            if (::writer.isInitialized) {
-                Log.e(TAG, "Format was already set")
-                onError()
-                return
-            }
-
-            writer = RetroMediaWriter(file, format, rotation).apply {
+            writer = Writer(file, format, rotation).apply {
                 closeStack.push(::close)
             }
         }
@@ -64,8 +68,6 @@ class RetroRecorder(
             codec: MediaCodec, index: Int, info: MediaCodec.BufferInfo
         ) {
             try {
-                trackSkippedFrames(info.presentationTimeUs)
-
                 if (info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG != 0) {
                     return
                 }
@@ -77,11 +79,16 @@ class RetroRecorder(
                 val buffer = encoder.getOutputBuffer(index)
                     ?: return
 
-                writer.write(buffer, info)
-                file.valid = true
+                if (recording) {
+                    writer.write(buffer, info)
+                } else {
+                    sink.pour(buffer, info)
+                }
             } finally {
-                encoder.releaseOutputBuffer(index, false)
+                encoder.releaseOutputBuffer(index, /* render = */ false)
             }
+
+            trackSkippedFrames(info.presentationTimeUs)
         }
 
         var lastPts = 0L
@@ -118,14 +125,14 @@ class RetroRecorder(
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
             )
 
-            setInteger(
-                MediaFormat.KEY_BIT_RATE,
-                (BIT_RATE_FACTOR * fpsRange.upper * size.width * size.height).toInt()
-            )
-
+            setInteger(MediaFormat.KEY_BIT_RATE, fpsRange.upper * size.area / COMPRESSION_RATIO)
             setInteger(MediaFormat.KEY_CAPTURE_RATE, fpsRange.upper)
             setInteger(MediaFormat.KEY_FRAME_RATE, PLAYBACK_FPS)
-            setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, KEY_FRAME_INTERVAL_FRAMES / PLAYBACK_FPS)
+
+            setFloat(
+                MediaFormat.KEY_I_FRAME_INTERVAL,
+                KEY_FRAME_INTERVAL_FRAMES.toFloat() / PLAYBACK_FPS
+            )
         }
 
         encoder.run {
@@ -138,19 +145,19 @@ class RetroRecorder(
     }
 
     override fun record() {
-        writer.stream()
+        drain()
+        recording = true
     }
+
+    private fun drain() = sink.drain(writer::write)
 
     override fun loss() {
-        writer.hold()
+        // TODO: Remove gap in PTS
+        recording = false
     }
 
-    fun onError() {
-        file.valid = false
-        listener.onRecorderError()
-    }
-
-    override fun close() {
-        closeStack.close()
-    }
+    fun onError() = listener.onRecorderError()
+    override fun close() = closeStack.close()
 }
+
+val Size.area get() = width * height

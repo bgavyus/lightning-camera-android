@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash.camera
+package io.github.bgavyus.splash.sensors
 
 import android.annotation.SuppressLint
 import android.hardware.camera2.*
@@ -59,6 +59,7 @@ class HighSpeedCamera(val listener: CameraListener) :
                 ?.also { Log.d(TAG, "FPS Range: $it") }
                 ?: throw CameraError(CameraErrorType.HighSpeedNotAvailable)
 
+            // TODO: Choose video size based on performance
             videoSize = config.getHighSpeedVideoSizesFor(fpsRange).minBy { it.width * it.height }
                 ?.also { Log.d(TAG, "Video Size: $it") }
                 ?: throw CameraError(CameraErrorType.HighSpeedNotAvailable)
@@ -175,7 +176,5 @@ class HighSpeedCamera(val listener: CameraListener) :
         listener.onCameraError(type)
     }
 
-    override fun close() {
-        closeStack.close()
-    }
+    override fun close() = closeStack.close()
 }

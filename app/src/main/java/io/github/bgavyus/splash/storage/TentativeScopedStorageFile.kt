@@ -52,9 +52,7 @@ class TentativeScopedStorageFile(
 
     override val path: String get() = throw NotImplementedError()
 
-    override fun close() {
-        file.close()
-    }
+    override fun close() = file.close()
 
     override fun save() {
         contentResolver.update(uri, ContentValues().apply {

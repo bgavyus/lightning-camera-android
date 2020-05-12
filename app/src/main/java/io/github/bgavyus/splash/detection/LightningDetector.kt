@@ -48,7 +48,5 @@ class LightningDetector(inputBitmap: Bitmap, listener: DetectionListener) :
         }
     }
 
-    override fun close() {
-        closeStack.close()
-    }
+    override fun close() = closeStack.close()
 }

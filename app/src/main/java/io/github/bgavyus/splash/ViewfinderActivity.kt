@@ -4,10 +4,10 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Surface
 import android.view.View
-import io.github.bgavyus.splash.camera.CameraError
-import io.github.bgavyus.splash.camera.CameraErrorType
-import io.github.bgavyus.splash.camera.CameraListener
-import io.github.bgavyus.splash.camera.HighSpeedCamera
+import io.github.bgavyus.splash.sensors.CameraError
+import io.github.bgavyus.splash.sensors.CameraErrorType
+import io.github.bgavyus.splash.sensors.CameraListener
+import io.github.bgavyus.splash.sensors.HighSpeedCamera
 import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.detection.DetectionListener
@@ -18,15 +18,20 @@ import io.github.bgavyus.splash.flow.FrameDuplicatorListener
 import io.github.bgavyus.splash.flow.TextureFrameDuplicator
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
-import io.github.bgavyus.splash.recording.Recorder
-import io.github.bgavyus.splash.recording.RecorderListener
-import io.github.bgavyus.splash.recording.RetroRecorder
+import io.github.bgavyus.splash.media.Recorder
+import io.github.bgavyus.splash.media.RecorderListener
+import io.github.bgavyus.splash.media.RetroRecorder
 import io.github.bgavyus.splash.storage.Storage
 import io.github.bgavyus.splash.storage.StorageFile
 import io.github.bgavyus.splash.storage.VideoFile
 import kotlinx.android.synthetic.main.activity_viewfinder.*
 import java.io.IOException
 
+// TODO: Remove all logic from this class
+// TODO: Handle rotation
+// TODO: Dim screen after some time
+// TODO: Indicate that capture has occurred
+// TODO: Add start/stop button
 class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandler, CameraListener,
     DetectionListener, FrameDuplicatorListener, RecorderListener {
 
@@ -121,6 +126,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
     }
 
     private fun initDetector() {
+        // TODO: Add movement detector
         detector = LightningDetector(frameDuplicator.outputBitmap, this).apply {
             closeStack.push(::close)
         }

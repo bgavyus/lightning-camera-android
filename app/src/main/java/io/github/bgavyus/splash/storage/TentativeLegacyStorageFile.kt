@@ -37,9 +37,7 @@ class TentativeLegacyStorageFile(
     override val descriptor: FileDescriptor get() = tempFileOutputStream.fd
     override val path: String get() = tempFile.path
 
-    override fun close() {
-        tempFileOutputStream.close()
-    }
+    override fun close() = tempFileOutputStream.close()
 
     override fun save() {
         val file = File(parentDirectory, name)
