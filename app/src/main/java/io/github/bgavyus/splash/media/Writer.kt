@@ -24,10 +24,25 @@ class Writer(private val file: StorageFile, format: MediaFormat, rotation: Rotat
         MediaMuxer(file.path, OUTPUT_FORMAT)
     }.apply {
         setOrientationHint(rotation.degrees)
-        closeStack.push(::release)
+
+        closeStack.push {
+            try {
+                release()
+            } catch (_: IllegalStateException) {
+                file.valid = false
+            }
+        }
+
         track = addTrack(format)
         start()
-        closeStack.push(::stop)
+
+        closeStack.push {
+            try {
+                stop()
+            } catch (_: IllegalStateException) {
+                file.valid = false
+            }
+        }
     }
 
     fun write(sample: Sample) {

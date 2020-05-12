@@ -13,6 +13,7 @@ import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.detection.DetectionListener
 import io.github.bgavyus.splash.detection.Detector
 import io.github.bgavyus.splash.detection.LightningDetector
+import io.github.bgavyus.splash.detection.MotionDetector
 import io.github.bgavyus.splash.flow.FrameDuplicator
 import io.github.bgavyus.splash.flow.FrameDuplicatorListener
 import io.github.bgavyus.splash.flow.TextureFrameDuplicator
@@ -126,8 +127,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
     }
 
     private fun initDetector() {
-        // TODO: Add movement detector
-        detector = LightningDetector(frameDuplicator.outputBitmap, this).apply {
+        detector = MotionDetector(frameDuplicator.outputBitmap, this).apply {
             closeStack.push(::close)
         }
 
