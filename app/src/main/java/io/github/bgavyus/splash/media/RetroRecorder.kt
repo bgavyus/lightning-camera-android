@@ -52,8 +52,8 @@ class RetroRecorder(
         closeStack.push(::release)
     }
 
-    private val sink = SamplesSink(
-        size = fpsRange.upper * BUFFER_TIME_MILLISECONDS / MILLIS_IN_UNIT,
+    private val snake = SamplesSnake(
+        maxSize = fpsRange.upper * BUFFER_TIME_MILLISECONDS / MILLIS_IN_UNIT,
         maxSampleSize = size.area
     ).apply {
         closeStack.push(::close)
@@ -100,7 +100,7 @@ class RetroRecorder(
                 if (recording) {
                     write(buffer, info)
                 } else {
-                    sink.pour(buffer, info)
+                    snake.feed(buffer, info)
                 }
             } finally {
                 encoder.releaseOutputBuffer(index, /* render = */ false)
@@ -179,7 +179,7 @@ class RetroRecorder(
         recording = true
     }
 
-    private fun drain() = sink.drain { sample ->
+    private fun drain() = snake.drain { sample ->
         write(sample.buffer, sample.info)
     }
 
