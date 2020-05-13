@@ -62,7 +62,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
     private fun logState() {
         Log.d(TAG, "Device Orientation: ${App.deviceOrientation}")
         Log.d(TAG, "Display FPS: ${windowManager.defaultDisplay.refreshRate}")
-        Log.d(TAG, "Running in ${if (Storage.scoped) "scoped" else "legacy"} storage mode")
+        Log.d(TAG, "Storage: ${if (Storage.scoped) "scoped" else "legacy"}")
     }
 
     override fun onResume() {
@@ -97,15 +97,12 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         recreate()
     }
 
-    private fun onPermissionsAvailable() {
-        initCamera()
-    }
+    private fun onPermissionsAvailable() = initCamera()
 
     private fun initCamera() {
         try {
             HighSpeedCamera(this).run {
                 camera = this
-                closeStack.push(::close)
                 onCameraAvailable()
             }
         } catch (error: CameraError) {
@@ -113,9 +110,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         }
     }
 
-    private fun onCameraAvailable() {
-        initFrameDuplicator()
-    }
+    private fun onCameraAvailable() = initFrameDuplicator()
 
     private fun initFrameDuplicator() {
         TextureFrameDuplicator(texture_view, camera.videoSize, this)
@@ -127,6 +122,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
     }
 
     private fun initDetector() {
+        // TODO: Forward original resolution image
         detector = MotionDetector(frameDuplicator.outputBitmap, this).apply {
             closeStack.push(::close)
         }
@@ -134,9 +130,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         onDetectorAvailable()
     }
 
-    private fun onDetectorAvailable() {
-        initVideoFile()
-    }
+    private fun onDetectorAvailable() = initVideoFile()
 
     private fun initVideoFile() {
         try {
@@ -150,9 +144,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         onVideoFileAvailable()
     }
 
-    private fun onVideoFileAvailable() {
-        initRecorder()
-    }
+    private fun onVideoFileAvailable() = initRecorder()
 
     private fun initRecorder() {
         val rotation = camera.sensorOrientation + App.deviceOrientation
@@ -164,25 +156,22 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         onRecorderAvailable()
     }
 
-    private fun onRecorderAvailable() {
-        startCameraStreaming()
-    }
+    private fun onRecorderAvailable() = startCameraStreaming()
 
     private fun startCameraStreaming() {
         try {
-            camera.startStreaming()
+            camera.run {
+                startStreaming()
+                closeStack.push(::stopStreaming)
+            }
         } catch (error: CameraError) {
             onCameraError(error.type)
         }
     }
 
-    override fun onSurfacesNeeded(): List<Surface> {
-        return listOf(frameDuplicator.inputSurface, recorder.inputSurface)
-    }
+    override fun onSurfacesNeeded() = listOf(frameDuplicator.inputSurface, recorder.inputSurface)
 
-    override fun onCameraStreamStarted() {
-        initFrameStream()
-    }
+    override fun onCameraStreamStarted() = initFrameStream()
 
     private fun initFrameStream() {
         frameDuplicator.run {
@@ -191,50 +180,32 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         }
     }
 
-    override fun onFrameAvailable() {
-        detect()
-    }
-
-    private fun detect() {
-        detector.detect()
-    }
+    override fun onFrameAvailable() = detector.detect()
 
     override fun onDetectionStarted() {
         Log.i(TAG, "Detection Started")
-        record()
-    }
-
-    private fun record() {
         recorder.record()
     }
 
     override fun onDetectionEnded() {
         Log.i(TAG, "Detection Ended")
-        lose()
-    }
-
-    private fun lose() {
         recorder.loss()
     }
 
-    override fun onCameraError(type: CameraErrorType) {
-        finishWithMessage(
-            when (type) {
-                CameraErrorType.HighSpeedNotAvailable -> R.string.error_high_speed_camera_not_available
-                CameraErrorType.InUse -> R.string.error_camera_in_use
-                CameraErrorType.MaxInUse -> R.string.error_max_cameras_in_use
-                CameraErrorType.Disabled -> R.string.error_camera_disabled
-                CameraErrorType.Device -> R.string.error_camera_device
-                CameraErrorType.Disconnected -> R.string.error_camera_disconnected
-                CameraErrorType.ConfigureFailed -> R.string.error_camera_generic
-                CameraErrorType.Generic -> R.string.error_camera_generic
-            }
-        )
-    }
+    override fun onCameraError(type: CameraErrorType) = finishWithMessage(
+        when (type) {
+            CameraErrorType.HighSpeedNotAvailable -> R.string.error_high_speed_camera_not_available
+            CameraErrorType.InUse -> R.string.error_camera_in_use
+            CameraErrorType.MaxInUse -> R.string.error_max_cameras_in_use
+            CameraErrorType.Disabled -> R.string.error_camera_disabled
+            CameraErrorType.Device -> R.string.error_camera_device
+            CameraErrorType.Disconnected -> R.string.error_camera_disconnected
+            CameraErrorType.ConfigureFailed -> R.string.error_camera_generic
+            CameraErrorType.Generic -> R.string.error_camera_generic
+        }
+    )
 
-    override fun onRecorderError() {
-        finishWithMessage(R.string.error_recorder)
-    }
+    override fun onRecorderError() = finishWithMessage(R.string.error_recorder)
 
     override fun onPause() {
         Log.d(TAG, "Activity.onPause")
@@ -242,9 +213,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         close()
     }
 
-    override fun uncaughtException(thread: Thread, error: Throwable) {
-        finishWithMessage(R.string.error_uncaught)
-    }
+    override fun uncaughtException(thread: Thread, error: Throwable) = finishWithMessage(R.string.error_uncaught)
 
     private fun finishWithMessage(resourceId: Int) {
         Log.d(TAG, "finishWithMessage: ${App.getDefaultString(resourceId)}")
@@ -258,7 +227,5 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         close()
     }
 
-    private fun close() {
-        closeStack.close()
-    }
+    private fun close() = closeStack.close()
 }

@@ -12,11 +12,11 @@ import android.util.Size
 import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.common.Rotation
+import io.github.bgavyus.splash.common.Streamer
 
 
 @SuppressLint("MissingPermission")
-class HighSpeedCamera(val listener: CameraListener) :
-    CameraCaptureSession.CaptureCallback(), AutoCloseable {
+class HighSpeedCamera(val listener: CameraListener) : CameraCaptureSession.CaptureCallback(), Streamer {
     companion object {
         private val TAG = HighSpeedCamera::class.simpleName
     }
@@ -68,7 +68,7 @@ class HighSpeedCamera(val listener: CameraListener) :
         }
     }
 
-    fun startStreaming() {
+    override fun startStreaming() {
         try {
             cameraManager.openCamera(cameraId, cameraDeviceStateCallback, handler)
         } catch (error: CameraAccessException) {
@@ -171,9 +171,9 @@ class HighSpeedCamera(val listener: CameraListener) :
     }
 
     private fun onError(type: CameraErrorType) {
-        close()
+        stopStreaming()
         listener.onCameraError(type)
     }
 
-    override fun close() = closeStack.close()
+    override fun stopStreaming() = closeStack.close()
 }

@@ -74,15 +74,26 @@ class RetroRecorder(
         ) {
             try {
                 if (info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG != 0) {
+                    Log.d(TAG, "Got codec config")
+                    return
+                }
+
+                if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
+                    Log.d(TAG, "Got end of stream")
                     return
                 }
 
                 if (info.size == 0) {
+                    Log.w(TAG, "Got empty buffer")
                     return
                 }
 
                 val buffer = encoder.getOutputBuffer(index)
-                    ?: return
+
+                if (buffer == null) {
+                    Log.w(TAG, "Got null buffer")
+                    return
+                }
 
                 if (recording) {
                     write(buffer, info)
@@ -140,6 +151,8 @@ class RetroRecorder(
 
             start()
             closeStack.push(::stop)
+            closeStack.push(::flush)
+            closeStack.push(::loss)
         }
     }
 

@@ -7,8 +7,7 @@ import android.util.Log
 class MotionDetector(inputBitmap: Bitmap, listener: DetectionListener) :
     RenderScriptDetector(inputBitmap, listener) {
     companion object {
-        private val TAG = MotionDetector::class.simpleName
-
+        // TODO: Adjust threshold dynamically
         const val THRESHOLD = 0.1
     }
 
