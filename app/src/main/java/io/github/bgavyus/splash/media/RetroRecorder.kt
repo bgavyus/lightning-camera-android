@@ -11,6 +11,7 @@ import android.util.Size
 import android.view.Surface
 import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.common.Rotation
+import io.github.bgavyus.splash.common.area
 import io.github.bgavyus.splash.storage.StorageFile
 import java.nio.ByteBuffer
 
@@ -31,7 +32,7 @@ class RetroRecorder(
         private const val KEY_FRAME_INTERVAL_FRAMES = 1
         private const val COMPRESSION_RATIO = 5
         private const val PLAYBACK_FPS = 5
-        private const val BUFFER_TIME_MILLI_SECONDS = 50
+        private const val BUFFER_TIME_MILLISECONDS = 50
     }
 
     private val closeStack = CloseStack()
@@ -40,6 +41,7 @@ class RetroRecorder(
         start()
 
         closeStack.push {
+            Log.d(TAG, "Quiting recorder thread")
             quitSafely()
         }
     }
@@ -51,7 +53,7 @@ class RetroRecorder(
     }
 
     private val sink = SamplesSink(
-        size = fpsRange.upper * BUFFER_TIME_MILLI_SECONDS / MILLIS_IN_UNIT,
+        size = fpsRange.upper * BUFFER_TIME_MILLISECONDS / MILLIS_IN_UNIT,
         maxSampleSize = size.area
     ).apply {
         closeStack.push(::close)
@@ -103,6 +105,22 @@ class RetroRecorder(
             } finally {
                 encoder.releaseOutputBuffer(index, /* render = */ false)
             }
+
+            trackSkippedFrames(info.presentationTimeUs)
+        }
+
+        var lastPts = 0L
+
+        fun trackSkippedFrames(pts: Long) {
+            if (lastPts > 0) {
+                val framesSkipped = PLAYBACK_FPS * (pts - lastPts) / MICROS_IN_UNIT - 1
+
+                if (framesSkipped > 0) {
+                    Log.w(TAG, "Frames Skipped: $framesSkipped")
+                }
+            }
+
+            lastPts = pts
         }
 
         override fun onError(codec: MediaCodec, e: MediaCodec.CodecException) {
@@ -180,5 +198,3 @@ class RetroRecorder(
     fun onError() = listener.onRecorderError()
     override fun close() = closeStack.close()
 }
-
-val Size.area get() = width * height

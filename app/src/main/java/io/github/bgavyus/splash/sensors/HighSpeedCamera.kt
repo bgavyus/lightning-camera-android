@@ -9,14 +9,12 @@ import android.os.Handler
 import android.util.Log
 import android.util.Range
 import android.util.Size
-import io.github.bgavyus.splash.common.App
-import io.github.bgavyus.splash.common.CloseStack
-import io.github.bgavyus.splash.common.Rotation
-import io.github.bgavyus.splash.common.Streamer
+import io.github.bgavyus.splash.common.*
 
 
 @SuppressLint("MissingPermission")
-class HighSpeedCamera(val listener: CameraListener) : CameraCaptureSession.CaptureCallback(), Streamer {
+class HighSpeedCamera(val listener: CameraListener) : CameraCaptureSession.CaptureCallback(),
+    Streamer {
     companion object {
         private val TAG = HighSpeedCamera::class.simpleName
     }
@@ -60,7 +58,7 @@ class HighSpeedCamera(val listener: CameraListener) : CameraCaptureSession.Captu
                 ?: throw CameraError(CameraErrorType.HighSpeedNotAvailable)
 
             // TODO: Choose video size based on performance
-            videoSize = config.getHighSpeedVideoSizesFor(fpsRange).minBy { it.width * it.height }
+            videoSize = config.getHighSpeedVideoSizesFor(fpsRange).minBy { it.area }
                 ?.also { Log.d(TAG, "Video Size: $it") }
                 ?: throw CameraError(CameraErrorType.HighSpeedNotAvailable)
         } catch (error: CameraAccessException) {

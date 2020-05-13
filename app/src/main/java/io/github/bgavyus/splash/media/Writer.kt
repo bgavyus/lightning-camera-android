@@ -4,6 +4,7 @@ import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.os.Build
+import android.util.Log
 import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.storage.StorageFile
@@ -12,6 +13,8 @@ import java.nio.ByteBuffer
 class Writer(private val file: StorageFile, format: MediaFormat, rotation: Rotation) :
     AutoCloseable {
     companion object {
+        private val TAG = Writer::class.simpleName
+
         private const val OUTPUT_FORMAT = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
     }
 
@@ -24,7 +27,10 @@ class Writer(private val file: StorageFile, format: MediaFormat, rotation: Rotat
         MediaMuxer(file.path, OUTPUT_FORMAT)
     }.apply {
         closeStack.push {
+            Log.d(TAG, "Attempting to release muxer")
+
             if (file.valid) {
+                Log.d(TAG, "Releasing muxer")
                 release()
             }
         }
@@ -34,7 +40,10 @@ class Writer(private val file: StorageFile, format: MediaFormat, rotation: Rotat
         start()
 
         closeStack.push {
+            Log.d(TAG, "Attempting to stop muxer")
+
             if (file.valid) {
+                Log.d(TAG, "Stopping muxer")
                 stop()
             }
         }
