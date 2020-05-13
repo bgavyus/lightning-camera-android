@@ -16,7 +16,6 @@ import io.github.bgavyus.splash.common.area
 import io.github.bgavyus.splash.storage.StorageFile
 import java.nio.ByteBuffer
 
-
 class RetroRecorder(
     file: StorageFile,
     size: Size,
