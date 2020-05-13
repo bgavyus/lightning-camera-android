@@ -24,12 +24,12 @@ class TextureFrameDuplicator(
         if (textureView.isAvailable) {
             loadSurface()
         } else {
-            textureView.surfaceTextureListener = this
+            addSurfaceTextureListener()
         }
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
-        textureView.surfaceTextureListener = null
+        removeSurfaceTextureListener()
         loadSurface()
     }
 
@@ -99,6 +99,14 @@ class TextureFrameDuplicator(
     }
 
     override fun stopStreaming() {
+        removeSurfaceTextureListener()
+    }
+
+    private fun addSurfaceTextureListener() {
+        textureView.surfaceTextureListener = this
+    }
+
+    private fun removeSurfaceTextureListener() {
         textureView.surfaceTextureListener = null
     }
 }

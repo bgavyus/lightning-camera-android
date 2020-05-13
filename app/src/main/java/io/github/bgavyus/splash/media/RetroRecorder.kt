@@ -12,6 +12,8 @@ import android.view.Surface
 import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.storage.StorageFile
+import java.nio.ByteBuffer
+
 
 class RetroRecorder(
     file: StorageFile,
@@ -36,7 +38,10 @@ class RetroRecorder(
 
     private val thread = HandlerThread(TAG).apply {
         start()
-        closeStack.push { quitSafely() }
+
+        closeStack.push {
+            quitSafely()
+        }
     }
 
     private val handler = Handler(thread.looper)
@@ -45,15 +50,15 @@ class RetroRecorder(
         closeStack.push(::release)
     }
 
-    private val sink = SampleSink(
+    private val sink = SamplesSink(
         size = fpsRange.upper * BUFFER_TIME_MILLI_SECONDS / MILLIS_IN_UNIT,
         maxSampleSize = size.area
     ).apply {
         closeStack.push(::close)
     }
 
-    private var recording = false
     private lateinit var writer: Writer
+    private var recording = false
 
     private val mediaCodecCallback = object : MediaCodec.Callback() {
         override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
@@ -80,29 +85,13 @@ class RetroRecorder(
                     ?: return
 
                 if (recording) {
-                    writer.write(buffer, info)
+                    write(buffer, info)
                 } else {
                     sink.pour(buffer, info)
                 }
             } finally {
                 encoder.releaseOutputBuffer(index, /* render = */ false)
             }
-
-            trackSkippedFrames(info.presentationTimeUs)
-        }
-
-        var lastPts = 0L
-
-        fun trackSkippedFrames(pts: Long) {
-            if (lastPts > 0) {
-                val framesSkipped = PLAYBACK_FPS * (pts - lastPts) / MICROS_IN_UNIT - 1
-
-                if (framesSkipped > 0) {
-                    Log.w(TAG, "Frames Skipped: $framesSkipped")
-                }
-            }
-
-            lastPts = pts
         }
 
         override fun onError(codec: MediaCodec, e: MediaCodec.CodecException) {
@@ -137,8 +126,18 @@ class RetroRecorder(
 
         encoder.run {
             setCallback(mediaCodecCallback, handler)
-            configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
-            inputSurface = encoder.createInputSurface()
+
+            configure(
+                format,
+                /* surface = */ null,
+                /* crypto = */ null,
+                MediaCodec.CONFIGURE_FLAG_ENCODE
+            )
+
+            inputSurface = createInputSurface().apply {
+                closeStack.push(::release)
+            }
+
             start()
             closeStack.push(::stop)
         }
@@ -149,10 +148,19 @@ class RetroRecorder(
         recording = true
     }
 
-    private fun drain() = sink.drain(writer::write)
+    private fun drain() = sink.drain { sample ->
+        write(sample.buffer, sample.info)
+    }
+
+    private var ptsGenerator =
+        generateSequence(0L) { it + MICROS_IN_UNIT / PLAYBACK_FPS }.iterator()
+
+    private fun write(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+        info.presentationTimeUs = ptsGenerator.next()
+        writer.write(buffer, info)
+    }
 
     override fun loss() {
-        // TODO: Remove gap in PTS
         recording = false
     }
 

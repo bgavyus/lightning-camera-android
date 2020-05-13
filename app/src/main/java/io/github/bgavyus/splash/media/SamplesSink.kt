@@ -4,7 +4,7 @@ import android.media.MediaCodec
 import java.nio.ByteBuffer
 import java.util.*
 
-class SampleSink(private val size: Int, private val maxSampleSize: Int) : AutoCloseable {
+class SamplesSink(private val size: Int, private val maxSampleSize: Int) : AutoCloseable {
     // TODO: Use array
     private val deque = ArrayDeque<Sample>(size)
 

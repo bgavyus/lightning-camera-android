@@ -55,17 +55,20 @@ class TentativeScopedStorageFile(
     override fun close() = file.close()
 
     override fun save() {
-        contentResolver.update(uri, ContentValues().apply {
+        val values = ContentValues().apply {
             putNull(MediaStore.MediaColumns.DATE_EXPIRES)
             put(
                 MediaStore.MediaColumns.IS_PENDING,
                 IS_PENDING_FALSE
             )
-        }, null, null)
+        }
+
+        contentResolver.update(uri, values, /* where = */ null, /* selectionArgs = */ null)
     }
 
     override fun discard() {
-        val rowsDeleted = contentResolver.delete(uri, null, null)
+        val rowsDeleted =
+            contentResolver.delete(uri, /* where = */ null, /* selectionArgs = */ null)
 
         if (rowsDeleted != 1) {
             throw IOException("Failed to delete $uri")

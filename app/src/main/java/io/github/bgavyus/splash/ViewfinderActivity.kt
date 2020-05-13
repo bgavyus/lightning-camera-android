@@ -31,7 +31,7 @@ import java.io.IOException
 // TODO: Remove all logic from this class
 // TODO: Handle rotation
 // TODO: Dim screen after some time
-// TODO: Indicate that capture has occurred
+// TODO: Indicate that capture has occurred (visual + audible)
 // TODO: Add start/stop button
 class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandler, CameraListener,
     DetectionListener, FrameDuplicatorListener, RecorderListener {

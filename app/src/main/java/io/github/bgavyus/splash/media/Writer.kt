@@ -23,34 +23,24 @@ class Writer(private val file: StorageFile, format: MediaFormat, rotation: Rotat
     } else {
         MediaMuxer(file.path, OUTPUT_FORMAT)
     }.apply {
-        setOrientationHint(rotation.degrees)
-
         closeStack.push {
-            try {
+            if (file.valid) {
                 release()
-            } catch (_: IllegalStateException) {
-                file.valid = false
             }
         }
 
+        setOrientationHint(rotation.degrees)
         track = addTrack(format)
         start()
 
         closeStack.push {
-            try {
+            if (file.valid) {
                 stop()
-            } catch (_: IllegalStateException) {
-                file.valid = false
             }
         }
     }
 
-    fun write(sample: Sample) {
-        write(sample.buffer, sample.info)
-    }
-
     fun write(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-        // TODO: Move to thread
         muxer.writeSampleData(track, buffer, info)
         file.valid = true
     }
