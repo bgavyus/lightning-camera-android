@@ -1,15 +1,11 @@
-package io.github.bgavyus.splash.media
+package io.github.bgavyus.splash.common
 
-import android.media.MediaCodec
-import java.nio.ByteBuffer
-
-class SamplesSnake(maxSize: Int, maxSampleSize: Int) : AutoCloseable {
-    private val nodes = Array(maxSize) { Sample(maxSampleSize) }
+class Snake<Element>(private val nodes: Array<Element>) {
     private var head = 0
     private var size = 0
 
-    fun feed(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-        nodes[head].copyFrom(buffer, info)
+    fun feed(block: (Element) -> Unit) {
+        block(nodes[head])
         advance()
 
         if (!full) {
@@ -27,7 +23,7 @@ class SamplesSnake(maxSize: Int, maxSampleSize: Int) : AutoCloseable {
         size++
     }
 
-    fun drain(block: (Sample) -> Unit) {
+    fun drain(block: (Element) -> Unit) {
         while (!empty) {
             block(nodes[tail])
             shrink()
@@ -40,9 +36,5 @@ class SamplesSnake(maxSize: Int, maxSampleSize: Int) : AutoCloseable {
 
     private fun shrink() {
         size--
-    }
-
-    override fun close() = nodes.forEach { node ->
-        node.close()
     }
 }

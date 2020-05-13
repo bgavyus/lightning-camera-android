@@ -11,6 +11,7 @@ import android.util.Size
 import android.view.Surface
 import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.common.Rotation
+import io.github.bgavyus.splash.common.Snake
 import io.github.bgavyus.splash.common.area
 import io.github.bgavyus.splash.storage.StorageFile
 import java.nio.ByteBuffer
@@ -52,11 +53,21 @@ class RetroRecorder(
         closeStack.push(::release)
     }
 
-    private val snake = SamplesSnake(
-        maxSize = fpsRange.upper * BUFFER_TIME_MILLISECONDS / MILLIS_IN_UNIT,
-        maxSampleSize = size.area
-    ).apply {
-        closeStack.push(::close)
+    private val snake: Snake<Sample>
+
+    init {
+        val samplesSize = fpsRange.upper * BUFFER_TIME_MILLISECONDS / MILLIS_IN_UNIT
+        val samples = Array(samplesSize) { Sample(size.area) }
+
+        closeStack.push {
+            Log.d(TAG, "Freeing samples")
+
+            samples.forEach { sample ->
+                sample.close()
+            }
+        }
+
+        snake = Snake(samples)
     }
 
     private lateinit var writer: Writer
@@ -100,7 +111,7 @@ class RetroRecorder(
                 if (recording) {
                     write(buffer, info)
                 } else {
-                    snake.feed(buffer, info)
+                    feed(buffer, info)
                 }
             } finally {
                 encoder.releaseOutputBuffer(index, /* render = */ false)
@@ -172,6 +183,10 @@ class RetroRecorder(
             closeStack.push(::flush)
             closeStack.push(::loss)
         }
+    }
+
+    private fun feed(buffer: ByteBuffer, info: MediaCodec.BufferInfo) = snake.feed { sample ->
+        sample.copyFrom(buffer, info)
     }
 
     override fun record() {
