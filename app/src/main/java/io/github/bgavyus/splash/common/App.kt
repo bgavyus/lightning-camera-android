@@ -19,7 +19,7 @@ class App : Application() {
         val deviceOrientation: Rotation
             get() = -Rotation.fromSurfaceRotation(windowManager.defaultDisplay.rotation)
 
-        fun getDefaultString(resourceId: Int): String {
+        fun defaultString(resourceId: Int): String {
             val config = Configuration().apply { setLocale(Locale.ROOT) }
             return context.createConfigurationContext(config).getString(resourceId)
         }

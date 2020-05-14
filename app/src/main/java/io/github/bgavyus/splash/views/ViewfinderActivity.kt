@@ -1,31 +1,30 @@
-package io.github.bgavyus.splash
+package io.github.bgavyus.splash.views
 
 import android.os.Bundle
 import android.util.Log
-import android.view.Surface
 import android.view.View
-import io.github.bgavyus.splash.sensors.CameraError
-import io.github.bgavyus.splash.sensors.CameraErrorType
-import io.github.bgavyus.splash.sensors.CameraListener
-import io.github.bgavyus.splash.sensors.HighSpeedCamera
+import io.github.bgavyus.splash.R
 import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.CloseStack
+import io.github.bgavyus.splash.databinding.ActivityViewfinderBinding
 import io.github.bgavyus.splash.detection.DetectionListener
 import io.github.bgavyus.splash.detection.Detector
-import io.github.bgavyus.splash.detection.LightningDetector
 import io.github.bgavyus.splash.detection.MotionDetector
 import io.github.bgavyus.splash.flow.FrameDuplicator
 import io.github.bgavyus.splash.flow.FrameDuplicatorListener
 import io.github.bgavyus.splash.flow.TextureFrameDuplicator
-import io.github.bgavyus.splash.permissions.PermissionGroup
-import io.github.bgavyus.splash.permissions.PermissionsActivity
 import io.github.bgavyus.splash.media.Recorder
 import io.github.bgavyus.splash.media.RecorderListener
 import io.github.bgavyus.splash.media.RetroRecorder
+import io.github.bgavyus.splash.permissions.PermissionGroup
+import io.github.bgavyus.splash.permissions.PermissionsActivity
+import io.github.bgavyus.splash.sensors.CameraError
+import io.github.bgavyus.splash.sensors.CameraErrorType
+import io.github.bgavyus.splash.sensors.CameraListener
+import io.github.bgavyus.splash.sensors.HighSpeedCamera
 import io.github.bgavyus.splash.storage.Storage
 import io.github.bgavyus.splash.storage.StorageFile
 import io.github.bgavyus.splash.storage.VideoFile
-import kotlinx.android.synthetic.main.activity_viewfinder.*
 import java.io.IOException
 
 // TODO: Remove all logic from this class
@@ -42,20 +41,21 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
 
     private val closeStack = CloseStack()
 
-    private lateinit var recorder: Recorder
-    private lateinit var file: StorageFile
-    private lateinit var frameDuplicator: FrameDuplicator
+    private lateinit var binding: ActivityViewfinderBinding
     private lateinit var camera: HighSpeedCamera
+    private lateinit var frameDuplicator: FrameDuplicator
     private lateinit var detector: Detector
+    private lateinit var file: StorageFile
+    private lateinit var recorder: Recorder
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "Activity.onCreate(savedInstanceState = $savedInstanceState)")
         super.onCreate(savedInstanceState)
         window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-        setContentView(R.layout.activity_viewfinder)
+        binding = ActivityViewfinderBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         Thread.setDefaultUncaughtExceptionHandler(this)
-
         logState()
     }
 
@@ -113,7 +113,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
     private fun onCameraAvailable() = initFrameDuplicator()
 
     private fun initFrameDuplicator() {
-        TextureFrameDuplicator(texture_view, camera.videoSize, this)
+        TextureFrameDuplicator(binding.textureView, camera.videoSize, this)
     }
 
     override fun onFrameDuplicatorAvailable(frameDuplicator: FrameDuplicator) {
@@ -213,10 +213,11 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         close()
     }
 
-    override fun uncaughtException(thread: Thread, error: Throwable) = finishWithMessage(R.string.error_uncaught)
+    override fun uncaughtException(thread: Thread, error: Throwable) =
+        finishWithMessage(R.string.error_uncaught)
 
     private fun finishWithMessage(resourceId: Int) {
-        Log.d(TAG, "finishWithMessage: ${App.getDefaultString(resourceId)}")
+        Log.d(TAG, "finishWithMessage: ${App.defaultString(resourceId)}")
         App.showMessage(resourceId)
         finish()
     }

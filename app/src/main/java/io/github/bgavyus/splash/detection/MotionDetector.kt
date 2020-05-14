@@ -8,7 +8,7 @@ class MotionDetector(inputBitmap: Bitmap, listener: DetectionListener) :
     RenderScriptDetector(inputBitmap, listener) {
     companion object {
         // TODO: Adjust threshold dynamically
-        const val THRESHOLD = 0.1
+        const val THRESHOLD = 0.01
     }
 
     private val maxRate = inputBitmap.width.toFloat() * inputBitmap.height * 3 * 255

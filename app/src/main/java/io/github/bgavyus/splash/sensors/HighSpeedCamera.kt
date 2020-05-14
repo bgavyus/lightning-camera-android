@@ -141,13 +141,12 @@ class HighSpeedCamera(val listener: CameraListener) : CameraCaptureSession.Captu
 
         try {
             captureSession.run {
-                val requests = createHighSpeedRequestList(
-                    device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
-                        set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, fpsRange)
-                        surfaces.forEach(::addTarget)
-                    }.build()
-                )
+                val builder = device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
+                    set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, fpsRange)
+                    surfaces.forEach(::addTarget)
+                }
 
+                val requests = createHighSpeedRequestList(builder.build())
                 setRepeatingBurst(requests, /* listener = */ null, /* handler = */ null)
                 closeStack.push(::close)
             }
