@@ -1,6 +1,5 @@
-package io.github.bgavyus.splash.flow
+package io.github.bgavyus.splash.ui.views
 
-import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.RectF
 import android.graphics.SurfaceTexture
@@ -11,38 +10,35 @@ import android.view.TextureView
 import io.github.bgavyus.splash.common.App
 import kotlin.math.min
 
-class TextureFrameDuplicator(
+class StreamView(
     private val textureView: TextureView,
     private val bufferSize: Size,
-    private val listener: FrameDuplicatorListener
-) : FrameDuplicator, TextureView.SurfaceTextureListener {
-
-    private lateinit var surface: Surface
-    private lateinit var bitmap: Bitmap
+    private val listener: StreamViewListener
+) : TextureView.SurfaceTextureListener {
+    private lateinit var _surface: Surface
 
     init {
         if (textureView.isAvailable) {
             loadSurface()
         } else {
-            addSurfaceTextureListener()
+            textureView.surfaceTextureListener = this
         }
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
-        removeSurfaceTextureListener()
         loadSurface()
     }
 
     private fun loadSurface() {
         setBufferSize()
-        surface = Surface(textureView.surfaceTexture)
-        listener.onFrameDuplicatorAvailable(this)
+        _surface = Surface(textureView.surfaceTexture)
+        listener.onStreamViewAvailable(this)
     }
 
-    override val inputSurface: Surface
+    val surface: Surface
         get() {
             adjustBuffer()
-            return surface
+            return _surface
         }
 
     override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
@@ -75,38 +71,9 @@ class TextureFrameDuplicator(
         textureView.setTransform(matrix)
     }
 
-    override val outputBitmap: Bitmap
-        get() {
-            if (!::bitmap.isInitialized) {
-                bitmap = textureView.bitmap
-            }
-
-            return bitmap
-        }
-
-    override fun startStreaming() {
-        textureView.surfaceTextureListener = this
-    }
-
-    override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {
-        textureView.getBitmap(bitmap)
-        listener.onFrameAvailable()
-    }
+    override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {}
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
-        stopStreaming()
         return true
-    }
-
-    override fun stopStreaming() {
-        removeSurfaceTextureListener()
-    }
-
-    private fun addSurfaceTextureListener() {
-        textureView.surfaceTextureListener = this
-    }
-
-    private fun removeSurfaceTextureListener() {
-        textureView.surfaceTextureListener = null
     }
 }

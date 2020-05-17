@@ -144,7 +144,7 @@ class RetroRecorder(
         }
     }
 
-    override val inputSurface: Surface
+    override val surface: Surface
 
     init {
         val format = MediaFormat.createVideoFormat(MIME_TYPE, size.width, size.height).apply {
@@ -173,7 +173,7 @@ class RetroRecorder(
                 MediaCodec.CONFIGURE_FLAG_ENCODE
             )
 
-            inputSurface = createInputSurface().apply {
+            surface = createInputSurface().apply {
                 closeStack.push(::release)
             }
 

@@ -1,24 +1,21 @@
 package io.github.bgavyus.splash.detection
 
-import android.graphics.Bitmap
-import android.os.Handler
-import android.os.HandlerThread
-import android.renderscript.Allocation
-import android.renderscript.RenderScript
-import io.github.bgavyus.splash.common.App
-import io.github.bgavyus.splash.common.CloseStack
+import android.util.Size
 
-class LightningDetector(inputBitmap: Bitmap, listener: DetectionListener) :
-    RenderScriptDetector(inputBitmap, listener) {
+class LightningDetector(size: Size, listener: DetectionListener) :
+    Detector(size, listener) {
     companion object {
-        private const val ZERO: Short = 0
+        private val TAG = LightningDetector::class.simpleName
     }
 
     private val script = ScriptC_lightning(rs).apply {
         closeStack.push(::destroy)
     }
 
-    override fun rsDetected(): Boolean {
-        return script.reduce_detected(inputAllocation).get() != ZERO
-    }
+    override val detected: Boolean
+        get() {
+            val intensity = script.reduce_intensity(inputAllocation).get()
+            // Log.v(TAG, "Value: ${intensity.x} ${intensity.y} ${intensity.z}")
+            return (intensity.x + intensity.y + intensity.z) == CHANNELS * MAX_INTENSITY
+        }
 }

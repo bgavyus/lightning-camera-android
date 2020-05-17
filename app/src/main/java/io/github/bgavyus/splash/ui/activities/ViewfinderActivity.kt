@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash.views
+package io.github.bgavyus.splash.ui.activities
 
 import android.os.Bundle
 import android.util.Log
@@ -8,14 +8,12 @@ import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.databinding.ActivityViewfinderBinding
 import io.github.bgavyus.splash.detection.DetectionListener
-import io.github.bgavyus.splash.detection.Detector
 import io.github.bgavyus.splash.detection.MotionDetector
-import io.github.bgavyus.splash.flow.FrameDuplicator
-import io.github.bgavyus.splash.flow.FrameDuplicatorListener
-import io.github.bgavyus.splash.flow.TextureFrameDuplicator
+import io.github.bgavyus.splash.detection.Detector
 import io.github.bgavyus.splash.media.Recorder
 import io.github.bgavyus.splash.media.RecorderListener
 import io.github.bgavyus.splash.media.RetroRecorder
+import io.github.bgavyus.splash.media.SurfaceBroadcaster
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
 import io.github.bgavyus.splash.sensors.CameraError
@@ -25,6 +23,8 @@ import io.github.bgavyus.splash.sensors.HighSpeedCamera
 import io.github.bgavyus.splash.storage.Storage
 import io.github.bgavyus.splash.storage.StorageFile
 import io.github.bgavyus.splash.storage.VideoFile
+import io.github.bgavyus.splash.ui.views.StreamView
+import io.github.bgavyus.splash.ui.views.StreamViewListener
 import java.io.IOException
 
 // TODO: Remove all logic from this class
@@ -33,7 +33,8 @@ import java.io.IOException
 // TODO: Indicate that capture has occurred (visual + audible)
 // TODO: Add start/stop button
 class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandler, CameraListener,
-    DetectionListener, FrameDuplicatorListener, RecorderListener {
+    DetectionListener, RecorderListener,
+    StreamViewListener {
 
     companion object {
         private val TAG = ViewfinderActivity::class.simpleName
@@ -43,10 +44,11 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
 
     private lateinit var binding: ActivityViewfinderBinding
     private lateinit var camera: HighSpeedCamera
-    private lateinit var frameDuplicator: FrameDuplicator
+    private lateinit var surfaceBroadcaster: SurfaceBroadcaster
     private lateinit var detector: Detector
     private lateinit var file: StorageFile
     private lateinit var recorder: Recorder
+    private lateinit var streamView: StreamView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "Activity.onCreate(savedInstanceState = $savedInstanceState)")
@@ -101,36 +103,48 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
 
     private fun initCamera() {
         try {
-            HighSpeedCamera(this).run {
-                camera = this
-                onCameraAvailable()
-            }
+            camera = HighSpeedCamera(this)
+            onCameraAvailable()
         } catch (error: CameraError) {
             onCameraError(error.type)
         }
     }
 
-    private fun onCameraAvailable() = initFrameDuplicator()
+    private fun onCameraAvailable() = initStreamView()
 
-    private fun initFrameDuplicator() {
-        TextureFrameDuplicator(binding.textureView, camera.videoSize, this)
+    private fun initStreamView() {
+        StreamView(
+            binding.streamView,
+            camera.videoSize,
+            this
+        )
     }
 
-    override fun onFrameDuplicatorAvailable(frameDuplicator: FrameDuplicator) {
-        this.frameDuplicator = frameDuplicator
+    override fun onStreamViewAvailable(streamView: StreamView) {
+        this.streamView = streamView
         initDetector()
     }
 
     private fun initDetector() {
-        // TODO: Forward original resolution image
-        detector = MotionDetector(frameDuplicator.outputBitmap, this).apply {
+        detector = MotionDetector(camera.videoSize, this).apply {
             closeStack.push(::close)
         }
 
         onDetectorAvailable()
     }
 
-    private fun onDetectorAvailable() = initVideoFile()
+    private fun onDetectorAvailable() = initSurfaceBroadcaster()
+
+    private fun initSurfaceBroadcaster() {
+        val outputSurfaces = listOf(detector.surface, streamView.surface)
+        surfaceBroadcaster = SurfaceBroadcaster(camera.videoSize, outputSurfaces).apply {
+            closeStack.push(::close)
+        }
+
+        onSurfaceBroadcasterAvailable()
+    }
+
+    private fun onSurfaceBroadcasterAvailable() = initVideoFile()
 
     private fun initVideoFile() {
         try {
@@ -160,6 +174,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
 
     private fun startCameraStreaming() {
         try {
+            // TODO: Create CameraStream class
             camera.run {
                 startStreaming()
                 closeStack.push(::stopStreaming)
@@ -169,18 +184,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         }
     }
 
-    override fun onSurfacesNeeded() = listOf(frameDuplicator.inputSurface, recorder.inputSurface)
-
-    override fun onCameraStreamStarted() = initFrameStream()
-
-    private fun initFrameStream() {
-        frameDuplicator.run {
-            startStreaming()
-            closeStack.push(::stopStreaming)
-        }
-    }
-
-    override fun onFrameAvailable() = detector.detect()
+    override fun onSurfacesNeeded() = listOf(recorder.surface, surfaceBroadcaster.surface)
 
     override fun onDetectionStarted() {
         Log.i(TAG, "Detection Started")

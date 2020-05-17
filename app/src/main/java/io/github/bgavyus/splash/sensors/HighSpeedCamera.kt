@@ -127,7 +127,6 @@ class HighSpeedCamera(val listener: CameraListener) : CameraCaptureSession.Captu
         override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
             Log.d(TAG, "CameraCaptureSession.onConfigured")
             startCaptureSession(cameraCaptureSession as CameraConstrainedHighSpeedCaptureSession)
-            listener.onCameraStreamStarted()
         }
 
         override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession) {
