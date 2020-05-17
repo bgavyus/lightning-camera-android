@@ -14,8 +14,8 @@ import io.github.bgavyus.splash.media.gles.WindowSurface
 
 // TODO: Organize GLES package
 class SurfaceBroadcaster(
-    private val bufferSize: Size,
-    outputSurfaces: List<Surface>
+    bufferSize: Size,
+    consumers: List<ImageConsumer>
 ) : ImageConsumer, AutoCloseable, SurfaceTexture.OnFrameAvailableListener {
     companion object {
         private val TAG = SurfaceBroadcaster::class.simpleName
@@ -27,8 +27,8 @@ class SurfaceBroadcaster(
         closeStack.push(::release)
     }
 
-    private val windowSurfaces = outputSurfaces.map {
-        WindowSurface(eglCore, it, false).apply {
+    private val windowSurfaces = consumers.map {
+        WindowSurface(eglCore, it.surface, false).apply {
             closeStack.push(::release)
         }
     }.apply {
