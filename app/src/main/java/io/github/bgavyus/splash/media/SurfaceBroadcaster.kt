@@ -6,6 +6,7 @@ import android.util.Log
 import android.util.Size
 import android.view.Surface
 import io.github.bgavyus.splash.common.CloseStack
+import io.github.bgavyus.splash.common.ImageConsumer
 import io.github.bgavyus.splash.media.gles.EglCore
 import io.github.bgavyus.splash.media.gles.FullFrameRect
 import io.github.bgavyus.splash.media.gles.Texture2dProgram
@@ -15,7 +16,7 @@ import io.github.bgavyus.splash.media.gles.WindowSurface
 class SurfaceBroadcaster(
     private val bufferSize: Size,
     outputSurfaces: List<Surface>
-) : AutoCloseable, SurfaceTexture.OnFrameAvailableListener {
+) : ImageConsumer, AutoCloseable, SurfaceTexture.OnFrameAvailableListener {
     companion object {
         private val TAG = SurfaceBroadcaster::class.simpleName
     }
@@ -48,7 +49,7 @@ class SurfaceBroadcaster(
         closeStack.push(::release)
     }
 
-    val surface = Surface(surfaceTexture).apply {
+    override val surface = Surface(surfaceTexture).apply {
         closeStack.push(::release)
     }
 

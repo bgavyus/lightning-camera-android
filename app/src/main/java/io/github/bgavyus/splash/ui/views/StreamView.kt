@@ -8,13 +8,14 @@ import android.util.SizeF
 import android.view.Surface
 import android.view.TextureView
 import io.github.bgavyus.splash.common.App
+import io.github.bgavyus.splash.common.ImageConsumer
 import kotlin.math.min
 
 class StreamView(
     private val textureView: TextureView,
     private val bufferSize: Size,
     private val listener: StreamViewListener
-) : TextureView.SurfaceTextureListener {
+) : ImageConsumer, TextureView.SurfaceTextureListener {
     private lateinit var _surface: Surface
 
     init {
@@ -35,7 +36,8 @@ class StreamView(
         listener.onStreamViewAvailable(this)
     }
 
-    val surface: Surface
+    // TODO: Create ImageConsumer interface
+    override val surface: Surface
         get() {
             adjustBuffer()
             return _surface

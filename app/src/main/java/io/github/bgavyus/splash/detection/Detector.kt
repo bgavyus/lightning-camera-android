@@ -1,18 +1,17 @@
 package io.github.bgavyus.splash.detection
 
-import android.os.Handler
-import android.os.HandlerThread
 import android.renderscript.Allocation
 import android.renderscript.Element
 import android.renderscript.RenderScript
 import android.renderscript.Type
-import android.util.Log
 import android.util.Size
 import android.view.Surface
 import io.github.bgavyus.splash.common.App
+import io.github.bgavyus.splash.common.BackgroundHandler
 import io.github.bgavyus.splash.common.CloseStack
+import io.github.bgavyus.splash.common.ImageConsumer
 
-abstract class Detector(size: Size, private val listener: DetectionListener) : AutoCloseable,
+abstract class Detector(size: Size, private val listener: DetectionListener) : ImageConsumer, AutoCloseable,
     Allocation.OnBufferAvailableListener {
     companion object {
         private val TAG = Detector::class.simpleName
@@ -23,17 +22,9 @@ abstract class Detector(size: Size, private val listener: DetectionListener) : A
 
     internal val closeStack = CloseStack()
 
-    // TODO: Create common HandlerThread helper
-    private val thread = HandlerThread(TAG).apply {
-        start()
-
-        closeStack.push {
-            Log.d(TAG, "Quiting detector thread")
-            quitSafely()
-        }
+    private val handler = BackgroundHandler(TAG).apply {
+        closeStack.push(::close)
     }
-
-    private val handler = Handler(thread.looper)
 
     internal val rs = RenderScript.create(App.context).apply {
         closeStack.push(::destroy)
@@ -48,7 +39,7 @@ abstract class Detector(size: Size, private val listener: DetectionListener) : A
         setOnBufferAvailableListener(this@Detector)
     }
 
-    val surface: Surface = inputAllocation.surface
+    override val surface: Surface = inputAllocation.surface
 
     private var lastDetected = false
 

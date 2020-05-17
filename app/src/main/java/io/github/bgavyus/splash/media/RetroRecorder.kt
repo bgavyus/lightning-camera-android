@@ -3,16 +3,11 @@ package io.github.bgavyus.splash.media
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
-import android.os.Handler
-import android.os.HandlerThread
 import android.util.Log
 import android.util.Range
 import android.util.Size
 import android.view.Surface
-import io.github.bgavyus.splash.common.CloseStack
-import io.github.bgavyus.splash.common.Rotation
-import io.github.bgavyus.splash.common.Snake
-import io.github.bgavyus.splash.common.area
+import io.github.bgavyus.splash.common.*
 import io.github.bgavyus.splash.storage.StorageFile
 import java.nio.ByteBuffer
 
@@ -37,16 +32,9 @@ class RetroRecorder(
 
     private val closeStack = CloseStack()
 
-    private val thread = HandlerThread(TAG).apply {
-        start()
-
-        closeStack.push {
-            Log.d(TAG, "Quiting recorder thread")
-            quitSafely()
-        }
+    private val handler = BackgroundHandler(TAG).apply {
+        closeStack.push(::close)
     }
-
-    private val handler = Handler(thread.looper)
 
     private val encoder = MediaCodec.createEncoderByType(MIME_TYPE).apply {
         closeStack.push(::release)

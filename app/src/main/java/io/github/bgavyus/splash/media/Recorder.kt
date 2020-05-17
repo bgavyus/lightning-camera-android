@@ -1,9 +1,8 @@
 package io.github.bgavyus.splash.media
 
-import android.view.Surface
+import io.github.bgavyus.splash.common.ImageConsumer
 
-interface Recorder : AutoCloseable {
-    val surface: Surface
+interface Recorder : ImageConsumer, AutoCloseable {
     fun record()
     fun loss()
 }
