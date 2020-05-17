@@ -44,11 +44,11 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
 
     private lateinit var binding: ActivityViewfinderBinding
     private lateinit var camera: HighSpeedCamera
-    private lateinit var surfaceBroadcaster: SurfaceBroadcaster
+    private lateinit var streamView: StreamView
     private lateinit var detector: Detector
+    private lateinit var surfaceBroadcaster: SurfaceBroadcaster
     private lateinit var file: StorageFile
     private lateinit var recorder: Recorder
-    private lateinit var streamView: StreamView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "Activity.onCreate(savedInstanceState = $savedInstanceState)")

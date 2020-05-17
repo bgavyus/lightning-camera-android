@@ -19,24 +19,25 @@ class StreamView(
     private lateinit var _surface: Surface
 
     init {
-        if (textureView.isAvailable) {
-            loadSurface()
-        } else {
-            textureView.surfaceTextureListener = this
+        textureView.run {
+            surfaceTextureListener = this@StreamView
+
+            if (isAvailable) {
+                initSurface()
+            }
         }
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
-        loadSurface()
+        initSurface()
     }
 
-    private fun loadSurface() {
+    private fun initSurface() {
         setBufferSize()
         _surface = Surface(textureView.surfaceTexture)
         listener.onStreamViewAvailable(this)
     }
 
-    // TODO: Create ImageConsumer interface
     override val surface: Surface
         get() {
             adjustBuffer()

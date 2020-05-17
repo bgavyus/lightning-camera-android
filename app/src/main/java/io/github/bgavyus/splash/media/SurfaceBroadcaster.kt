@@ -22,7 +22,6 @@ class SurfaceBroadcaster(
     }
 
     private val closeStack = CloseStack()
-    private val matrix = FloatArray(4 * 4)
 
     private val eglCore = EglCore(null, EglCore.FLAG_RECORDABLE).apply {
         closeStack.push(::release)
@@ -56,6 +55,8 @@ class SurfaceBroadcaster(
     init {
         GLES20.glViewport(0, 0, bufferSize.width, bufferSize.height)
     }
+
+    private val matrix = FloatArray(4 * 4)
 
     override fun onFrameAvailable(surface: SurfaceTexture?) {
         if (closeStack.isEmpty()) {
