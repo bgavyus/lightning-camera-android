@@ -1,62 +1,52 @@
 package io.github.bgavyus.splash.media
 
 import android.graphics.SurfaceTexture
-import android.opengl.GLES20
 import android.util.Log
 import android.util.Size
 import android.view.Surface
+import com.otaliastudios.opengl.core.EglCore
+import com.otaliastudios.opengl.draw.GlRect
+import com.otaliastudios.opengl.program.GlTextureProgram
+import com.otaliastudios.opengl.surface.EglWindowSurface
+import com.otaliastudios.opengl.texture.GlTexture
 import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.common.ImageConsumer
-import io.github.bgavyus.splash.media.gles.EglCore
-import io.github.bgavyus.splash.media.gles.FullFrameRect
-import io.github.bgavyus.splash.media.gles.Texture2dProgram
-import io.github.bgavyus.splash.media.gles.WindowSurface
 
-// TODO: Organize GLES package
 class SurfaceBroadcaster(
     bufferSize: Size,
-    consumers: List<ImageConsumer>
-) : ImageConsumer, AutoCloseable, SurfaceTexture.OnFrameAvailableListener {
+    consumers: Iterable<ImageConsumer>
+) : ImageConsumer, SurfaceTexture.OnFrameAvailableListener {
     companion object {
         private val TAG = SurfaceBroadcaster::class.simpleName
     }
 
     private val closeStack = CloseStack()
 
-    private val eglCore = EglCore(null, EglCore.FLAG_RECORDABLE).apply {
+    private val core = EglCore(flags = EglCore.FLAG_TRY_GLES3)
+        .apply { closeStack.push(::release) }
+
+    private val windows = consumers.map {
+        EglWindowSurface(core, it.surface)
+            .apply { closeStack.push(::release) }
+    }.apply { first().makeCurrent() }
+
+    private val texture = GlTexture()
+
+    private val program = GlTextureProgram().apply {
+        texture = this@SurfaceBroadcaster.texture
         closeStack.push(::release)
     }
 
-    private val windowSurfaces = consumers.map {
-        WindowSurface(eglCore, it.surface, false).apply {
-            closeStack.push(::release)
-        }
-    }.apply {
-        first().makeCurrent()
-    }
-
-    private val program = Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT).apply {
-        closeStack.push(::release)
-    }
-
-    private val fullFrameBlit = FullFrameRect(program)
-    private val textureId = fullFrameBlit.createTextureObject()
-
-    private val surfaceTexture = SurfaceTexture(textureId).apply {
+    private val surfaceTexture = SurfaceTexture(texture.id).apply {
         setOnFrameAvailableListener(this@SurfaceBroadcaster)
         setDefaultBufferSize(bufferSize.width, bufferSize.height)
         closeStack.push(::release)
     }
 
-    override val surface = Surface(surfaceTexture).apply {
-        closeStack.push(::release)
-    }
+    private val entireViewport = GlRect()
 
-    init {
-        GLES20.glViewport(0, 0, bufferSize.width, bufferSize.height)
-    }
-
-    private val matrix = FloatArray(4 * 4)
+    override val surface = Surface(surfaceTexture)
+        .also(closeStack::push)
 
     override fun onFrameAvailable(surface: SurfaceTexture?) {
         if (closeStack.isEmpty()) {
@@ -65,12 +55,12 @@ class SurfaceBroadcaster(
         }
 
         surfaceTexture.updateTexImage()
-        surfaceTexture.getTransformMatrix(matrix)
+        surfaceTexture.getTransformMatrix(program.textureTransform)
 
-        for (windowSurface in windowSurfaces) {
-            windowSurface.makeCurrent()
-            fullFrameBlit.drawFrame(textureId, matrix)
-            windowSurface.swapBuffers()
+        for (window in windows) {
+            window.makeCurrent()
+            program.draw(entireViewport)
+            window.swapBuffers()
         }
     }
 

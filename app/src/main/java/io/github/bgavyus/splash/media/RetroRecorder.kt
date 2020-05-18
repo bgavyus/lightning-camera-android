@@ -32,13 +32,11 @@ class RetroRecorder(
 
     private val closeStack = CloseStack()
 
-    private val handler = BackgroundHandler(TAG).apply {
-        closeStack.push(::close)
-    }
+    private val handler = BackgroundHandler(TAG)
+        .also(closeStack::push)
 
-    private val encoder = MediaCodec.createEncoderByType(MIME_TYPE).apply {
-        closeStack.push(::release)
-    }
+    private val encoder = MediaCodec.createEncoderByType(MIME_TYPE)
+        .apply { closeStack.push(::release) }
 
     private val snake: Snake<Sample>
 
@@ -64,9 +62,8 @@ class RetroRecorder(
         override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
             Log.d(TAG, "onOutputFormatChanged(format = $format)")
 
-            writer = Writer(file, format, rotation).apply {
-                closeStack.push(::close)
-            }
+            writer = Writer(file, format, rotation)
+                .also(closeStack::push)
         }
 
         override fun onOutputBufferAvailable(
@@ -161,9 +158,8 @@ class RetroRecorder(
                 MediaCodec.CONFIGURE_FLAG_ENCODE
             )
 
-            surface = createInputSurface().apply {
-                closeStack.push(::release)
-            }
+            surface = createInputSurface()
+                .also(closeStack::push)
 
             start()
             closeStack.push(::stop)

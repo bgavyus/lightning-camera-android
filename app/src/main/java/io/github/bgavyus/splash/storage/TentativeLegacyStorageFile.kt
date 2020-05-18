@@ -28,9 +28,8 @@ class TentativeLegacyStorageFile(
         }
     }
 
-    private val tempFile = File(parentDirectory, "$name.tmp").apply {
-        delete()
-    }
+    private val tempFile = File(parentDirectory, "$name.tmp")
+        .apply { delete() }
 
     private val tempFileOutputStream = tempFile.outputStream()
 

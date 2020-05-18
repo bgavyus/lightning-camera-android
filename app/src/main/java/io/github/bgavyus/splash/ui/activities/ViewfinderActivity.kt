@@ -9,7 +9,6 @@ import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.databinding.ActivityViewfinderBinding
 import io.github.bgavyus.splash.detection.DetectionListener
-import io.github.bgavyus.splash.detection.Detector
 import io.github.bgavyus.splash.detection.MotionDetector
 import io.github.bgavyus.splash.media.Recorder
 import io.github.bgavyus.splash.media.RecorderListener
@@ -18,7 +17,6 @@ import io.github.bgavyus.splash.media.SurfaceBroadcaster
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
 import io.github.bgavyus.splash.storage.Storage
-import io.github.bgavyus.splash.storage.StorageFile
 import io.github.bgavyus.splash.storage.VideoFile
 import io.github.bgavyus.splash.ui.views.StreamView
 import io.github.bgavyus.splash.ui.views.StreamViewListener
@@ -42,12 +40,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
 
     private lateinit var binding: ActivityViewfinderBinding
     private lateinit var camera: Camera
-    private lateinit var streamView: StreamView
-    private lateinit var detector: Detector
-    private lateinit var surfaceBroadcaster: SurfaceBroadcaster
-    private lateinit var file: StorageFile
     private lateinit var recorder: Recorder
-    private lateinit var cameraStream: CameraStream
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "Activity.onCreate(savedInstanceState = $savedInstanceState)")
@@ -98,79 +91,37 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         recreate()
     }
 
-    private fun onPermissionsAvailable() = initCamera()
-
-    private fun initCamera() {
+    private fun onPermissionsAvailable() {
         try {
             camera = Camera()
-            onCameraAvailable()
+
+            val file = VideoFile()
+                .also(closeStack::push)
+
+            val rotation = camera.orientation + App.deviceOrientation
+
+            recorder = RetroRecorder(file, camera.size, camera.fpsRange, rotation, this)
+                .also(closeStack::push)
+
+            StreamView(binding.streamView, camera.size, this)
+                .also(closeStack::push)
         } catch (error: CameraError) {
             onCameraError(error.type)
+        } catch (_: IOException) {
+            finishWithMessage(R.string.error_io)
         }
-    }
-
-    private fun onCameraAvailable() = initStreamView()
-
-    private fun initStreamView() {
-        StreamView(binding.streamView, camera.size, this)
     }
 
     override fun onStreamViewAvailable(streamView: StreamView) {
-        this.streamView = streamView
-        initDetector()
-    }
+        val detector = MotionDetector(camera.size, this)
+            .also(closeStack::push)
 
-    private fun initDetector() {
-        detector = MotionDetector(camera.size, this).apply {
-            closeStack.push(::close)
-        }
+        val surfaceBroadcaster = SurfaceBroadcaster(camera.size, listOf(detector, streamView))
+            .also(closeStack::push)
 
-        onDetectorAvailable()
-    }
-
-    private fun onDetectorAvailable() = initSurfaceBroadcaster()
-
-    private fun initSurfaceBroadcaster() {
-        surfaceBroadcaster = SurfaceBroadcaster(camera.size, listOf(detector, streamView)).apply {
-            closeStack.push(::close)
-        }
-
-        onSurfaceBroadcasterAvailable()
-    }
-
-    private fun onSurfaceBroadcasterAvailable() = initVideoFile()
-
-    private fun initVideoFile() {
         try {
-            file = VideoFile().apply {
-                closeStack.push(::close)
-            }
-        } catch (_: IOException) {
-            return finishWithMessage(R.string.error_io)
-        }
-
-        onVideoFileAvailable()
-    }
-
-    private fun onVideoFileAvailable() = initRecorder()
-
-    private fun initRecorder() {
-        val rotation = camera.orientation + App.deviceOrientation
-        recorder = RetroRecorder(file, camera.size, camera.fpsRange, rotation, this)
-            .apply {
-                closeStack.push(::close)
-            }
-
-        onRecorderAvailable()
-    }
-
-    private fun onRecorderAvailable() = startCameraStreaming()
-
-    private fun startCameraStreaming() {
-        try {
-            cameraStream = CameraStream(camera, listOf(recorder, surfaceBroadcaster), this).apply {
-                closeStack.push(::close)
-            }
+            CameraStream(camera, listOf(recorder, surfaceBroadcaster), this)
+                .also(closeStack::push)
         } catch (error: CameraError) {
             onCameraError(error.type)
         }

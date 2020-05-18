@@ -14,7 +14,7 @@ import io.github.bgavyus.splash.common.ImageConsumer
 @SuppressLint("MissingPermission")
 class CameraStream(
     private val camera: Camera,
-    private val consumers: List<ImageConsumer>,
+    private val consumers: Iterable<ImageConsumer>,
     private val listener: CameraListener
 ) : AutoCloseable {
     companion object {
@@ -22,11 +22,12 @@ class CameraStream(
     }
 
     private val closeStack = CloseStack()
+    private val handler = Handler(App.context.mainLooper)
 
     private val cameraDeviceStateCallback = object : CameraDevice.StateCallback() {
         override fun onOpened(camera: CameraDevice) {
             Log.d(TAG, "CameraDevice.onOpened")
-            closeStack.push(camera::close)
+            closeStack.push(camera)
 
             try {
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
@@ -71,8 +72,6 @@ class CameraStream(
         }
     }
 
-    private val handler = Handler(App.context.mainLooper)
-
     init {
         val cameraManager = App.context.getSystemService(CameraManager::class.java)
             ?: throw CameraError(CameraErrorType.Generic)
@@ -106,7 +105,7 @@ class CameraStream(
 
                 val requests = createHighSpeedRequestList(builder.build())
                 setRepeatingBurst(requests, /* listener = */ null, /* handler = */ null)
-                closeStack.push(::close)
+                closeStack.push(this)
             }
         } catch (error: CameraAccessException) {
             onError(CameraErrorType.fromAccessException(error))
@@ -115,9 +114,6 @@ class CameraStream(
         }
     }
 
-    private fun onError(type: CameraErrorType) {
-        listener.onCameraError(type)
-    }
-
+    private fun onError(type: CameraErrorType) = listener.onCameraError(type)
     override fun close() = closeStack.close()
 }

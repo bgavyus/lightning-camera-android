@@ -57,10 +57,7 @@ class TentativeScopedStorageFile(
     override fun save() {
         val values = ContentValues().apply {
             putNull(MediaStore.MediaColumns.DATE_EXPIRES)
-            put(
-                MediaStore.MediaColumns.IS_PENDING,
-                IS_PENDING_FALSE
-            )
+            put(MediaStore.MediaColumns.IS_PENDING, IS_PENDING_FALSE)
         }
 
         contentResolver.update(uri, values, /* where = */ null, /* selectionArgs = */ null)

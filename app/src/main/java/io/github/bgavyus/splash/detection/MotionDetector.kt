@@ -15,13 +15,11 @@ class MotionDetector(size: Size, listener: DetectionListener) :
 
     private val maxRate = CHANNELS * MAX_INTENSITY * size.area.toFloat()
 
-    private val script = ScriptC_motion(rs).apply {
-        closeStack.push(::destroy)
-    }
+    private val script = ScriptC_motion(rs)
+        .also(closeStack::push)
 
-    private val lastFrameAllocation = Allocation.createTyped(rs, inputAllocation.type).apply {
-        closeStack.push(::destroy)
-    }
+    private val lastFrameAllocation = Allocation.createTyped(rs, inputAllocation.type)
+        .also(closeStack::push)
 
     override val detected: Boolean
         get() {

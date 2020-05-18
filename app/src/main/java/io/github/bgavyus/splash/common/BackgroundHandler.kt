@@ -9,9 +9,8 @@ class BackgroundHandler(name: String?) : Handler(), AutoCloseable {
         private val TAG = BackgroundHandler::class.simpleName
     }
 
-    private val thread = HandlerThread(name).apply {
-        start()
-    }
+    private val thread = HandlerThread(name)
+        .apply { start() }
 
     init {
         Handler(thread.looper)

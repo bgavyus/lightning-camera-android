@@ -8,9 +8,8 @@ class LightningDetector(size: Size, listener: DetectionListener) :
         private val TAG = LightningDetector::class.simpleName
     }
 
-    private val script = ScriptC_lightning(rs).apply {
-        closeStack.push(::destroy)
-    }
+    private val script = ScriptC_lightning(rs)
+        .also(closeStack::push)
 
     override val detected: Boolean
         get() {

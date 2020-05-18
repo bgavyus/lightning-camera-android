@@ -8,14 +8,17 @@ import android.util.SizeF
 import android.view.Surface
 import android.view.TextureView
 import io.github.bgavyus.splash.common.App
+import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.common.ImageConsumer
 import kotlin.math.min
 
+// TODO: Attach external SurfaceTexture and remove listener interface
 class StreamView(
     private val textureView: TextureView,
     private val bufferSize: Size,
     private val listener: StreamViewListener
 ) : ImageConsumer, TextureView.SurfaceTextureListener {
+    private val closeStack = CloseStack()
     private lateinit var _surface: Surface
 
     init {
@@ -34,7 +37,10 @@ class StreamView(
 
     private fun initSurface() {
         setBufferSize()
+
         _surface = Surface(textureView.surfaceTexture)
+            .also(closeStack::push)
+
         listener.onStreamViewAvailable(this)
     }
 
@@ -79,4 +85,6 @@ class StreamView(
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
         return true
     }
+
+    override fun close() = closeStack.close()
 }

@@ -1,9 +1,6 @@
 package io.github.bgavyus.splash.detection
 
-import android.renderscript.Allocation
-import android.renderscript.Element
-import android.renderscript.RenderScript
-import android.renderscript.Type
+import android.renderscript.*
 import android.util.Size
 import android.view.Surface
 import io.github.bgavyus.splash.common.App
@@ -11,7 +8,7 @@ import io.github.bgavyus.splash.common.BackgroundHandler
 import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.common.ImageConsumer
 
-abstract class Detector(size: Size, private val listener: DetectionListener) : ImageConsumer, AutoCloseable,
+abstract class Detector(size: Size, private val listener: DetectionListener) : ImageConsumer,
     Allocation.OnBufferAvailableListener {
     companion object {
         private val TAG = Detector::class.simpleName
@@ -22,22 +19,19 @@ abstract class Detector(size: Size, private val listener: DetectionListener) : I
 
     internal val closeStack = CloseStack()
 
-    private val handler = BackgroundHandler(TAG).apply {
-        closeStack.push(::close)
-    }
+    private val handler = BackgroundHandler(TAG)
+        .also(closeStack::push)
 
-    internal val rs = RenderScript.create(App.context).apply {
-        closeStack.push(::destroy)
-    }
+    internal val rs = RenderScript.create(App.context)
+        .also(closeStack::push)
 
     internal val inputAllocation = Allocation.createTyped(
         rs,
         Type.createXY(rs, Element.U8_4(rs), size.width, size.height),
         Allocation.USAGE_IO_INPUT or Allocation.USAGE_SCRIPT
-    ).apply {
-        closeStack.push(::destroy)
-        setOnBufferAvailableListener(this@Detector)
-    }
+    )
+        .also(closeStack::push)
+        .apply { setOnBufferAvailableListener(this@Detector) }
 
     override val surface: Surface = inputAllocation.surface
 

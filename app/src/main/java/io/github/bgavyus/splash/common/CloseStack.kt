@@ -1,6 +1,9 @@
 package io.github.bgavyus.splash.common
 
+import android.renderscript.BaseObj
+import android.renderscript.RenderScript
 import android.util.Log
+import android.view.Surface
 import java.util.*
 
 class CloseStack : ArrayDeque<() -> Unit>(), AutoCloseable {
@@ -20,4 +23,9 @@ class CloseStack : ArrayDeque<() -> Unit>(), AutoCloseable {
             }
         }
     }
+
+    fun push(closeable: AutoCloseable) = push(closeable::close)
+    fun push(surface: Surface) = push(surface::release)
+    fun push(renderScript: RenderScript) = push(renderScript::destroy)
+    fun push(renderScriptObject: BaseObj) = push(renderScriptObject::destroy)
 }
