@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash.detection
+package io.github.bgavyus.splash.graphics.detection
 
 import android.renderscript.Allocation
 import android.util.Size

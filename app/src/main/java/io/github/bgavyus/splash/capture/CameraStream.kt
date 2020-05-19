@@ -9,7 +9,7 @@ import android.os.Handler
 import android.util.Log
 import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.CloseStack
-import io.github.bgavyus.splash.common.ImageConsumer
+import io.github.bgavyus.splash.graphics.ImageConsumer
 
 @SuppressLint("MissingPermission")
 class CameraStream(

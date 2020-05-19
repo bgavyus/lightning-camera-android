@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash.media
+package io.github.bgavyus.splash.graphics.media
 
 import android.media.MediaCodec
 import java.nio.ByteBuffer

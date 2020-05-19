@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash.detection
+package io.github.bgavyus.splash.graphics.detection
 
 import android.renderscript.*
 import android.util.Size
@@ -6,7 +6,7 @@ import android.view.Surface
 import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.BackgroundHandler
 import io.github.bgavyus.splash.common.CloseStack
-import io.github.bgavyus.splash.common.ImageConsumer
+import io.github.bgavyus.splash.graphics.ImageConsumer
 
 abstract class Detector(size: Size, private val listener: DetectionListener) : ImageConsumer,
     Allocation.OnBufferAvailableListener {

@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash.ui.activities
+package io.github.bgavyus.splash.activities
 
 import android.os.Bundle
 import android.util.Log
@@ -8,18 +8,17 @@ import io.github.bgavyus.splash.capture.*
 import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.CloseStack
 import io.github.bgavyus.splash.databinding.ActivityViewfinderBinding
-import io.github.bgavyus.splash.detection.DetectionListener
-import io.github.bgavyus.splash.detection.MotionDetector
-import io.github.bgavyus.splash.media.Recorder
-import io.github.bgavyus.splash.media.RecorderListener
-import io.github.bgavyus.splash.media.RetroRecorder
-import io.github.bgavyus.splash.media.SurfaceBroadcaster
+import io.github.bgavyus.splash.graphics.ImageConsumerDuplicator
+import io.github.bgavyus.splash.graphics.detection.DetectionListener
+import io.github.bgavyus.splash.graphics.detection.MotionDetector
+import io.github.bgavyus.splash.graphics.media.Recorder
+import io.github.bgavyus.splash.graphics.media.RecorderListener
+import io.github.bgavyus.splash.graphics.media.RetroRecorder
+import io.github.bgavyus.splash.graphics.views.StreamView
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
 import io.github.bgavyus.splash.storage.Storage
 import io.github.bgavyus.splash.storage.VideoFile
-import io.github.bgavyus.splash.ui.views.StreamView
-import io.github.bgavyus.splash.ui.views.StreamViewListener
 import java.io.IOException
 
 // TODO: Remove all logic from this class
@@ -29,9 +28,7 @@ import java.io.IOException
 // TODO: Add start/stop button
 // TODO: Parallel execution when possible
 class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandler, CameraListener,
-    DetectionListener, RecorderListener,
-    StreamViewListener {
-
+    DetectionListener, RecorderListener {
     companion object {
         private val TAG = ViewfinderActivity::class.simpleName
     }
@@ -39,7 +36,6 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
     private val closeStack = CloseStack()
 
     private lateinit var binding: ActivityViewfinderBinding
-    private lateinit var camera: Camera
     private lateinit var recorder: Recorder
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,7 +89,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
 
     private fun onPermissionsAvailable() {
         try {
-            camera = Camera()
+            val camera = Camera()
 
             val file = VideoFile()
                 .also(closeStack::push)
@@ -103,27 +99,21 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
             recorder = RetroRecorder(file, camera.size, camera.fpsRange, rotation, this)
                 .also(closeStack::push)
 
-            StreamView(binding.streamView, camera.size, this)
+            val streamView = StreamView(binding.streamView, camera.size)
+                .also(closeStack::push)
+
+            val detector = MotionDetector(camera.size, this)
+                .also(closeStack::push)
+
+            val duplicator = ImageConsumerDuplicator(listOf(streamView, detector), camera.size)
+                .also(closeStack::push)
+
+            CameraStream(camera, listOf(recorder, duplicator), this)
                 .also(closeStack::push)
         } catch (error: CameraError) {
             onCameraError(error.type)
         } catch (_: IOException) {
             finishWithMessage(R.string.error_io)
-        }
-    }
-
-    override fun onStreamViewAvailable(streamView: StreamView) {
-        val detector = MotionDetector(camera.size, this)
-            .also(closeStack::push)
-
-        val surfaceBroadcaster = SurfaceBroadcaster(camera.size, listOf(detector, streamView))
-            .also(closeStack::push)
-
-        try {
-            CameraStream(camera, listOf(recorder, surfaceBroadcaster), this)
-                .also(closeStack::push)
-        } catch (error: CameraError) {
-            onCameraError(error.type)
         }
     }
 
@@ -154,8 +144,8 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
 
     override fun onPause() {
         Log.d(TAG, "Activity.onPause")
-        super.onPause()
         close()
+        super.onPause()
     }
 
     override fun uncaughtException(thread: Thread, error: Throwable) =
@@ -169,8 +159,8 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
 
     override fun finish() {
         Log.d(TAG, "finish")
-        super.finish()
         close()
+        super.finish()
     }
 
     private fun close() = closeStack.close()

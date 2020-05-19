@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash.media
+package io.github.bgavyus.splash.graphics
 
 import android.graphics.SurfaceTexture
 import android.util.Log
@@ -10,37 +10,42 @@ import com.otaliastudios.opengl.program.GlTextureProgram
 import com.otaliastudios.opengl.surface.EglWindowSurface
 import com.otaliastudios.opengl.texture.GlTexture
 import io.github.bgavyus.splash.common.CloseStack
-import io.github.bgavyus.splash.common.ImageConsumer
 
-class SurfaceBroadcaster(
-    bufferSize: Size,
-    consumers: Iterable<ImageConsumer>
+class ImageConsumerDuplicator(
+    consumers: Iterable<ImageConsumer>,
+    bufferSize: Size
 ) : ImageConsumer, SurfaceTexture.OnFrameAvailableListener {
     companion object {
-        private val TAG = SurfaceBroadcaster::class.simpleName
+        private val TAG = ImageConsumerDuplicator::class.simpleName
     }
 
     private val closeStack = CloseStack()
+    private val windows: List<EglWindowSurface>
+    private val program: GlTextureProgram
+    private val surfaceTexture: SurfaceTexture
 
-    private val core = EglCore(flags = EglCore.FLAG_TRY_GLES3)
-        .apply { closeStack.push(::release) }
-
-    private val windows = consumers.map {
-        EglWindowSurface(core, it.surface)
+    init {
+        val core = EglCore(flags = EglCore.FLAG_TRY_GLES3)
             .apply { closeStack.push(::release) }
-    }.apply { first().makeCurrent() }
 
-    private val texture = GlTexture()
+        windows = consumers.map {
+            EglWindowSurface(core, it.surface)
+                .apply { closeStack.push(::release) }
+        }
+            .apply { first().makeCurrent() }
 
-    private val program = GlTextureProgram().apply {
-        texture = this@SurfaceBroadcaster.texture
-        closeStack.push(::release)
-    }
+        val texture = GlTexture()
 
-    private val surfaceTexture = SurfaceTexture(texture.id).apply {
-        setOnFrameAvailableListener(this@SurfaceBroadcaster)
-        setDefaultBufferSize(bufferSize.width, bufferSize.height)
-        closeStack.push(::release)
+        program = GlTextureProgram().apply {
+            this.texture = texture
+            closeStack.push(::release)
+        }
+
+        surfaceTexture = SurfaceTexture(texture.id).apply {
+            setOnFrameAvailableListener(this@ImageConsumerDuplicator)
+            setDefaultBufferSize(bufferSize.width, bufferSize.height)
+            closeStack.push(::release)
+        }
     }
 
     private val entireViewport = GlRect()

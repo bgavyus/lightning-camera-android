@@ -1,48 +1,63 @@
-package io.github.bgavyus.splash.ui.views
+package io.github.bgavyus.splash.graphics.views
 
 import android.graphics.Matrix
 import android.graphics.RectF
 import android.graphics.SurfaceTexture
+import android.os.Build
 import android.util.Size
 import android.util.SizeF
 import android.view.Surface
 import android.view.TextureView
+import com.otaliastudios.opengl.core.EglCore
+import com.otaliastudios.opengl.surface.EglOffscreenSurface
+import com.otaliastudios.opengl.texture.GlTexture
 import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.CloseStack
-import io.github.bgavyus.splash.common.ImageConsumer
+import io.github.bgavyus.splash.graphics.ImageConsumer
 import kotlin.math.min
 
-// TODO: Attach external SurfaceTexture and remove listener interface
 class StreamView(
     private val textureView: TextureView,
-    private val bufferSize: Size,
-    private val listener: StreamViewListener
+    private val bufferSize: Size
 ) : ImageConsumer, TextureView.SurfaceTextureListener {
+    companion object {
+        private val detachedSurfaceTexture: SurfaceTexture
+            get() {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                    val closeStack = CloseStack()
+
+                    val core = EglCore(flags = EglCore.FLAG_TRY_GLES3)
+                        .apply { closeStack.push(::release) }
+
+                    EglOffscreenSurface(core, width = 0, height = 0).run {
+                        closeStack.push(::release)
+                        makeCurrent()
+                    }
+
+                    val texture = GlTexture()
+                    val surfaceTexture = SurfaceTexture(texture.id)
+                    surfaceTexture.detachFromGLContext()
+                    closeStack.close()
+                    return surfaceTexture
+                }
+
+                return SurfaceTexture(/* singleBufferMode = */ false)
+            }
+    }
+
     private val closeStack = CloseStack()
-    private lateinit var _surface: Surface
 
     init {
         textureView.run {
+            surfaceTexture = detachedSurfaceTexture
             surfaceTextureListener = this@StreamView
-
-            if (isAvailable) {
-                initSurface()
-            }
         }
-    }
 
-    override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
-        initSurface()
-    }
-
-    private fun initSurface() {
         setBufferSize()
-
-        _surface = Surface(textureView.surfaceTexture)
-            .also(closeStack::push)
-
-        listener.onStreamViewAvailable(this)
     }
+
+    private var _surface = Surface(textureView.surfaceTexture)
+        .also(closeStack::push)
 
     override val surface: Surface
         get() {
@@ -50,18 +65,16 @@ class StreamView(
             return _surface
         }
 
-    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
+    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) =
         adjustBuffer()
-    }
 
     private fun adjustBuffer() {
         setBufferSize()
         setTransform()
     }
 
-    private fun setBufferSize() {
+    private fun setBufferSize() =
         textureView.surfaceTexture.setDefaultBufferSize(bufferSize.width, bufferSize.height)
-    }
 
     private fun setTransform() {
         val matrix = Matrix()
@@ -80,11 +93,8 @@ class StreamView(
         textureView.setTransform(matrix)
     }
 
-    override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {}
-
-    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
-        return true
-    }
-
     override fun close() = closeStack.close()
+    override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {}
+    override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {}
+    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?) = true
 }

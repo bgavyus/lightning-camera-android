@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash.media
+package io.github.bgavyus.splash.graphics.media
 
 import android.media.MediaCodec
 import android.media.MediaFormat
@@ -22,9 +22,13 @@ class Writer(private val file: StorageFile, format: MediaFormat, rotation: Rotat
     private val track: Int
 
     private val muxer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        MediaMuxer(file.descriptor, OUTPUT_FORMAT)
+        MediaMuxer(file.descriptor,
+            OUTPUT_FORMAT
+        )
     } else {
-        MediaMuxer(file.path, OUTPUT_FORMAT)
+        MediaMuxer(file.path,
+            OUTPUT_FORMAT
+        )
     }.apply {
         closeStack.push {
             Log.d(TAG, "Attempting to release muxer")

@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash.common
+package io.github.bgavyus.splash.graphics
 
 import android.view.Surface
 

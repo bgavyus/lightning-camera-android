@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash.media
+package io.github.bgavyus.splash.graphics.media
 
 interface RecorderListener {
     fun onRecorderError()

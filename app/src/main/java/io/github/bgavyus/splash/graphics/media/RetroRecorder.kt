@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash.media
+package io.github.bgavyus.splash.graphics.media
 
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
@@ -42,7 +42,11 @@ class RetroRecorder(
 
     init {
         val samplesSize = fpsRange.upper * BUFFER_TIME_MILLISECONDS / MILLIS_IN_UNIT
-        val samples = Array(samplesSize) { Sample(size.area) }
+        val samples = Array(samplesSize) {
+            Sample(
+                size.area
+            )
+        }
 
         closeStack.push {
             Log.d(TAG, "Freeing samples")
@@ -62,7 +66,11 @@ class RetroRecorder(
         override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
             Log.d(TAG, "onOutputFormatChanged(format = $format)")
 
-            writer = Writer(file, format, rotation)
+            writer = Writer(
+                file,
+                format,
+                rotation
+            )
                 .also(closeStack::push)
         }
 
@@ -120,7 +128,7 @@ class RetroRecorder(
 
         override fun onError(codec: MediaCodec, e: MediaCodec.CodecException) {
             Log.d(TAG, "onError(e = $e)")
-            onError()
+            listener.onRecorderError()
         }
 
         override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {
@@ -140,7 +148,9 @@ class RetroRecorder(
 
             setInteger(MediaFormat.KEY_BIT_RATE, fpsRange.upper * size.area / COMPRESSION_RATIO)
             setInteger(MediaFormat.KEY_CAPTURE_RATE, fpsRange.upper)
-            setInteger(MediaFormat.KEY_FRAME_RATE, PLAYBACK_FPS)
+            setInteger(MediaFormat.KEY_FRAME_RATE,
+                PLAYBACK_FPS
+            )
 
             setFloat(
                 MediaFormat.KEY_I_FRAME_INTERVAL,
@@ -193,6 +203,5 @@ class RetroRecorder(
         recording = false
     }
 
-    fun onError() = listener.onRecorderError()
     override fun close() = closeStack.close()
 }
