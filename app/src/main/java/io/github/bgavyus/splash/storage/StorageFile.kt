@@ -15,15 +15,10 @@ open class StorageFile(
     override val descriptor get() = file.descriptor
     override val path get() = file.path
 
-    internal open fun save() {
-        file.save()
-    }
+    protected open fun save() = file.save()
+    protected open fun discard() = file.discard()
 
-    internal open fun discard() {
-        file.discard()
-    }
-
-    var valid: Boolean = false
+    var valid = false
 
     override fun close() {
         file.close()

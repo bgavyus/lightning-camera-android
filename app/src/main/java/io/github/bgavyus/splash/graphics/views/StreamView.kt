@@ -3,61 +3,53 @@ package io.github.bgavyus.splash.graphics.views
 import android.graphics.Matrix
 import android.graphics.RectF
 import android.graphics.SurfaceTexture
-import android.os.Build
 import android.util.Size
 import android.util.SizeF
 import android.view.Surface
 import android.view.TextureView
-import com.otaliastudios.opengl.core.EglCore
-import com.otaliastudios.opengl.surface.EglOffscreenSurface
-import com.otaliastudios.opengl.texture.GlTexture
 import io.github.bgavyus.splash.common.App
-import io.github.bgavyus.splash.common.CloseStack
+import io.github.bgavyus.splash.common.Deferrer
 import io.github.bgavyus.splash.graphics.ImageConsumer
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.math.min
 
-class StreamView(
+class StreamView private constructor(
     private val textureView: TextureView,
     private val bufferSize: Size
-) : ImageConsumer, TextureView.SurfaceTextureListener {
+) : Deferrer(), ImageConsumer, TextureView.SurfaceTextureListener {
     companion object {
-        private val detachedSurfaceTexture: SurfaceTexture
-            get() {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                    val closeStack = CloseStack()
-
-                    val core = EglCore(flags = EglCore.FLAG_TRY_GLES3)
-                        .apply { closeStack.push(::release) }
-
-                    EglOffscreenSurface(core, width = 0, height = 0).run {
-                        closeStack.push(::release)
-                        makeCurrent()
-                    }
-
-                    val texture = GlTexture()
-                    val surfaceTexture = SurfaceTexture(texture.id)
-                    surfaceTexture.detachFromGLContext()
-                    closeStack.close()
-                    return surfaceTexture
-                }
-
-                return SurfaceTexture(/* singleBufferMode = */ false)
-            }
+        suspend fun init(textureView: TextureView, bufferSize: Size) =
+            StreamView(textureView, bufferSize).apply { init() }
     }
 
-    private val closeStack = CloseStack()
+    private lateinit var _surface: Surface
+    private lateinit var createContinuation: Continuation<Unit>
 
-    init {
+    private suspend fun init(): Unit = suspendCoroutine { continuation ->
+        createContinuation = continuation
+
         textureView.run {
-            surfaceTexture = detachedSurfaceTexture
             surfaceTextureListener = this@StreamView
-        }
 
-        setBufferSize()
+            if (isAvailable) {
+                createSurface()
+            }
+        }
     }
 
-    private var _surface = Surface(textureView.surfaceTexture)
-        .also(closeStack::push)
+    override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) =
+        createSurface()
+
+    private fun createSurface() {
+        setBufferSize()
+
+        _surface = Surface(textureView.surfaceTexture)
+            .apply { defer(::release) }
+
+        createContinuation.resume(Unit)
+    }
 
     override val surface: Surface
         get() {
@@ -93,8 +85,6 @@ class StreamView(
         textureView.setTransform(matrix)
     }
 
-    override fun close() = closeStack.close()
-    override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {}
     override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {}
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?) = true
 }

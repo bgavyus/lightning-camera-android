@@ -4,10 +4,12 @@ import android.media.MediaFormat
 import android.util.Log
 import io.github.bgavyus.splash.R
 import io.github.bgavyus.splash.common.App
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
-class VideoFile : StorageFile(
+class VideoFile private constructor() : StorageFile(
     MIME_TYPE,
     StandardDirectory.Movies,
     App.context.getString(R.string.video_folder_name),
@@ -20,6 +22,8 @@ class VideoFile : StorageFile(
         private const val FILE_EXTENSION = "mp4"
 
         private val currentTimeStamp get() = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+
+        suspend fun init() = withContext(Dispatchers.IO) { VideoFile() }
     }
 
     override fun save() {

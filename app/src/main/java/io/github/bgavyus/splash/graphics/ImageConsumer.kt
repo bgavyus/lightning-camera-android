@@ -2,6 +2,6 @@ package io.github.bgavyus.splash.graphics
 
 import android.view.Surface
 
-interface ImageConsumer : AutoCloseable {
+interface ImageConsumer {
     val surface: Surface
 }

@@ -4,42 +4,37 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import io.github.bgavyus.splash.R
-import io.github.bgavyus.splash.capture.*
+import io.github.bgavyus.splash.capture.CameraError
+import io.github.bgavyus.splash.capture.CameraErrorType
 import io.github.bgavyus.splash.common.App
-import io.github.bgavyus.splash.common.CloseStack
+import io.github.bgavyus.splash.common.Deferrer
 import io.github.bgavyus.splash.databinding.ActivityViewfinderBinding
-import io.github.bgavyus.splash.graphics.ImageConsumerDuplicator
-import io.github.bgavyus.splash.graphics.detection.DetectionListener
-import io.github.bgavyus.splash.graphics.detection.MotionDetector
-import io.github.bgavyus.splash.graphics.media.Recorder
-import io.github.bgavyus.splash.graphics.media.RecorderListener
-import io.github.bgavyus.splash.graphics.media.RetroRecorder
-import io.github.bgavyus.splash.graphics.views.StreamView
+import io.github.bgavyus.splash.flow.DetectionRecorder
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
 import io.github.bgavyus.splash.storage.Storage
-import io.github.bgavyus.splash.storage.VideoFile
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.io.IOException
 
-// TODO: Remove all logic from this class
 // TODO: Handle rotation
 // TODO: Dim screen after some time
 // TODO: Indicate that capture has occurred (visual + audible)
 // TODO: Add start/stop button
-// TODO: Parallel execution when possible
-class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandler, CameraListener,
-    DetectionListener, RecorderListener {
+// TODO: Replace with fragment
+class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandler {
     companion object {
         private val TAG = ViewfinderActivity::class.simpleName
     }
 
-    private val closeStack = CloseStack()
+    private val deferrer = Deferrer()
+    private val scope = MainScope()
 
     private lateinit var binding: ActivityViewfinderBinding
-    private lateinit var recorder: Recorder
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d(TAG, "Activity.onCreate(savedInstanceState = $savedInstanceState)")
+        Log.d(TAG, "onCreate(savedInstanceState = $savedInstanceState)")
         super.onCreate(savedInstanceState)
         window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
@@ -56,19 +51,19 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
     }
 
     override fun onResume() {
-        Log.d(TAG, "Activity.onResume")
+        Log.d(TAG, "onResume")
         super.onResume()
-        initPermissions()
+        init()
     }
 
-    private fun initPermissions() {
+    private fun init() {
         if (!allPermissionsGranted()) {
             Log.i(TAG, "Requesting permissions")
             requestNonGrantedPermissions()
             return
         }
 
-        onPermissionsAvailable()
+        initDetectionRecorder()
     }
 
     override fun onPermissionDenied(group: PermissionGroup) {
@@ -87,69 +82,42 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         recreate()
     }
 
-    private fun onPermissionsAvailable() {
-        try {
-            val camera = Camera()
-
-            val file = VideoFile()
-                .also(closeStack::push)
-
-            val rotation = camera.orientation + App.deviceOrientation
-
-            recorder = RetroRecorder(file, camera.size, camera.fpsRange, rotation, this)
-                .also(closeStack::push)
-
-            val streamView = StreamView(binding.streamView, camera.size)
-                .also(closeStack::push)
-
-            val detector = MotionDetector(camera.size, this)
-                .also(closeStack::push)
-
-            val duplicator = ImageConsumerDuplicator(listOf(streamView, detector), camera.size)
-                .also(closeStack::push)
-
-            CameraStream(camera, listOf(recorder, duplicator), this)
-                .also(closeStack::push)
-        } catch (error: CameraError) {
-            onCameraError(error.type)
-        } catch (_: IOException) {
-            finishWithMessage(R.string.error_io)
+    private fun initDetectionRecorder() {
+        scope.launch {
+            try {
+                DetectionRecorder.init(binding.textureView).apply {
+                    deferrer.defer(::close)
+                    record()
+                }
+            } catch (error: CameraError) {
+                finishWithMessage(cameraErrorToMessage(error.type))
+            } catch (_: IOException) {
+                finishWithMessage(R.string.error_io)
+            }
         }
     }
 
-    override fun onDetectionStarted() {
-        Log.i(TAG, "Detection Started")
-        recorder.record()
+    private fun cameraErrorToMessage(type: CameraErrorType) = when (type) {
+        CameraErrorType.HighSpeedNotAvailable -> R.string.error_high_speed_camera_not_available
+        CameraErrorType.InUse -> R.string.error_camera_in_use
+        CameraErrorType.MaxInUse -> R.string.error_max_cameras_in_use
+        CameraErrorType.Disabled -> R.string.error_camera_disabled
+        CameraErrorType.Device -> R.string.error_camera_device
+        CameraErrorType.Disconnected -> R.string.error_camera_disconnected
+        CameraErrorType.ConfigureFailed -> R.string.error_camera_generic
+        CameraErrorType.Generic -> R.string.error_camera_generic
     }
-
-    override fun onDetectionEnded() {
-        Log.i(TAG, "Detection Ended")
-        recorder.loss()
-    }
-
-    override fun onCameraError(type: CameraErrorType) = finishWithMessage(
-        when (type) {
-            CameraErrorType.HighSpeedNotAvailable -> R.string.error_high_speed_camera_not_available
-            CameraErrorType.InUse -> R.string.error_camera_in_use
-            CameraErrorType.MaxInUse -> R.string.error_max_cameras_in_use
-            CameraErrorType.Disabled -> R.string.error_camera_disabled
-            CameraErrorType.Device -> R.string.error_camera_device
-            CameraErrorType.Disconnected -> R.string.error_camera_disconnected
-            CameraErrorType.ConfigureFailed -> R.string.error_camera_generic
-            CameraErrorType.Generic -> R.string.error_camera_generic
-        }
-    )
-
-    override fun onRecorderError() = finishWithMessage(R.string.error_recorder)
 
     override fun onPause() {
-        Log.d(TAG, "Activity.onPause")
+        Log.d(TAG, "onPause")
         close()
         super.onPause()
     }
 
-    override fun uncaughtException(thread: Thread, error: Throwable) =
+    override fun uncaughtException(thread: Thread, error: Throwable) {
+        Log.e(TAG, "Uncaught Exception from: ${thread.name}", error)
         finishWithMessage(R.string.error_uncaught)
+    }
 
     private fun finishWithMessage(resourceId: Int) {
         Log.d(TAG, "finishWithMessage: ${App.defaultString(resourceId)}")
@@ -163,5 +131,11 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         super.finish()
     }
 
-    private fun close() = closeStack.close()
+    override fun onDestroy() {
+        Log.d(TAG, "onDestroy")
+        super.onDestroy()
+        scope.cancel()
+    }
+
+    private fun close() = deferrer.close()
 }

@@ -8,7 +8,7 @@
     tools:keep="@layout/activity_viewfinder">
 
     <TextureView
-        android:id="@+id/stream_view"
+        android:id="@+id/texture_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </RelativeLayout>

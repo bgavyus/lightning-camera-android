@@ -1,14 +1,17 @@
 package io.github.bgavyus.splash.graphics.detection
 
-import android.renderscript.*
+import android.renderscript.Allocation
+import android.renderscript.Element
+import android.renderscript.RenderScript
+import android.renderscript.Type
+import android.util.Log
 import android.util.Size
 import android.view.Surface
 import io.github.bgavyus.splash.common.App
-import io.github.bgavyus.splash.common.BackgroundHandler
-import io.github.bgavyus.splash.common.CloseStack
+import io.github.bgavyus.splash.common.Deferrer
 import io.github.bgavyus.splash.graphics.ImageConsumer
 
-abstract class Detector(size: Size, private val listener: DetectionListener) : ImageConsumer,
+abstract class Detector(size: Size) : Deferrer(), ImageConsumer,
     Allocation.OnBufferAvailableListener {
     companion object {
         private val TAG = Detector::class.simpleName
@@ -17,34 +20,31 @@ abstract class Detector(size: Size, private val listener: DetectionListener) : I
         const val MAX_INTENSITY = 255
     }
 
-    internal val closeStack = CloseStack()
+    protected val rs: RenderScript = RenderScript.create(App.context)
+        .apply { defer(::destroy) }
 
-    private val handler = BackgroundHandler(TAG)
-        .also(closeStack::push)
-
-    internal val rs = RenderScript.create(App.context)
-        .also(closeStack::push)
-
-    internal val inputAllocation = Allocation.createTyped(
+    protected val inputAllocation: Allocation = Allocation.createTyped(
         rs,
         Type.createXY(rs, Element.U8_4(rs), size.width, size.height),
         Allocation.USAGE_IO_INPUT or Allocation.USAGE_SCRIPT
-    )
-        .also(closeStack::push)
-        .apply { setOnBufferAvailableListener(this@Detector) }
-
-    override val surface: Surface = inputAllocation.surface
-
-    private var lastDetected = false
-
-    override fun onBufferAvailable(a: Allocation?) {
-        handler.post {
-            inputAllocation.ioReceive()
-            propagate(detected)
-        }
+    ).apply {
+        defer(::destroy)
+        setOnBufferAvailableListener(this@Detector)
     }
 
+    var listener: DetectionListener? = null
+    override val surface: Surface = inputAllocation.surface
+    private var lastDetected = false
     abstract val detected: Boolean
+
+    override fun onBufferAvailable(a: Allocation?) {
+        try {
+            inputAllocation.ioReceive()
+            propagate(detected)
+        } catch (_: NullPointerException) {
+            Log.d(TAG, "Ignoring frame after release")
+        }
+    }
 
     private fun propagate(detected: Boolean) {
         if (detected == lastDetected) {
@@ -54,11 +54,11 @@ abstract class Detector(size: Size, private val listener: DetectionListener) : I
         lastDetected = detected
 
         if (detected) {
-            listener.onDetectionStarted()
+            Log.i(TAG, "Detection Started")
+            listener?.onDetectionStarted()
         } else {
-            listener.onDetectionEnded()
+            Log.i(TAG, "Detection Ended")
+            listener?.onDetectionEnded()
         }
     }
-
-    override fun close() = closeStack.close()
 }

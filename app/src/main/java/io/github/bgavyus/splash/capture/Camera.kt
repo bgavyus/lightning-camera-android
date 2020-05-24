@@ -10,10 +10,14 @@ import android.util.Size
 import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.common.area
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-class Camera {
+class Camera private constructor() {
     companion object {
-        private val TAG = Camera::class.simpleName
+        private val TAG = CameraMetadata::class.simpleName
+
+        suspend fun init() = withContext(Dispatchers.IO) { Camera() }
     }
 
     val id: String

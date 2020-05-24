@@ -1,15 +1,19 @@
 package io.github.bgavyus.splash.graphics.detection
 
 import android.util.Size
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-class LightningDetector(size: Size, listener: DetectionListener) :
-    Detector(size, listener) {
+class LightningDetector private constructor(size: Size) : Detector(size) {
     companion object {
         private val TAG = LightningDetector::class.simpleName
+
+        suspend fun init(size: Size) =
+            withContext(Dispatchers.IO) { LightningDetector(size) }
     }
 
     private val script = ScriptC_lightning(rs)
-        .also(closeStack::push)
+        .apply { defer(::destroy) }
 
     override val detected: Boolean
         get() {
