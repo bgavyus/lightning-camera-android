@@ -101,6 +101,7 @@ class Encoder(
 
             start()
             defer(::stop)
+            defer(::flush)
         }
     }
 }

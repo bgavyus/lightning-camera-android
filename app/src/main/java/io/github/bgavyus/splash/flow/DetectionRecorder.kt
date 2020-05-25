@@ -8,7 +8,6 @@ import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.Deferrer
 import io.github.bgavyus.splash.graphics.ImageConsumerDuplicator
 import io.github.bgavyus.splash.graphics.detection.DetectionListener
-import io.github.bgavyus.splash.graphics.detection.Detector
 import io.github.bgavyus.splash.graphics.detection.MotionDetector
 import io.github.bgavyus.splash.graphics.media.Recorder
 import io.github.bgavyus.splash.graphics.views.StreamView
@@ -16,15 +15,15 @@ import io.github.bgavyus.splash.storage.VideoFile
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
-class DetectionRecorder private constructor() : Deferrer(), DetectionListener {
+class DetectionRecorder private constructor() : Deferrer() {
     companion object {
-        suspend fun init(textureView: TextureView) = DetectionRecorder().apply { init(textureView) }
+        suspend fun init(textureView: TextureView, listener: DetectionListener) =
+            DetectionRecorder().apply { init(textureView, listener) }
     }
 
-    private lateinit var detector: Detector
     private lateinit var recorder: Recorder
 
-    private suspend fun init(textureView: TextureView) = coroutineScope {
+    private suspend fun init(textureView: TextureView, listener: DetectionListener) = coroutineScope {
         val deferredFile = async {
             VideoFile.init()
                 .also { defer(it::close) }
@@ -41,15 +40,17 @@ class DetectionRecorder private constructor() : Deferrer(), DetectionListener {
         }
 
         val deferredDetector = async {
-            MotionDetector.init(camera.size)
-                .also { defer(it::close) }
+            MotionDetector.init(camera.size).also {
+                defer(it::close)
+                it.listener = listener
+            }
         }
 
         val deferredDuplicator = async {
             val view = StreamView.init(textureView, camera.size)
                 .also { defer(it::close) }
 
-            detector = deferredDetector.await()
+            val detector = deferredDetector.await()
 
             ImageConsumerDuplicator.init(listOf(detector, view), camera.size)
                 .also { defer(it::close) }
@@ -65,15 +66,6 @@ class DetectionRecorder private constructor() : Deferrer(), DetectionListener {
             .also { defer(it::close) }
     }
 
-    override fun onDetectionStarted() = recorder.record()
-    override fun onDetectionEnded() = recorder.loss()
-
-    fun record() {
-        detector.listener = this
-    }
-
-    fun loss() {
-        detector.listener = null
-        recorder.loss()
-    }
+    fun record() = recorder.record()
+    fun loss() = recorder.loss()
 }

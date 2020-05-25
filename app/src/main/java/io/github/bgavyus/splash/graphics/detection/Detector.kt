@@ -37,31 +37,24 @@ abstract class Detector(size: Size) : Deferrer(), ImageConsumer {
 
     var listener: DetectionListener? = null
     override val surface: Surface = inputAllocation.surface
-    private var lastDetected = false
-    abstract val detected: Boolean
+    private var lastDetecting = false
+    abstract val detecting: Boolean
 
     private fun onBufferAvailable() {
         try {
             inputAllocation.ioReceive()
-            propagate(detected)
         } catch (_: NullPointerException) {
             Log.d(TAG, "Ignoring frame after release")
-        }
-    }
-
-    private fun propagate(detected: Boolean) {
-        if (detected == lastDetected) {
             return
         }
 
-        lastDetected = detected
+        val detecting = detecting
 
-        if (detected) {
-            Log.i(TAG, "Detection Started")
-            listener?.onDetectionStarted()
-        } else {
-            Log.i(TAG, "Detection Ended")
-            listener?.onDetectionEnded()
+        if (detecting == lastDetecting) {
+            return
         }
+
+        lastDetecting = detecting
+        listener?.onDetectionStateChanged(detecting)
     }
 }

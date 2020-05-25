@@ -15,7 +15,7 @@ class LightningDetector private constructor(size: Size) : Detector(size) {
     private val script = ScriptC_lightning(rs)
         .apply { defer(::destroy) }
 
-    override val detected: Boolean
+    override val detecting: Boolean
         get() {
             val intensity = script.reduce_intensity(inputAllocation).get()
             // Log.v(TAG, "Value: ${intensity.x} ${intensity.y} ${intensity.z}")

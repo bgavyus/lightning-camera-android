@@ -3,6 +3,7 @@ package io.github.bgavyus.splash.activities
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.CompoundButton
 import io.github.bgavyus.splash.R
 import io.github.bgavyus.splash.capture.CameraError
 import io.github.bgavyus.splash.capture.CameraErrorType
@@ -10,6 +11,7 @@ import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.Deferrer
 import io.github.bgavyus.splash.databinding.ActivityViewfinderBinding
 import io.github.bgavyus.splash.flow.DetectionRecorder
+import io.github.bgavyus.splash.graphics.detection.DetectionListener
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionsActivity
 import io.github.bgavyus.splash.storage.Storage
@@ -20,9 +22,9 @@ import java.io.IOException
 
 // TODO: Handle rotation
 // TODO: Use images in toggle button
-// TODO: Indicate that capture has occurred (visual + audible)
 // TODO: Replace with fragment
-class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandler {
+class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandler,
+    DetectionListener, CompoundButton.OnCheckedChangeListener {
     companion object {
         private val TAG = ViewfinderActivity::class.simpleName
     }
@@ -62,7 +64,7 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
             return
         }
 
-        initDetectionRecorder()
+        onPermissionsAvailable()
     }
 
     override fun onPermissionDenied(group: PermissionGroup) {
@@ -81,29 +83,58 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         recreate()
     }
 
-    private fun initDetectionRecorder() {
+    private lateinit var recorder: DetectionRecorder
+    private var watching = false
+    private var detecting = false
+
+    private fun onPermissionsAvailable() {
         scope.launch {
             try {
-                val recorder = DetectionRecorder.init(binding.textureView)
+                recorder = DetectionRecorder.init(binding.textureView, this@ViewfinderActivity)
                     .apply { deferrer.defer(::close) }
-
-                binding.toggleButton.setOnCheckedChangeListener { _, checked ->
-                    if (checked) {
-                        recorder.record()
-                    } else {
-                        recorder.loss()
-                    }
-                }
 
                 deferrer.defer {
                     Log.d(TAG, "Removing toggle listener")
                     binding.toggleButton.setOnCheckedChangeListener(null)
                 }
+
+                binding.toggleButton.setOnCheckedChangeListener(this@ViewfinderActivity)
             } catch (error: CameraError) {
                 finishWithMessage(cameraErrorToMessage(error.type))
             } catch (_: IOException) {
                 finishWithMessage(R.string.error_io)
             }
+        }
+    }
+
+    override fun onDetectionStateChanged(detecting: Boolean) {
+        // TODO: Indicate that detection occurred (visual + audible)
+        if (detecting) {
+            Log.i(TAG, "Detection Started")
+        } else {
+            Log.i(TAG, "Detection Ended")
+        }
+
+        this.detecting = detecting
+        onStateChanged()
+    }
+
+    override fun onCheckedChanged(buttonView: CompoundButton?, watching: Boolean) {
+        if (watching) {
+            Log.i(TAG, "Watch Started")
+        } else {
+            Log.i(TAG, "Watch Ended")
+        }
+
+        this.watching = watching
+        onStateChanged()
+    }
+
+    private fun onStateChanged() {
+        if (watching && detecting) {
+            recorder.record()
+        } else {
+            recorder.loss()
         }
     }
 

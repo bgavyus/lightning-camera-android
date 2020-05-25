@@ -24,12 +24,17 @@ class SamplesSnake(sampleSize: Int, samplesCount: Int): Deferrer() {
 
     fun drain(block: (ByteBuffer, MediaCodec.BufferInfo) -> Unit) {
         var reachedKeyFrame = false
+        var skippedFrames = 0
 
         snake.drain { sample ->
             if (reachedKeyFrame || sample.info.keyFrame) {
                 reachedKeyFrame = true
                 block(sample.buffer, sample.info)
+            } else {
+                skippedFrames++
             }
         }
+
+        Log.d(TAG, "Skipped partial frames: $skippedFrames")
     }
 }

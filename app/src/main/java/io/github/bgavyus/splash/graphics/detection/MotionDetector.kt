@@ -25,7 +25,7 @@ class MotionDetector private constructor(size: Size) : Detector(size) {
     private val lastFrameAllocation = Allocation.createTyped(rs, inputAllocation.type)
         .apply { defer(::destroy) }
 
-    override val detected: Boolean
+    override val detecting: Boolean
         get() {
             val ratio = script.reduce_rate(inputAllocation, lastFrameAllocation).get() / maxRate
             lastFrameAllocation.copyFrom(inputAllocation)
