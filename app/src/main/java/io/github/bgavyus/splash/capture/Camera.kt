@@ -10,6 +10,7 @@ import android.util.Size
 import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.common.area
+import io.github.bgavyus.splash.common.middle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -49,7 +50,7 @@ class Camera private constructor() {
                 ?.also { Log.d(TAG, "Orientation: $it") }
                 ?: throw CameraError(CameraErrorType.Generic)
 
-            fpsRange = config.highSpeedVideoFpsRanges.maxBy { it.lower + it.upper }
+            fpsRange = config.highSpeedVideoFpsRanges.maxBy { it.middle }
                 ?.also { Log.d(TAG, "FPS Range: $it") }
                 ?: throw CameraError(CameraErrorType.HighSpeedNotAvailable)
 

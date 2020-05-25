@@ -31,11 +31,13 @@ class CameraConnection private constructor(val camera: Camera) : Deferrer() {
                     continuation.resume(Unit)
                 }
 
+                // TODO: Propagate disconnection
                 override fun onDisconnected(camera: CameraDevice) {
                     val type = CameraErrorType.Disconnected
                     continuation.resumeWithException(CameraError(type))
                 }
 
+                // TODO: Propagate errors
                 override fun onError(camera: CameraDevice, error: Int) {
                     val type = CameraErrorType.fromStateError(error)
                     continuation.resumeWithException(CameraError(type))

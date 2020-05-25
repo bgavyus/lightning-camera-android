@@ -23,6 +23,5 @@ fun ByteBuffer.copyFrom(other: ByteBuffer) {
     put(other)
 }
 
-fun MediaCodec.BufferInfo.copyFrom(other: MediaCodec.BufferInfo) {
+fun MediaCodec.BufferInfo.copyFrom(other: MediaCodec.BufferInfo) =
     set(other.offset, other.size, other.presentationTimeUs, other.flags)
-}

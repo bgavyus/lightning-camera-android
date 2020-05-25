@@ -28,7 +28,7 @@
         android:required="false" />
     <uses-feature
         android:name="android.hardware.faketouch"
-        android:required="false" />
+        android:required="true" />
 
     <application
         android:name=".common.App"

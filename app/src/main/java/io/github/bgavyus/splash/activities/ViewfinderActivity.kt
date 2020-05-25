@@ -19,9 +19,8 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 
 // TODO: Handle rotation
-// TODO: Dim screen after some time
+// TODO: Use images in toggle button
 // TODO: Indicate that capture has occurred (visual + audible)
-// TODO: Add start/stop button
 // TODO: Replace with fragment
 class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandler {
     companion object {
@@ -85,9 +84,20 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
     private fun initDetectionRecorder() {
         scope.launch {
             try {
-                DetectionRecorder.init(binding.textureView).apply {
-                    deferrer.defer(::close)
-                    record()
+                val recorder = DetectionRecorder.init(binding.textureView)
+                    .apply { deferrer.defer(::close) }
+
+                binding.toggleButton.setOnCheckedChangeListener { _, checked ->
+                    if (checked) {
+                        recorder.record()
+                    } else {
+                        recorder.loss()
+                    }
+                }
+
+                deferrer.defer {
+                    Log.d(TAG, "Removing toggle listener")
+                    binding.toggleButton.setOnCheckedChangeListener(null)
                 }
             } catch (error: CameraError) {
                 finishWithMessage(cameraErrorToMessage(error.type))

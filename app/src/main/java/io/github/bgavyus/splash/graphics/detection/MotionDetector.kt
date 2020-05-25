@@ -11,7 +11,7 @@ class MotionDetector private constructor(size: Size) : Detector(size) {
         private val TAG = MotionDetector::class.simpleName
 
         // TODO: Adjust threshold dynamically
-        const val RATIO_THRESHOLD = 0.01
+        const val RATIO_THRESHOLD = 0.02
 
         suspend fun init(size: Size) =
             withContext(Dispatchers.IO) { MotionDetector(size) }

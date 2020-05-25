@@ -3,6 +3,7 @@ package io.github.bgavyus.splash.common
 import android.util.Log
 import java.util.*
 
+// TODO: Support async blocks
 open class Deferrer : AutoCloseable {
     companion object {
         private val TAG = Deferrer::class.simpleName

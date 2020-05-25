@@ -9,16 +9,19 @@ import android.util.Size
 import android.view.Surface
 import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.Deferrer
+import io.github.bgavyus.splash.common.SingleThreadHandler
 import io.github.bgavyus.splash.graphics.ImageConsumer
 
-abstract class Detector(size: Size) : Deferrer(), ImageConsumer,
-    Allocation.OnBufferAvailableListener {
+abstract class Detector(size: Size) : Deferrer(), ImageConsumer {
     companion object {
         private val TAG = Detector::class.simpleName
 
         const val CHANNELS = 3
         const val MAX_INTENSITY = 255
     }
+
+    private val handler = SingleThreadHandler(TAG)
+        .apply { defer(::close) }
 
     protected val rs: RenderScript = RenderScript.create(App.context)
         .apply { defer(::destroy) }
@@ -29,7 +32,7 @@ abstract class Detector(size: Size) : Deferrer(), ImageConsumer,
         Allocation.USAGE_IO_INPUT or Allocation.USAGE_SCRIPT
     ).apply {
         defer(::destroy)
-        setOnBufferAvailableListener(this@Detector)
+        setOnBufferAvailableListener { handler.post(::onBufferAvailable) }
     }
 
     var listener: DetectionListener? = null
@@ -37,7 +40,7 @@ abstract class Detector(size: Size) : Deferrer(), ImageConsumer,
     private var lastDetected = false
     abstract val detected: Boolean
 
-    override fun onBufferAvailable(a: Allocation?) {
+    private fun onBufferAvailable() {
         try {
             inputAllocation.ioReceive()
             propagate(detected)

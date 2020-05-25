@@ -3,8 +3,6 @@ package io.github.bgavyus.splash.graphics
 import android.annotation.SuppressLint
 import android.graphics.SurfaceTexture
 import android.os.Build
-import android.os.Handler
-import android.os.HandlerThread
 import android.util.Log
 import android.util.Size
 import android.view.Surface
@@ -14,6 +12,7 @@ import com.otaliastudios.opengl.program.GlTextureProgram
 import com.otaliastudios.opengl.surface.EglWindowSurface
 import com.otaliastudios.opengl.texture.GlTexture
 import io.github.bgavyus.splash.common.Deferrer
+import io.github.bgavyus.splash.common.SingleThreadHandler
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
 
@@ -26,16 +25,8 @@ class ImageConsumerDuplicator private constructor() : Deferrer(), ImageConsumer,
             ImageConsumerDuplicator().apply { init(consumers, bufferSize) }
     }
 
-    private val thread = HandlerThread(TAG).apply {
-        start()
-
-        defer {
-            Log.d(TAG, "Quiting thread")
-            quitSafely()
-        }
-    }
-
-    private val handler = Handler(thread.looper)
+    private val handler = SingleThreadHandler(TAG)
+        .apply { defer(::close) }
 
     private lateinit var windows: List<EglWindowSurface>
     private lateinit var program: GlTextureProgram
