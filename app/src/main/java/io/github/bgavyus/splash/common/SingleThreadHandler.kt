@@ -9,18 +9,18 @@ class SingleThreadHandler : Handler, AutoCloseable {
         private val TAG = SingleThreadHandler::class.simpleName
     }
 
-    private val deferrer = Deferrer()
+    private val deferScope = DeferScope()
 
     constructor(name: String?) : this(HandlerThread(name).apply { start() })
 
     private constructor(thread: HandlerThread) : super(thread.looper) {
         thread.apply {
-            deferrer.defer {
+            deferScope.defer {
                 Log.d(TAG, "Quiting $name")
                 quitSafely()
             }
         }
     }
 
-    override fun close() = deferrer.close()
+    override fun close() = deferScope.close()
 }

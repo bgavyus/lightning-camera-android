@@ -6,7 +6,7 @@ import android.media.MediaFormat
 import android.util.Log
 import android.util.Size
 import android.view.Surface
-import io.github.bgavyus.splash.common.Deferrer
+import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.SingleThreadHandler
 import io.github.bgavyus.splash.graphics.ImageConsumer
 
@@ -17,7 +17,7 @@ class Encoder(
     frameRate: Int,
     keyFrameInterval: Float,
     listener: EncoderListener
-) : Deferrer(), ImageConsumer {
+) : DeferScope(), ImageConsumer {
     companion object {
         private val TAG = Encoder::class.simpleName
 
@@ -33,6 +33,7 @@ class Encoder(
                 listener.onFormatAvailable(format)
             }
 
+            // TODO: Convert to native
             override fun onOutputBufferAvailable(
                 codec: MediaCodec, index: Int, info: MediaCodec.BufferInfo
             ) {
@@ -52,16 +53,24 @@ class Encoder(
                         return
                     }
 
-                    val buffer = codec.getOutputBuffer(index)
+                    try {
+                        val buffer = codec.getOutputBuffer(index)
 
-                    if (buffer == null) {
-                        Log.w(TAG, "Got null buffer")
-                        return
+                        if (buffer == null) {
+                            Log.w(TAG, "Got null buffer")
+                            return
+                        }
+
+                        listener.onBufferAvailable(buffer, info)
+                    } catch (_: IllegalStateException) {
+                        Log.d(TAG, "Ignoring buffer after release")
                     }
-
-                    listener.onBufferAvailable(buffer, info)
                 } finally {
-                    codec.releaseOutputBuffer(index, /* render = */ false)
+                    try {
+                        codec.releaseOutputBuffer(index, /* render = */ false)
+                    } catch (_: IllegalStateException) {
+                        Log.d(TAG, "Ignoring buffer after release")
+                    }
                 }
             }
 

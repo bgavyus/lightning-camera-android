@@ -4,9 +4,9 @@ import android.util.Log
 import java.util.*
 
 // TODO: Support async blocks
-open class Deferrer : AutoCloseable {
+open class DeferScope : AutoCloseable {
     companion object {
-        private val TAG = Deferrer::class.simpleName
+        private val TAG = DeferScope::class.simpleName
     }
 
     private val stack = ArrayDeque<Block>()

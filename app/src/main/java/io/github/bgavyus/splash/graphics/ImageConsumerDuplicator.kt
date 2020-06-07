@@ -11,12 +11,12 @@ import com.otaliastudios.opengl.draw.GlRect
 import com.otaliastudios.opengl.program.GlTextureProgram
 import com.otaliastudios.opengl.surface.EglWindowSurface
 import com.otaliastudios.opengl.texture.GlTexture
-import io.github.bgavyus.splash.common.Deferrer
+import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.SingleThreadHandler
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
 
-class ImageConsumerDuplicator private constructor() : Deferrer(), ImageConsumer,
+class ImageConsumerDuplicator private constructor() : DeferScope(), ImageConsumer,
     SurfaceTexture.OnFrameAvailableListener {
     companion object {
         private val TAG = ImageConsumerDuplicator::class.simpleName

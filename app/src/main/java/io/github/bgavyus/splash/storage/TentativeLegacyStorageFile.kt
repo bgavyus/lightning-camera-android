@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import io.github.bgavyus.splash.common.App
+import io.github.bgavyus.splash.permissions.PermissionsManager
 import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException
@@ -16,6 +17,10 @@ class TentativeLegacyStorageFile(
     appDirectoryName: String,
     private val name: String
 ) : TentativeFile {
+
+    init {
+        PermissionsManager.validateStorageGranted()
+    }
 
     private val parentDirectory = File(
         Environment.getExternalStoragePublicDirectory(standardDirectory.value),

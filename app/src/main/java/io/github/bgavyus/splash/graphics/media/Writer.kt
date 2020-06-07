@@ -5,13 +5,13 @@ import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.os.Build
 import android.util.Log
-import io.github.bgavyus.splash.common.Deferrer
+import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.storage.StorageFile
 import java.nio.ByteBuffer
 
 class Writer(private val file: StorageFile, format: MediaFormat, rotation: Rotation) :
-    Deferrer() {
+    DeferScope() {
     companion object {
         private val TAG = Writer::class.simpleName
 

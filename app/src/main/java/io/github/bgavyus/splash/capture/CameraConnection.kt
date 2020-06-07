@@ -3,14 +3,13 @@ package io.github.bgavyus.splash.capture
 import android.annotation.SuppressLint
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraDevice
-import android.hardware.camera2.CameraManager
-import io.github.bgavyus.splash.common.App
-import io.github.bgavyus.splash.common.Deferrer
+import io.github.bgavyus.splash.common.DeferScope
+import io.github.bgavyus.splash.permissions.PermissionsManager
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class CameraConnection private constructor(val camera: Camera) : Deferrer() {
+class CameraConnection private constructor(val camera: Camera) : DeferScope() {
     companion object {
         suspend fun init(camera: Camera) = CameraConnection(camera).apply { init() }
     }
@@ -19,11 +18,10 @@ class CameraConnection private constructor(val camera: Camera) : Deferrer() {
 
     @SuppressLint("MissingPermission")
     private suspend fun init(): Unit = suspendCoroutine { continuation ->
-        val cameraManager = App.context.getSystemService(CameraManager::class.java)
-            ?: throw CameraError(CameraErrorType.Generic)
+        PermissionsManager.validateCameraGranted()
 
         try {
-            cameraManager.openCamera(camera.id, object : CameraDevice.StateCallback() {
+            Camera.manager.openCamera(camera.id, object : CameraDevice.StateCallback() {
                 override fun onOpened(device: CameraDevice) {
                     this@CameraConnection.device = device
                         .apply { defer(::close) }
@@ -37,6 +35,7 @@ class CameraConnection private constructor(val camera: Camera) : Deferrer() {
                     continuation.resumeWithException(CameraError(type))
                 }
 
+                // TODO: Attempt to recover when possible
                 // TODO: Propagate errors
                 override fun onError(camera: CameraDevice, error: Int) {
                     val type = CameraErrorType.fromStateError(error)

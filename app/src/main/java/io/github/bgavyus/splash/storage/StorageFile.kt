@@ -6,10 +6,10 @@ open class StorageFile(
     appDirectoryName: String,
     name: String
 ) : File {
-    private val file = if (Storage.scoped) {
-        TentativeScopedStorageFile(mimeType, standardDirectory, appDirectoryName, name)
-    } else {
+    private val file = if (Storage.legacy) {
         TentativeLegacyStorageFile(mimeType, standardDirectory, appDirectoryName, name)
+    } else {
+        TentativeScopedStorageFile(mimeType, standardDirectory, appDirectoryName, name)
     }
 
     override val descriptor get() = file.descriptor

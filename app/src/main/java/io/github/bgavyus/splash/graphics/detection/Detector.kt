@@ -8,11 +8,11 @@ import android.util.Log
 import android.util.Size
 import android.view.Surface
 import io.github.bgavyus.splash.common.App
-import io.github.bgavyus.splash.common.Deferrer
+import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.SingleThreadHandler
 import io.github.bgavyus.splash.graphics.ImageConsumer
 
-abstract class Detector(size: Size) : Deferrer(), ImageConsumer {
+abstract class Detector(size: Size) : DeferScope(), ImageConsumer {
     companion object {
         private val TAG = Detector::class.simpleName
 

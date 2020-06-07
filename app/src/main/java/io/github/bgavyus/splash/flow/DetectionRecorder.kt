@@ -5,7 +5,7 @@ import io.github.bgavyus.splash.capture.Camera
 import io.github.bgavyus.splash.capture.CameraConnection
 import io.github.bgavyus.splash.capture.CameraSession
 import io.github.bgavyus.splash.common.App
-import io.github.bgavyus.splash.common.Deferrer
+import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.graphics.ImageConsumerDuplicator
 import io.github.bgavyus.splash.graphics.detection.DetectionListener
 import io.github.bgavyus.splash.graphics.detection.MotionDetector
@@ -15,7 +15,7 @@ import io.github.bgavyus.splash.storage.VideoFile
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
-class DetectionRecorder private constructor() : Deferrer() {
+class DetectionRecorder private constructor() : DeferScope() {
     companion object {
         suspend fun init(textureView: TextureView, listener: DetectionListener) =
             DetectionRecorder().apply { init(textureView, listener) }

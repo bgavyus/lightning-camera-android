@@ -19,6 +19,11 @@ class Camera private constructor() {
         private val TAG = CameraMetadata::class.simpleName
 
         suspend fun init() = withContext(Dispatchers.IO) { Camera() }
+
+        val manager by lazy {
+            App.context.getSystemService(CameraManager::class.java)
+                ?: throw RuntimeException("Failed to get camera manager service")
+        }
     }
 
     val id: String
@@ -27,12 +32,9 @@ class Camera private constructor() {
     val size: Size
 
     init {
-        val cameraManager = App.context.getSystemService(CameraManager::class.java)
-            ?: throw CameraError(CameraErrorType.Generic)
-
         try {
-            id = cameraManager.cameraIdList.firstOrNull {
-                val characteristics = cameraManager.getCameraCharacteristics(it)
+            id = manager.cameraIdList.firstOrNull {
+                val characteristics = manager.getCameraCharacteristics(it)
                 val capabilities =
                     characteristics[CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES]
                         ?: return@firstOrNull false
@@ -40,15 +42,15 @@ class Camera private constructor() {
                 return@firstOrNull CameraMetadata.REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO in capabilities
             } ?: throw CameraError(CameraErrorType.HighSpeedNotAvailable)
 
-            val characteristics = cameraManager.getCameraCharacteristics(id)
+            val characteristics = manager.getCameraCharacteristics(id)
 
             val config = characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]
-                ?: throw CameraError(CameraErrorType.Generic)
+                ?: throw CameraError(CameraErrorType.Unknown)
 
             orientation = characteristics[CameraCharacteristics.SENSOR_ORIENTATION]
                 ?.let { Rotation.fromDegrees(it) }
                 ?.also { Log.d(TAG, "Orientation: $it") }
-                ?: throw CameraError(CameraErrorType.Generic)
+                ?: throw CameraError(CameraErrorType.Unknown)
 
             fpsRange = config.highSpeedVideoFpsRanges.maxBy { it.middle }
                 ?.also { Log.d(TAG, "FPS Range: $it") }

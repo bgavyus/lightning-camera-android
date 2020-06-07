@@ -2,11 +2,11 @@ package io.github.bgavyus.splash.graphics.media
 
 import android.media.MediaCodec
 import android.util.Log
-import io.github.bgavyus.splash.common.Deferrer
+import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.Snake
 import java.nio.ByteBuffer
 
-class SamplesSnake(sampleSize: Int, samplesCount: Int): Deferrer() {
+class SamplesSnake(sampleSize: Int, samplesCount: Int): DeferScope() {
     companion object {
         private val TAG = Recorder::class.simpleName
     }

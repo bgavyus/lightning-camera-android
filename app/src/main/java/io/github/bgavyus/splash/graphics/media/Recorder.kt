@@ -5,7 +5,7 @@ import android.media.MediaFormat
 import android.util.Log
 import android.util.Range
 import android.util.Size
-import io.github.bgavyus.splash.common.Deferrer
+import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.common.area
 import io.github.bgavyus.splash.common.middle
@@ -20,7 +20,7 @@ class Recorder private constructor(
     size: Size,
     fpsRange: Range<Int>,
     private val rotation: Rotation
-) : Deferrer(), ImageConsumer, EncoderListener {
+) : DeferScope(), ImageConsumer, EncoderListener {
     companion object {
         private val TAG = Recorder::class.simpleName
 
@@ -76,15 +76,15 @@ class Recorder private constructor(
             snake.feed(buffer, info)
         }
 
-        trackSkippedFrames(info.presentationTimeUs)
+        logSkippedFrames(info.presentationTimeUs)
     }
 
-    private fun trackSkippedFrames(pts: Long) {
+    private fun logSkippedFrames(pts: Long) {
         if (lastPts > 0) {
             val framesSkipped = PLAYBACK_FPS * (pts - lastPts) / MICROS_IN_UNIT - 1
 
             if (framesSkipped > 0) {
-                Log.w(TAG, "Frames Skipped: $framesSkipped")
+                Log.v(TAG, "Frames Skipped: $framesSkipped")
             }
         }
 

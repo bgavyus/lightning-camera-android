@@ -5,7 +5,7 @@ import android.hardware.camera2.params.OutputConfiguration
 import android.hardware.camera2.params.SessionConfiguration
 import android.os.Build
 import android.os.Handler
-import io.github.bgavyus.splash.common.Deferrer
+import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.graphics.ImageConsumer
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -14,7 +14,7 @@ import kotlin.coroutines.suspendCoroutine
 class CameraSession private constructor(
     private val connection: CameraConnection,
     private val consumers: Iterable<ImageConsumer>
-) : Deferrer() {
+) : DeferScope() {
     companion object {
         suspend fun init(connection: CameraConnection, consumers: Iterable<ImageConsumer>) =
             CameraSession(connection, consumers).apply { init() }
@@ -69,7 +69,7 @@ class CameraSession private constructor(
         }
     }
 
-    fun startSession(session: CameraConstrainedHighSpeedCaptureSession) {
+    private fun startSession(session: CameraConstrainedHighSpeedCaptureSession) {
         session.run {
             val builder = device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
                 set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, connection.camera.fpsRange)

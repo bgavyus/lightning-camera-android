@@ -4,128 +4,133 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.CompoundButton
-import io.github.bgavyus.splash.R
+import androidx.core.view.isInvisible
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import io.github.bgavyus.splash.capture.CameraError
-import io.github.bgavyus.splash.capture.CameraErrorType
 import io.github.bgavyus.splash.common.App
-import io.github.bgavyus.splash.common.Deferrer
+import io.github.bgavyus.splash.common.DeferScope
+import io.github.bgavyus.splash.common.resourceId
 import io.github.bgavyus.splash.databinding.ActivityViewfinderBinding
 import io.github.bgavyus.splash.flow.DetectionRecorder
 import io.github.bgavyus.splash.graphics.detection.DetectionListener
-import io.github.bgavyus.splash.permissions.PermissionGroup
-import io.github.bgavyus.splash.permissions.PermissionsActivity
-import io.github.bgavyus.splash.storage.Storage
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
+import io.github.bgavyus.splash.graphics.media.Beeper
+import io.github.bgavyus.splash.permissions.PermissionError
+import io.github.bgavyus.splash.permissions.PermissionsManager
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.IOException
 
 // TODO: Handle rotation
 // TODO: Use images in toggle button
+// TODO: Replace visual indicator dot with red frame
 // TODO: Replace with fragment
-class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandler,
+class ViewfinderActivity : FragmentActivity(),
     DetectionListener, CompoundButton.OnCheckedChangeListener {
     companion object {
         private val TAG = ViewfinderActivity::class.simpleName
     }
 
-    private val deferrer = Deferrer()
-    private val scope = MainScope()
-
-    private lateinit var binding: ActivityViewfinderBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate(savedInstanceState = $savedInstanceState)")
         super.onCreate(savedInstanceState)
+
+        enterFullScreen()
+        inflateView()
+        initToggleButton()
+        grantPermissions()
+    }
+
+    private fun enterFullScreen() {
         window.decorView.systemUiVisibility =
             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+    }
+
+    private lateinit var binding: ActivityViewfinderBinding
+
+    private fun inflateView() {
         binding = ActivityViewfinderBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        Thread.setDefaultUncaughtExceptionHandler(this)
-        logState()
     }
 
-    private fun logState() {
-        Log.d(TAG, "Device Orientation: ${App.deviceOrientation}")
-        Log.d(TAG, "Display FPS: ${windowManager.defaultDisplay.refreshRate}")
-        Log.d(TAG, "Storage: ${if (Storage.scoped) "scoped" else "legacy"}")
-    }
+    private fun initToggleButton() =
+        binding.toggleButton.setOnCheckedChangeListener(this@ViewfinderActivity)
 
-    override fun onResume() {
-        Log.d(TAG, "onResume")
-        super.onResume()
-        init()
-    }
-
-    private fun init() {
-        if (!allPermissionsGranted()) {
-            Log.i(TAG, "Requesting permissions")
-            requestNonGrantedPermissions()
-            return
+    private fun grantPermissions() = lifecycleScope.launch {
+        try {
+            PermissionsManager.grantAll(supportFragmentManager)
+        } catch (error: PermissionError) {
+            finishWithMessage(error.resourceId)
         }
-
-        onPermissionsAvailable()
     }
 
-    override fun onPermissionDenied(group: PermissionGroup) {
-        Log.d(TAG, "onPermissionDenied(group = $group)")
+    private var job: Job? = null
+    private val focusDeferScope = DeferScope()
 
-        finishWithMessage(
-            when (group) {
-                PermissionGroup.Camera -> R.string.error_camera_permission_not_granted
-                PermissionGroup.Storage -> R.string.error_storage_permission_not_granted
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        Log.d(TAG, "onWindowFocusChanged(hasFocus = $hasFocus)")
+
+        if (hasFocus) {
+            job = init()
+        } else {
+            job?.run {
+                if (isActive) {
+                    cancel()
+                }
             }
-        )
-    }
 
-    override fun onAllPermissionsGranted() {
-        Log.d(TAG, "onAllPermissionGranted")
-        recreate()
+            focusDeferScope.close()
+        }
     }
 
     private lateinit var recorder: DetectionRecorder
-    private var watching = false
-    private var detecting = false
 
-    private fun onPermissionsAvailable() {
-        scope.launch {
-            try {
-                recorder = DetectionRecorder.init(binding.textureView, this@ViewfinderActivity)
-                    .apply { deferrer.defer(::close) }
-
-                deferrer.defer {
-                    Log.d(TAG, "Removing toggle listener")
-                    binding.toggleButton.setOnCheckedChangeListener(null)
-                }
-
-                binding.toggleButton.setOnCheckedChangeListener(this@ViewfinderActivity)
-            } catch (error: CameraError) {
-                finishWithMessage(cameraErrorToMessage(error.type))
-            } catch (_: IOException) {
-                finishWithMessage(R.string.error_io)
-            }
+    private fun init() = lifecycleScope.launch {
+        try {
+            recorder = DetectionRecorder.init(binding.textureView, this@ViewfinderActivity)
+                .apply { focusDeferScope.defer(::close) }
+        } catch (error: PermissionError) {
+            finishWithMessage(error.resourceId)
+        } catch (error: CameraError) {
+            finishWithMessage(error.resourceId)
+        } catch (error: IOException) {
+            Log.e(TAG, "IOException", error)
+            finishWithMessage(error.resourceId)
         }
     }
 
-    override fun onDetectionStateChanged(detecting: Boolean) {
-        // TODO: Indicate that detection occurred (visual + audible)
-        if (detecting) {
-            Log.i(TAG, "Detection Started")
-        } else {
-            Log.i(TAG, "Detection Ended")
-        }
+    private var detecting = false
 
+    override fun onDetectionStateChanged(detecting: Boolean) {
+        Log.v(TAG, "Detecting = $detecting")
+        setDetectionIndicatorsActive(detecting)
         this.detecting = detecting
         onStateChanged()
     }
 
-    override fun onCheckedChanged(buttonView: CompoundButton?, watching: Boolean) {
-        if (watching) {
-            Log.i(TAG, "Watch Started")
-        } else {
-            Log.i(TAG, "Watch Ended")
-        }
+    private fun setDetectionIndicatorsActive(active: Boolean) {
+        setVisualDetectionIndicatorActive(active)
+        setAudibleDetectionIndicatorActive(active)
+    }
 
+    private fun setVisualDetectionIndicatorActive(active: Boolean) = lifecycleScope.launch {
+        binding.detectionIndicator.isInvisible = !active
+    }
+
+    private val beeper = Beeper()
+
+    private fun setAudibleDetectionIndicatorActive(active: Boolean) {
+        if (active) {
+            beeper.start()
+        } else {
+            beeper.stop()
+        }
+    }
+
+    private var watching = false
+
+    override fun onCheckedChanged(buttonView: CompoundButton?, watching: Boolean) {
+        Log.i(TAG, "Watching = $watching")
         this.watching = watching
         onStateChanged()
     }
@@ -138,45 +143,9 @@ class ViewfinderActivity : PermissionsActivity(), Thread.UncaughtExceptionHandle
         }
     }
 
-    private fun cameraErrorToMessage(type: CameraErrorType) = when (type) {
-        CameraErrorType.HighSpeedNotAvailable -> R.string.error_high_speed_camera_not_available
-        CameraErrorType.InUse -> R.string.error_camera_in_use
-        CameraErrorType.MaxInUse -> R.string.error_max_cameras_in_use
-        CameraErrorType.Disabled -> R.string.error_camera_disabled
-        CameraErrorType.Device -> R.string.error_camera_device
-        CameraErrorType.Disconnected -> R.string.error_camera_disconnected
-        CameraErrorType.ConfigureFailed -> R.string.error_camera_generic
-        CameraErrorType.Generic -> R.string.error_camera_generic
-    }
-
-    override fun onPause() {
-        Log.d(TAG, "onPause")
-        close()
-        super.onPause()
-    }
-
-    override fun uncaughtException(thread: Thread, error: Throwable) {
-        Log.e(TAG, "Uncaught Exception from: ${thread.name}", error)
-        finishWithMessage(R.string.error_uncaught)
-    }
-
     private fun finishWithMessage(resourceId: Int) {
         Log.d(TAG, "finishWithMessage: ${App.defaultString(resourceId)}")
         App.showMessage(resourceId)
         finish()
     }
-
-    override fun finish() {
-        Log.d(TAG, "finish")
-        close()
-        super.finish()
-    }
-
-    override fun onDestroy() {
-        Log.d(TAG, "onDestroy")
-        super.onDestroy()
-        scope.cancel()
-    }
-
-    private fun close() = deferrer.close()
 }

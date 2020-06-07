@@ -8,7 +8,7 @@ import android.util.SizeF
 import android.view.Surface
 import android.view.TextureView
 import io.github.bgavyus.splash.common.App
-import io.github.bgavyus.splash.common.Deferrer
+import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.graphics.ImageConsumer
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
@@ -18,7 +18,7 @@ import kotlin.math.min
 class StreamView private constructor(
     private val textureView: TextureView,
     private val bufferSize: Size
-) : Deferrer(), ImageConsumer, TextureView.SurfaceTextureListener {
+) : DeferScope(), ImageConsumer, TextureView.SurfaceTextureListener {
     companion object {
         suspend fun init(textureView: TextureView, bufferSize: Size) =
             StreamView(textureView, bufferSize).apply { init() }
