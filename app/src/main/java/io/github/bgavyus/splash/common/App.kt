@@ -48,7 +48,8 @@ class App : Application(), Thread.UncaughtExceptionHandler {
 
     private fun logState() {
         Log.d(TAG, "Device Orientation: $deviceOrientation")
-        Log.d(TAG, "Display FPS: ${windowManager.defaultDisplay.refreshRate}")
+        Log.d(TAG, "Display Supported Modes: ${windowManager.defaultDisplay.supportedModes.joinToString()}")
+        Log.d(TAG, "Display mode: ${windowManager.defaultDisplay.mode}")
         Log.d(TAG, "Storage: ${if (Storage.legacy) "legacy" else "scoped"}")
     }
 
