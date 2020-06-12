@@ -13,11 +13,12 @@ import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.resourceId
 import io.github.bgavyus.splash.databinding.ActivityViewfinderBinding
 import io.github.bgavyus.splash.flow.DetectionRecorder
-import io.github.bgavyus.splash.graphics.detection.DetectionListener
 import io.github.bgavyus.splash.graphics.media.Beeper
 import io.github.bgavyus.splash.permissions.PermissionError
 import io.github.bgavyus.splash.permissions.PermissionsManager
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.io.IOException
 
@@ -25,8 +26,7 @@ import java.io.IOException
 // TODO: Use images in toggle button
 // TODO: Replace visual indicator dot with red frame
 // TODO: Replace with fragment
-class ViewfinderActivity : FragmentActivity(),
-    DetectionListener, CompoundButton.OnCheckedChangeListener {
+class ViewfinderActivity : FragmentActivity(), CompoundButton.OnCheckedChangeListener {
     companion object {
         private val TAG = ViewfinderActivity::class.simpleName
     }
@@ -87,8 +87,10 @@ class ViewfinderActivity : FragmentActivity(),
 
     private fun init() = lifecycleScope.launch {
         try {
-            recorder = DetectionRecorder.init(binding.textureView, this@ViewfinderActivity)
-                .apply { focusDeferScope.defer(::close) }
+            recorder = DetectionRecorder.init(binding.textureView).apply {
+                focusDeferScope.defer(::close)
+                detectingStates.onEach(::onDetectionStateChanged).launchIn(lifecycleScope)
+            }
         } catch (error: PermissionError) {
             finishWithMessage(error.resourceId)
         } catch (error: CameraError) {
@@ -101,7 +103,7 @@ class ViewfinderActivity : FragmentActivity(),
 
     private var detecting = false
 
-    override fun onDetectionStateChanged(detecting: Boolean) {
+    private suspend fun onDetectionStateChanged(detecting: Boolean) {
         Log.v(TAG, "Detecting = $detecting")
         setDetectionIndicatorsActive(detecting)
         this.detecting = detecting

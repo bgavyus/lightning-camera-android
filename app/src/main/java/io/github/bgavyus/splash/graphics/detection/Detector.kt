@@ -4,13 +4,17 @@ import android.renderscript.Allocation
 import android.renderscript.Element
 import android.renderscript.RenderScript
 import android.renderscript.Type
-import android.util.Log
 import android.util.Size
 import android.view.Surface
 import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.SingleThreadHandler
 import io.github.bgavyus.splash.graphics.ImageConsumer
+import kotlinx.coroutines.android.asCoroutineDispatcher
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
 abstract class Detector(size: Size) : DeferScope(), ImageConsumer {
     companion object {
@@ -32,29 +36,15 @@ abstract class Detector(size: Size) : DeferScope(), ImageConsumer {
         Allocation.USAGE_IO_INPUT or Allocation.USAGE_SCRIPT
     ).apply {
         defer(::destroy)
-        setOnBufferAvailableListener { handler.post(::onBufferAvailable) }
     }
 
-    var listener: DetectionListener? = null
     override val surface: Surface = inputAllocation.surface
-    private var lastDetecting = false
     abstract val detecting: Boolean
 
-    private fun onBufferAvailable() {
-        try {
-            inputAllocation.ioReceive()
-        } catch (_: NullPointerException) {
-            Log.d(TAG, "Ignoring frame after release")
-            return
-        }
-
-        val detecting = detecting
-
-        if (detecting == lastDetecting) {
-            return
-        }
-
-        lastDetecting = detecting
-        listener?.onDetectionStateChanged(detecting)
-    }
+    val detectingStates
+        get() = inputAllocation.buffers
+            .onEach { inputAllocation.ioReceive() }
+            .map { detecting }
+            .distinctUntilChanged()
+            .flowOn(handler.asCoroutineDispatcher(TAG))
 }
