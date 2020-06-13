@@ -10,9 +10,7 @@ import android.view.TextureView
 import io.github.bgavyus.splash.common.App
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.graphics.ImageConsumer
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+import kotlinx.coroutines.CompletableDeferred
 import kotlin.math.min
 
 class StreamView private constructor(
@@ -25,11 +23,9 @@ class StreamView private constructor(
     }
 
     private lateinit var _surface: Surface
-    private lateinit var createContinuation: Continuation<Unit>
+    private val initCompletion = CompletableDeferred<Unit>()
 
-    private suspend fun init(): Unit = suspendCoroutine { continuation ->
-        createContinuation = continuation
-
+    private suspend fun init() {
         textureView.run {
             surfaceTextureListener = this@StreamView
 
@@ -37,6 +33,8 @@ class StreamView private constructor(
                 createSurface()
             }
         }
+
+        initCompletion.await()
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) =
@@ -48,7 +46,7 @@ class StreamView private constructor(
         _surface = Surface(textureView.surfaceTexture)
             .apply { defer(::release) }
 
-        createContinuation.resume(Unit)
+        initCompletion.complete(Unit)
     }
 
     override val surface: Surface
