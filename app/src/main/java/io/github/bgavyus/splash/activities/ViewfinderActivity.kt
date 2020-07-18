@@ -8,11 +8,10 @@ import androidx.core.view.isInvisible
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import io.github.bgavyus.splash.capture.CameraError
-import io.github.bgavyus.splash.common.App
+import io.github.bgavyus.splash.common.Application
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.resourceId
 import io.github.bgavyus.splash.databinding.ActivityViewfinderBinding
-import io.github.bgavyus.splash.flow.DetectionRecorder
 import io.github.bgavyus.splash.graphics.media.Beeper
 import io.github.bgavyus.splash.permissions.PermissionError
 import io.github.bgavyus.splash.permissions.PermissionsManager
@@ -89,7 +88,10 @@ class ViewfinderActivity : FragmentActivity(), CompoundButton.OnCheckedChangeLis
         try {
             recorder = DetectionRecorder.init(binding.textureView).apply {
                 focusDeferScope.defer(::close)
-                detectingStates.onEach(::onDetectionStateChanged).launchIn(lifecycleScope)
+
+                detectingStates
+                    .onEach { onDetectionStateChanged(it) }
+                    .launchIn(lifecycleScope)
             }
         } catch (error: PermissionError) {
             finishWithMessage(error.resourceId)
@@ -103,7 +105,7 @@ class ViewfinderActivity : FragmentActivity(), CompoundButton.OnCheckedChangeLis
 
     private var detecting = false
 
-    private suspend fun onDetectionStateChanged(detecting: Boolean) {
+    private fun onDetectionStateChanged(detecting: Boolean) {
         Log.v(TAG, "Detecting = $detecting")
         setDetectionIndicatorsActive(detecting)
         this.detecting = detecting
@@ -146,8 +148,8 @@ class ViewfinderActivity : FragmentActivity(), CompoundButton.OnCheckedChangeLis
     }
 
     private fun finishWithMessage(resourceId: Int) {
-        Log.d(TAG, "finishWithMessage: ${App.defaultString(resourceId)}")
-        App.showMessage(resourceId)
+        Log.d(TAG, "finishWithMessage: ${Application.defaultString(resourceId)}")
+        Application.showMessage(resourceId)
         finish()
     }
 }

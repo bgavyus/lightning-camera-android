@@ -7,7 +7,7 @@ import android.util.Size
 import android.util.SizeF
 import android.view.Surface
 import android.view.TextureView
-import io.github.bgavyus.splash.common.App
+import io.github.bgavyus.splash.common.Application
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.graphics.ImageConsumer
 import kotlinx.coroutines.CompletableDeferred
@@ -78,7 +78,7 @@ class StreamView private constructor(
         bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
         matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
         matrix.postScale(scale, scale, centerX, centerY)
-        matrix.postRotate(App.deviceOrientation.degrees.toFloat(), centerX, centerY)
+        matrix.postRotate(Application.deviceOrientation.degrees.toFloat(), centerX, centerY)
 
         textureView.setTransform(matrix)
     }

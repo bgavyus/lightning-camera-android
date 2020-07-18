@@ -3,7 +3,7 @@ package io.github.bgavyus.splash.storage
 import android.media.MediaFormat
 import android.util.Log
 import io.github.bgavyus.splash.R
-import io.github.bgavyus.splash.common.App
+import io.github.bgavyus.splash.common.Application
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -12,7 +12,7 @@ import java.util.*
 class VideoFile private constructor() : StorageFile(
     MIME_TYPE,
     StandardDirectory.Movies,
-    App.context.getString(R.string.video_folder_name),
+    Application.context.getString(R.string.video_folder_name),
     "VID_$currentTimeStamp.$FILE_EXTENSION"
 ) {
     companion object {

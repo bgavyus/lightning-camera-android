@@ -1,10 +1,10 @@
-package io.github.bgavyus.splash.flow
+package io.github.bgavyus.splash.activities
 
 import android.view.TextureView
 import io.github.bgavyus.splash.capture.Camera
 import io.github.bgavyus.splash.capture.CameraConnection
 import io.github.bgavyus.splash.capture.CameraSession
-import io.github.bgavyus.splash.common.App
+import io.github.bgavyus.splash.common.Application
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.graphics.ImageConsumerDuplicator
 import io.github.bgavyus.splash.graphics.detection.Detector
@@ -34,7 +34,7 @@ class DetectionRecorder private constructor() : DeferScope() {
 
         val deferredRecorder = async {
             val file = deferredFile.await()
-            val rotation = camera.orientation + App.deviceOrientation
+            val rotation = camera.orientation + Application.deviceOrientation
 
             Recorder.init(file, camera.size, camera.fpsRange, rotation)
                 .also { defer(it::close) }

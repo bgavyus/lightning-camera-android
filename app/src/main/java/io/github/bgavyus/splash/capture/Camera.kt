@@ -7,7 +7,7 @@ import android.hardware.camera2.CameraMetadata
 import android.util.Log
 import android.util.Range
 import android.util.Size
-import io.github.bgavyus.splash.common.App
+import io.github.bgavyus.splash.common.Application
 import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.common.area
 import io.github.bgavyus.splash.common.middle
@@ -21,7 +21,7 @@ class Camera private constructor() {
         suspend fun init() = withContext(Dispatchers.IO) { Camera() }
 
         val manager by lazy {
-            App.context.getSystemService(CameraManager::class.java)
+            Application.context.getSystemService(CameraManager::class.java)
                 ?: throw RuntimeException("Failed to get camera manager service")
         }
     }
@@ -61,7 +61,7 @@ class Camera private constructor() {
                 ?.also { Log.d(TAG, "Size: $it") }
                 ?: throw CameraError(CameraErrorType.HighSpeedNotAvailable)
         } catch (error: CameraAccessException) {
-            throw CameraError(CameraErrorType.fromAccessException(error))
+            throw CameraError.fromAccessException(error)
         }
     }
 }

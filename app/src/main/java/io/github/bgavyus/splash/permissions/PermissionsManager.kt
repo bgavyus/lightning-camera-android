@@ -4,7 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.fragment.app.FragmentManager
-import io.github.bgavyus.splash.common.App
+import io.github.bgavyus.splash.common.Application
 import io.github.bgavyus.splash.storage.Storage
 
 class PermissionsManager {
@@ -57,6 +57,6 @@ class PermissionsManager {
         private val storageGranted get() = !Storage.legacy || granted(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
         private fun granted(permission: String) =
-            App.context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
+            Application.context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
     }
 }

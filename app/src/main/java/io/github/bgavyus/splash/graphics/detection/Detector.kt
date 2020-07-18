@@ -6,7 +6,7 @@ import android.renderscript.RenderScript
 import android.renderscript.Type
 import android.util.Size
 import android.view.Surface
-import io.github.bgavyus.splash.common.App
+import io.github.bgavyus.splash.common.Application
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.SingleThreadHandler
 import io.github.bgavyus.splash.graphics.ImageConsumer
@@ -27,7 +27,7 @@ abstract class Detector(size: Size) : DeferScope(), ImageConsumer {
     private val handler = SingleThreadHandler(TAG)
         .apply { defer(::close) }
 
-    protected val rs: RenderScript = RenderScript.create(App.context)
+    protected val rs: RenderScript = RenderScript.create(Application.context)
         .apply { defer(::destroy) }
 
     protected val inputAllocation: Allocation = Allocation.createTyped(

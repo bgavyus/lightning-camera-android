@@ -37,6 +37,7 @@ class PermissionsRequester(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         retainInstance = true
+        // TODO: Replace with registerForActivityResult
         requestPermissions(permissions.toTypedArray(), REQUEST_PERMISSIONS_CODE)
     }
 

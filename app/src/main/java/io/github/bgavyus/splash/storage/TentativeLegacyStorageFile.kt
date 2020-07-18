@@ -4,7 +4,7 @@ import android.content.ContentValues
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
-import io.github.bgavyus.splash.common.App
+import io.github.bgavyus.splash.common.Application
 import io.github.bgavyus.splash.permissions.PermissionsManager
 import java.io.File
 import java.io.FileDescriptor
@@ -54,7 +54,7 @@ class TentativeLegacyStorageFile(
     }
 
     private fun addToMediaStore(file: File): Uri {
-        return App.context.contentResolver.insert(
+        return Application.context.contentResolver.insert(
             standardDirectory.externalStorage,
             ContentValues().apply {
                 put(MediaStore.MediaColumns.MIME_TYPE, mimeType)

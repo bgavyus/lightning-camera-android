@@ -10,13 +10,14 @@ import io.github.bgavyus.splash.storage.Storage
 import java.util.*
 import kotlin.system.exitProcess
 
-class App : Application(), Thread.UncaughtExceptionHandler {
+// TODO: Use dependency injection
+class Application : Application(), Thread.UncaughtExceptionHandler {
     companion object {
-        private val TAG = App::class.simpleName
+        private val TAG = Application::class.simpleName
 
         const val UNCAUGHT_EXCEPTION_STATUS_CODE = 1
 
-        lateinit var context: App
+        lateinit var context: Application
 
         val deviceOrientation: Rotation
             get() = -Rotation.fromSurfaceRotation(windowManager.defaultDisplay.rotation)

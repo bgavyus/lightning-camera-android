@@ -5,7 +5,7 @@ import android.content.ContentValues
 import android.os.Build
 import android.provider.MediaStore
 import android.text.format.DateUtils
-import io.github.bgavyus.splash.common.App
+import io.github.bgavyus.splash.common.Application
 import java.io.File
 import java.io.IOException
 
@@ -21,7 +21,7 @@ class TentativeScopedStorageFile(
         const val IS_PENDING_FALSE = 0
     }
 
-    private val contentResolver = App.context.contentResolver
+    private val contentResolver = Application.context.contentResolver
 
     private val uri =
         contentResolver.insert(standardDirectory.externalStorage, ContentValues().apply {

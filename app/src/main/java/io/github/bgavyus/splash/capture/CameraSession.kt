@@ -4,9 +4,10 @@ import android.hardware.camera2.*
 import android.hardware.camera2.params.OutputConfiguration
 import android.hardware.camera2.params.SessionConfiguration
 import android.os.Build
-import android.os.Handler
 import io.github.bgavyus.splash.common.DeferScope
+import io.github.bgavyus.splash.common.SingleThreadHandler
 import io.github.bgavyus.splash.graphics.ImageConsumer
+import java.util.concurrent.Executor
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -16,9 +17,14 @@ class CameraSession private constructor(
     private val consumers: Iterable<ImageConsumer>
 ) : DeferScope() {
     companion object {
+        private val TAG = CameraSession::class.simpleName
+
         suspend fun init(connection: CameraConnection, consumers: Iterable<ImageConsumer>) =
             CameraSession(connection, consumers).apply { init() }
     }
+
+    private val handler = SingleThreadHandler(TAG)
+        .apply { defer(::close) }
 
     private suspend fun init(): Unit = suspendCoroutine { continuation ->
         try {
@@ -29,8 +35,7 @@ class CameraSession private constructor(
                         defer(session::close)
                         continuation.resume(Unit)
                     } catch (error: CameraAccessException) {
-                        val type = CameraErrorType.fromAccessException(error)
-                        continuation.resumeWithException(CameraError(type))
+                        continuation.resumeWithException(CameraError.fromAccessException(error))
                     }
                 }
 
@@ -40,28 +45,28 @@ class CameraSession private constructor(
                 }
             })
         } catch (error: CameraAccessException) {
-            val type = CameraErrorType.fromAccessException(error)
-            continuation.resumeWithException(CameraError(type))
+            continuation.resumeWithException(CameraError.fromAccessException(error))
         }
     }
 
     private fun createCaptureSession(callback: CameraCaptureSession.StateCallback) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-            val outputSurfaces = consumers.map { it.surface }
+        val outputSurfaces = consumers.map { it.surface }
 
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
             @Suppress("DEPRECATION")
             connection.device.createConstrainedHighSpeedCaptureSession(
                 outputSurfaces,
                 callback,
-                /* handler = */ null
+                handler
             )
         } else {
-            val outputConfigs = consumers.map { OutputConfiguration(it.surface) }
+            val outputConfigs = outputSurfaces.map { OutputConfiguration(it) }
+            val executor = Executor { handler.post(it) }
 
             val sessionConfig = SessionConfiguration(
                 SessionConfiguration.SESSION_HIGH_SPEED,
                 outputConfigs,
-                { Handler().post(it) },
+                executor,
                 callback
             )
 
@@ -71,13 +76,13 @@ class CameraSession private constructor(
 
     private fun startSession(session: CameraConstrainedHighSpeedCaptureSession) {
         session.run {
-            val builder = device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
+            val captureRequest = device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
                 set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, connection.camera.fpsRange)
                 consumers.forEach { addTarget(it.surface) }
-            }
+            }.build()
 
-            val requests = createHighSpeedRequestList(builder.build())
-            setRepeatingBurst(requests, /* listener = */ null, /* handler = */ null)
+            val requests = createHighSpeedRequestList(captureRequest)
+            setRepeatingBurst(requests, /* listener = */ null, handler)
         }
     }
 }
