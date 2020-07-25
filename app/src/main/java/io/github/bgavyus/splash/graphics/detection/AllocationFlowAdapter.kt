@@ -8,6 +8,6 @@ import kotlinx.coroutines.flow.callbackFlow
 
 val Allocation.buffers: Flow<Unit>
     get() = callbackFlow {
-        setOnBufferAvailableListener { sendBlocking(Unit) }
+        setOnBufferAvailableListener { sendBlocking(ioReceive()) }
         awaitClose { setOnBufferAvailableListener(null) }
     }

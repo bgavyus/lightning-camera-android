@@ -15,6 +15,7 @@ import io.github.bgavyus.splash.storage.VideoFile
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
+// TODO: Replace with view model
 class DetectionRecorder private constructor() : DeferScope() {
     companion object {
         suspend fun init(textureView: TextureView) =

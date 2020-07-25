@@ -2,7 +2,6 @@ package io.github.bgavyus.splash.graphics.media
 
 import android.media.MediaCodec
 
-
 val MediaCodec.BufferInfo.empty get() = size == 0
 val MediaCodec.BufferInfo.keyFrame get() = flags.isSet(MediaCodec.BUFFER_FLAG_KEY_FRAME)
 val MediaCodec.BufferInfo.codecConfig get() = flags.isSet(MediaCodec.BUFFER_FLAG_CODEC_CONFIG)

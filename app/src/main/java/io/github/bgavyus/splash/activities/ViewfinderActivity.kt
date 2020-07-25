@@ -66,6 +66,7 @@ class ViewfinderActivity : FragmentActivity(), CompoundButton.OnCheckedChangeLis
     private var job: Job? = null
     private val focusDeferScope = DeferScope()
 
+    // TODO: Simplify flow
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         Log.d(TAG, "onWindowFocusChanged(hasFocus = $hasFocus)")
 

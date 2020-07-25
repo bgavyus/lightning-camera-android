@@ -14,7 +14,6 @@ import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 
 abstract class Detector(size: Size) : DeferScope(), ImageConsumer {
     companion object {
@@ -43,7 +42,6 @@ abstract class Detector(size: Size) : DeferScope(), ImageConsumer {
 
     val detectingStates
         get() = inputAllocation.buffers
-            .onEach { inputAllocation.ioReceive() }
             .map { detecting }
             .distinctUntilChanged()
             .flowOn(handler.asCoroutineDispatcher(TAG))

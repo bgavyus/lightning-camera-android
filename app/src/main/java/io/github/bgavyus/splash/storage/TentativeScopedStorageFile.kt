@@ -16,11 +16,6 @@ class TentativeScopedStorageFile(
     appDirectoryName: String,
     name: String
 ) : TentativeFile {
-    companion object {
-        const val IS_PENDING_TRUE = 1
-        const val IS_PENDING_FALSE = 0
-    }
-
     private val contentResolver = Application.context.contentResolver
 
     private val uri =
@@ -31,7 +26,7 @@ class TentativeScopedStorageFile(
                 MediaStore.MediaColumns.RELATIVE_PATH,
                 listOf(standardDirectory.value, appDirectoryName).joinToString(File.separator)
             )
-            put(MediaStore.MediaColumns.IS_PENDING, IS_PENDING_TRUE)
+            put(MediaStore.MediaColumns.IS_PENDING, true.toInt())
             put(
                 MediaStore.MediaColumns.DATE_EXPIRES,
                 (System.currentTimeMillis() + DateUtils.DAY_IN_MILLIS) / 1000
@@ -57,7 +52,7 @@ class TentativeScopedStorageFile(
     override fun save() {
         val values = ContentValues().apply {
             putNull(MediaStore.MediaColumns.DATE_EXPIRES)
-            put(MediaStore.MediaColumns.IS_PENDING, IS_PENDING_FALSE)
+            put(MediaStore.MediaColumns.IS_PENDING, false.toInt())
         }
 
         contentResolver.update(uri, values, /* where = */ null, /* selectionArgs = */ null)
@@ -72,3 +67,5 @@ class TentativeScopedStorageFile(
         }
     }
 }
+
+private fun Boolean.toInt() = if (this) 1 else 0
