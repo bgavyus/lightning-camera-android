@@ -6,16 +6,18 @@ import android.renderscript.RenderScript
 import android.renderscript.Type
 import android.util.Size
 import android.view.Surface
-import io.github.bgavyus.splash.common.Application
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.SingleThreadHandler
 import io.github.bgavyus.splash.graphics.ImageConsumer
 import kotlinx.coroutines.android.asCoroutineDispatcher
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.flow.*
 
-abstract class Detector(size: Size) : DeferScope(), ImageConsumer {
+abstract class Detector(
+    renderScript: RenderScript,
+    bufferSize: Size
+) : DeferScope(), ImageConsumer {
     companion object {
         private val TAG = Detector::class.simpleName
 
@@ -26,23 +28,28 @@ abstract class Detector(size: Size) : DeferScope(), ImageConsumer {
     private val handler = SingleThreadHandler(TAG)
         .apply { defer(::close) }
 
-    protected val rs: RenderScript = RenderScript.create(Application.context)
+    protected val inputAllocation: Allocation = Allocation.createTyped(
+        renderScript,
+        Type.createXY(
+            renderScript,
+            Element.U8_4(renderScript),
+            bufferSize.width,
+            bufferSize.height
+        ),
+        Allocation.USAGE_IO_INPUT or Allocation.USAGE_SCRIPT
+    )
         .apply { defer(::destroy) }
 
-    protected val inputAllocation: Allocation = Allocation.createTyped(
-        rs,
-        Type.createXY(rs, Element.U8_4(rs), size.width, size.height),
-        Allocation.USAGE_IO_INPUT or Allocation.USAGE_SCRIPT
-    ).apply {
-        defer(::destroy)
-    }
-
     override val surface: Surface = inputAllocation.surface
-    abstract val detecting: Boolean
+    abstract fun detecting(): Boolean
 
-    val detectingStates
-        get() = inputAllocation.buffers
-            .map { detecting }
-            .distinctUntilChanged()
-            .flowOn(handler.asCoroutineDispatcher(TAG))
+    fun detectingStates() = inputAllocation.buffers()
+        .map { detecting() }
+        .distinctUntilChanged()
+        .flowOn(handler.asCoroutineDispatcher(TAG))
+}
+
+private fun Allocation.buffers(): Flow<Unit> = callbackFlow {
+    setOnBufferAvailableListener { sendBlocking(ioReceive()) }
+    awaitClose { setOnBufferAvailableListener(null) }
 }

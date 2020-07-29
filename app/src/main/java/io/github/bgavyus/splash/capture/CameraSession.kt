@@ -12,21 +12,19 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class CameraSession private constructor(
+class CameraSession(
+    private val cameraMetadata: CameraMetadata,
     private val connection: CameraConnection,
     private val consumers: Iterable<ImageConsumer>
 ) : DeferScope() {
     companion object {
         private val TAG = CameraSession::class.simpleName
-
-        suspend fun init(connection: CameraConnection, consumers: Iterable<ImageConsumer>) =
-            CameraSession(connection, consumers).apply { init() }
     }
 
     private val handler = SingleThreadHandler(TAG)
         .apply { defer(::close) }
 
-    private suspend fun init(): Unit = suspendCoroutine { continuation ->
+    suspend fun open(): Unit = suspendCoroutine { continuation ->
         try {
             createCaptureSession(object : CameraCaptureSession.StateCallback() {
                 override fun onConfigured(session: CameraCaptureSession) {
@@ -77,7 +75,7 @@ class CameraSession private constructor(
     private fun startSession(session: CameraConstrainedHighSpeedCaptureSession) {
         session.run {
             val captureRequest = device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
-                set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, connection.camera.fpsRange)
+                set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, cameraMetadata.fpsRange)
                 consumers.forEach { addTarget(it.surface) }
             }.build()
 

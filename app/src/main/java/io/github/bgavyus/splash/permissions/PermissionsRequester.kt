@@ -8,27 +8,29 @@ import androidx.fragment.app.commit
 import kotlinx.coroutines.CompletableDeferred
 
 class PermissionsRequester(
-    private val permissions: Collection<String>,
-    private val deferred: CompletableDeferred<Unit>
+    private val manager: FragmentManager
 ) : Fragment() {
     companion object {
         private val TAG = PermissionsRequester::class.simpleName
 
         private const val REQUEST_PERMISSIONS_CODE = 0
+    }
 
-        suspend fun request(permissions: Collection<String>, fragmentManager: FragmentManager) {
-            val deferred = CompletableDeferred<Unit>()
-            val fragment = PermissionsRequester(permissions, deferred)
+    private lateinit var deferred: CompletableDeferred<Unit>
+    private lateinit var permissions: Collection<String>
 
-            fragmentManager.run {
-                commit { add(fragment, PermissionsRequester::class.qualifiedName) }
+    suspend fun request(permissions: Collection<String>) {
+        deferred = CompletableDeferred()
+        this.permissions = permissions
 
-                try {
-                    deferred.await()
-                } finally {
-                    if (!isDestroyed) {
-                        commit { remove(fragment) }
-                    }
+        manager.run {
+            commit { add(this@PermissionsRequester, PermissionsRequester::class.qualifiedName) }
+
+            try {
+                deferred.await()
+            } finally {
+                if (!isDestroyed) {
+                    commit { remove(this@PermissionsRequester) }
                 }
             }
         }

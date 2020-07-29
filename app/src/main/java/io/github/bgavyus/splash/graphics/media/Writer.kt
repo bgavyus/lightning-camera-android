@@ -19,6 +19,7 @@ class Writer(private val file: StorageFile, format: MediaFormat, rotation: Rotat
     }
 
     private val track: Int
+    private var active = false
 
     private val muxer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         MediaMuxer(file.descriptor, OUTPUT_FORMAT)
@@ -28,7 +29,7 @@ class Writer(private val file: StorageFile, format: MediaFormat, rotation: Rotat
         defer {
             Log.d(TAG, "Attempting to release muxer")
 
-            if (file.valid) {
+            if (active) {
                 Log.d(TAG, "Releasing muxer")
                 release()
             }
@@ -41,7 +42,7 @@ class Writer(private val file: StorageFile, format: MediaFormat, rotation: Rotat
         defer {
             Log.d(TAG, "Attempting to stop muxer")
 
-            if (file.valid) {
+            if (active) {
                 Log.d(TAG, "Stopping muxer")
                 stop()
             }
@@ -50,6 +51,7 @@ class Writer(private val file: StorageFile, format: MediaFormat, rotation: Rotat
 
     fun write(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
         muxer.writeSampleData(track, buffer, info)
-        file.valid = true
+        active = true
+        file.keep = true
     }
 }

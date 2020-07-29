@@ -1,6 +1,7 @@
 package io.github.bgavyus.splash.graphics.media
 
 import android.media.MediaCodec
+import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.util.Log
 import android.util.Range
@@ -11,49 +12,64 @@ import io.github.bgavyus.splash.common.area
 import io.github.bgavyus.splash.common.middle
 import io.github.bgavyus.splash.graphics.ImageConsumer
 import io.github.bgavyus.splash.storage.StorageFile
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
 
-class Recorder private constructor(
+class Recorder(
     private val file: StorageFile,
-    size: Size,
-    fpsRange: Range<Int>,
-    private val rotation: Rotation
+    private val rotation: Rotation,
+    videoSize: Size,
+    fpsRange: Range<Int>
 ) : DeferScope(), ImageConsumer, EncoderListener {
     companion object {
         private val TAG = Recorder::class.simpleName
 
         private const val MILLIS_IN_UNIT = 1_000
-        private const val MICROS_IN_UNIT = 1_000 * MILLIS_IN_UNIT
+        private const val MICROS_IN_UNIT = 1_000_000
         private const val KEY_FRAME_INTERVAL_FRAMES = 10
         private const val COMPRESSION_FACTOR = 5
         private const val PLAYBACK_FPS = 5
         private const val MIN_BUFFER_TIME_MILLISECONDS = 50
-
-        suspend fun init(
-            file: StorageFile,
-            size: Size,
-            fpsRange: Range<Int>,
-            rotation: Rotation
-        ) = withContext(Dispatchers.IO) { Recorder(file, size, fpsRange, rotation) }
     }
 
-    private val encoder = Encoder(
-        size = size,
-        bitRate = fpsRange.middle * size.area / COMPRESSION_FACTOR,
-        captureRate = fpsRange.middle,
-        frameRate = PLAYBACK_FPS,
-        keyFrameInterval = KEY_FRAME_INTERVAL_FRAMES.toFloat() / PLAYBACK_FPS,
-        listener = this
-    )
-        .also { defer(it::close) }
+    private val encoder: Encoder
+
+    init {
+        val format = MediaFormat.createVideoFormat(
+            MediaFormat.MIMETYPE_VIDEO_AVC,
+            videoSize.width,
+            videoSize.height
+        ).apply {
+            setInteger(
+                MediaFormat.KEY_COLOR_FORMAT,
+                MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
+            )
+
+            setInteger(
+                MediaFormat.KEY_BIT_RATE,
+                fpsRange.middle * videoSize.area / COMPRESSION_FACTOR
+            )
+
+            setInteger(MediaFormat.KEY_CAPTURE_RATE, fpsRange.middle)
+
+            setInteger(MediaFormat.KEY_FRAME_RATE, PLAYBACK_FPS)
+
+            setFloat(
+                MediaFormat.KEY_I_FRAME_INTERVAL,
+                KEY_FRAME_INTERVAL_FRAMES.toFloat() / PLAYBACK_FPS
+            )
+        }
+
+        encoder = Encoder(format).also {
+            defer(it::close)
+            it.listener = this
+        }
+    }
 
     private lateinit var writer: Writer
     private var recording = false
 
     private val snake = SamplesSnake(
-        sampleSize = size.area,
+        sampleSize = videoSize.area,
         samplesCount = fpsRange.upper * MIN_BUFFER_TIME_MILLISECONDS / MILLIS_IN_UNIT + KEY_FRAME_INTERVAL_FRAMES - 1
     )
 

@@ -45,7 +45,10 @@ android {
 }
 
 dependencies {
+    val kotlinVersion: String by rootProject.extra
+
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
     implementation("androidx.constraintlayout:constraintlayout:1.1.3")
     implementation("androidx.fragment:fragment-ktx:1.2.5")
     implementation("com.otaliastudios.opengl:egloo:0.5.1")

@@ -16,13 +16,13 @@ import io.github.bgavyus.splash.common.SingleThreadHandler
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
 
-class ImageConsumerDuplicator private constructor() : DeferScope(), ImageConsumer,
+class ImageConsumerDuplicator(
+    private val consumers: Iterable<ImageConsumer>,
+    private val bufferSize: Size
+) : DeferScope(), ImageConsumer,
     SurfaceTexture.OnFrameAvailableListener {
     companion object {
         private val TAG = ImageConsumerDuplicator::class.simpleName
-
-        suspend fun init(consumers: Iterable<ImageConsumer>, bufferSize: Size) =
-            ImageConsumerDuplicator().apply { init(consumers, bufferSize) }
     }
 
     private val handler = SingleThreadHandler(TAG)
@@ -34,37 +34,36 @@ class ImageConsumerDuplicator private constructor() : DeferScope(), ImageConsume
     private lateinit var entireViewport: GlRect
     override lateinit var surface: Surface
 
-    @SuppressLint("Recycle")
-    private suspend fun init(consumers: Iterable<ImageConsumer>, bufferSize: Size) =
-        withContext(handler.asCoroutineDispatcher(TAG)) {
-            val core = EglCore(flags = EglCore.FLAG_TRY_GLES3)
-                .apply { defer(::release) }
+    suspend fun start() = withContext(handler.asCoroutineDispatcher(TAG)) {
+        val core = EglCore(flags = EglCore.FLAG_TRY_GLES3)
+            .apply { defer(::release) }
 
-            windows = consumers.map {
-                EglWindowSurface(core, it.surface)
-                    .apply { defer(::release) }
-            }
-                .apply { first().makeCurrent() }
-
-            val texture = GlTexture()
-
-            program = GlTextureProgram().apply {
-                this.texture = texture
-                defer(::release)
-            }
-
-            surfaceTexture = SurfaceTexture(texture.id).apply {
-                setOnFrameAvailableListener(this@ImageConsumerDuplicator, handler)
-                setDefaultBufferSize(bufferSize.width, bufferSize.height)
-                defer(::release)
-            }
-
-            entireViewport = GlRect()
-                .apply { defer(::release) }
-
-            surface = Surface(surfaceTexture)
+        windows = consumers.map {
+            EglWindowSurface(core, it.surface)
                 .apply { defer(::release) }
         }
+            .apply { first().makeCurrent() }
+
+        val texture = GlTexture()
+
+        program = GlTextureProgram().apply {
+            this.texture = texture
+            defer(::release)
+        }
+
+        surfaceTexture = SurfaceTexture(texture.id).apply {
+            setOnFrameAvailableListener(this@ImageConsumerDuplicator, handler)
+            setDefaultBufferSize(bufferSize.width, bufferSize.height)
+            defer(::release)
+        }
+
+        entireViewport = GlRect()
+            .apply { defer(::release) }
+
+        @SuppressLint("Recycle")
+        surface = Surface(surfaceTexture)
+            .apply { defer(::release) }
+    }
 
     override fun onFrameAvailable(surface: SurfaceTexture?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -77,7 +76,7 @@ class ImageConsumerDuplicator private constructor() : DeferScope(), ImageConsume
         surfaceTexture.updateTexImage()
         surfaceTexture.getTransformMatrix(program.textureTransform)
 
-        for (window in windows) {
+        windows.forEach { window ->
             window.makeCurrent()
             program.draw(entireViewport)
             window.swapBuffers()

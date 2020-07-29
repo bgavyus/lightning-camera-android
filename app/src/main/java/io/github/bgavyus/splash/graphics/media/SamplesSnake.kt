@@ -8,7 +8,7 @@ import java.nio.ByteBuffer
 
 class SamplesSnake(sampleSize: Int, samplesCount: Int): DeferScope() {
     companion object {
-        private val TAG = Recorder::class.simpleName
+        private val TAG = SamplesSnake::class.simpleName
     }
 
     private val snake = Snake(Array(samplesCount) { Sample(sampleSize) }.apply {

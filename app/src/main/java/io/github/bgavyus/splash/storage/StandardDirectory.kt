@@ -4,7 +4,7 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 
-enum class StandardDirectory(val value: String, val externalStorage: Uri) {
+enum class StandardDirectory(val value: String, val externalStorageContentUri: Uri) {
     Music(Environment.DIRECTORY_MUSIC, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI),
     Podcasts(Environment.DIRECTORY_PODCASTS, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI),
     Ringtones(Environment.DIRECTORY_RINGTONES, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI),

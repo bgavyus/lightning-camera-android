@@ -1,4 +1,4 @@
-package io.github.bgavyus.splash.graphics.views
+package io.github.bgavyus.splash.graphics
 
 import android.graphics.Matrix
 import android.graphics.RectF
@@ -7,25 +7,20 @@ import android.util.Size
 import android.util.SizeF
 import android.view.Surface
 import android.view.TextureView
-import io.github.bgavyus.splash.common.Application
 import io.github.bgavyus.splash.common.DeferScope
-import io.github.bgavyus.splash.graphics.ImageConsumer
+import io.github.bgavyus.splash.common.Device
 import kotlinx.coroutines.CompletableDeferred
 import kotlin.math.min
 
-class StreamView private constructor(
+class StreamView(
+    private val device: Device,
     private val textureView: TextureView,
     private val bufferSize: Size
 ) : DeferScope(), ImageConsumer, TextureView.SurfaceTextureListener {
-    companion object {
-        suspend fun init(textureView: TextureView, bufferSize: Size) =
-            StreamView(textureView, bufferSize).apply { init() }
-    }
-
     private lateinit var _surface: Surface
     private val initCompletion = CompletableDeferred<Unit>()
 
-    private suspend fun init() {
+    suspend fun start() {
         textureView.run {
             surfaceTextureListener = this@StreamView
 
@@ -78,7 +73,7 @@ class StreamView private constructor(
         bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
         matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
         matrix.postScale(scale, scale, centerX, centerY)
-        matrix.postRotate(Application.deviceOrientation.degrees.toFloat(), centerX, centerY)
+        matrix.postRotate(device.orientation.degrees.toFloat(), centerX, centerY)
 
         textureView.setTransform(matrix)
     }

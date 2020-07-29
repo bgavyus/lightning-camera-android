@@ -1,13 +1,8 @@
 package io.github.bgavyus.splash.common
 
 import android.app.Application
-import android.content.res.Configuration
 import android.util.Log
-import android.view.Gravity
-import android.view.WindowManager
-import android.widget.Toast
 import io.github.bgavyus.splash.storage.Storage
-import java.util.*
 import kotlin.system.exitProcess
 
 // TODO: Use dependency injection
@@ -18,26 +13,6 @@ class Application : Application(), Thread.UncaughtExceptionHandler {
         const val UNCAUGHT_EXCEPTION_STATUS_CODE = 1
 
         lateinit var context: Application
-
-        val deviceOrientation: Rotation
-            get() = -Rotation.fromSurfaceRotation(windowManager.defaultDisplay.rotation)
-
-        private val windowManager by lazy {
-            context.getSystemService(WindowManager::class.java)
-                ?: throw RuntimeException("Failed to get window manager service")
-        }
-
-        fun defaultString(resourceId: Int): String {
-            val config = Configuration().apply { setLocale(Locale.ROOT) }
-            return context.createConfigurationContext(config).getString(resourceId)
-        }
-
-        fun showMessage(resourceId: Int) {
-            Toast.makeText(context, resourceId, Toast.LENGTH_LONG).run {
-                setGravity(Gravity.CENTER, /* xOffset = */ 0, /* yOffset = */ 0)
-                show()
-            }
-        }
     }
 
     override fun onCreate() {
@@ -48,10 +23,12 @@ class Application : Application(), Thread.UncaughtExceptionHandler {
     }
 
     private fun logState() {
-        Log.d(TAG, "Device Orientation: $deviceOrientation")
-        Log.d(TAG, "Display Supported Modes: ${windowManager.defaultDisplay.supportedModes.joinToString()}")
-        Log.d(TAG, "Display mode: ${windowManager.defaultDisplay.mode}")
-        Log.d(TAG, "Storage: ${if (Storage.legacy) "legacy" else "scoped"}")
+        val device = Device(context)
+        val storage = Storage(context.contentResolver)
+        Log.i(TAG, "Device Orientation: ${device.orientation}")
+        Log.i(TAG, "Display Supported Modes: ${device.display.supportedModes.joinToString()}")
+        Log.i(TAG, "Display mode: ${device.display.mode}")
+        Log.i(TAG, "Storage: ${if (storage.legacy) "legacy" else "scoped"}")
     }
 
     override fun uncaughtException(thread: Thread, error: Throwable) {
