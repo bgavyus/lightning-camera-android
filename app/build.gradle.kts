@@ -2,6 +2,8 @@ plugins {
     id("com.android.application")
     kotlin("android")
     kotlin("android.extensions")
+    kotlin("kapt")
+    id("dagger.hilt.android.plugin")
 }
 
 android {
@@ -45,11 +47,20 @@ android {
 }
 
 dependencies {
-    val kotlinVersion: String by rootProject.extra
-
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+
+    val kotlinVersion: String by rootProject.extra
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+
+    val hiltVersion: String by rootProject.extra
+    implementation("com.google.dagger:hilt-android:$hiltVersion")
+    kapt("com.google.dagger:hilt-android-compiler:$hiltVersion")
+
+    val jetpackHiltVersion = "1.0.0-alpha02"
+    implementation("androidx.hilt:hilt-lifecycle-viewmodel:$jetpackHiltVersion")
+    kapt("androidx.hilt:hilt-compiler:$jetpackHiltVersion")
+
     implementation("androidx.constraintlayout:constraintlayout:1.1.3")
-    implementation("androidx.fragment:fragment-ktx:1.2.5")
+    implementation("androidx.fragment:fragment-ktx:1.3.0-alpha07")
     implementation("com.otaliastudios.opengl:egloo:0.5.1")
 }

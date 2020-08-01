@@ -1,11 +1,13 @@
 package io.github.bgavyus.splash.storage
 
-import android.content.ContentResolver
+import android.content.Context
 import android.os.Build
 import android.os.Environment
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 
-class Storage(
-    private val contentResolver: ContentResolver
+class Storage @Inject constructor(
+    @ApplicationContext private val context: Context
 ) {
     fun file(
         mimeType: String,
@@ -14,7 +16,7 @@ class Storage(
         name: String
     ) = if (legacy) {
         LegacyStorageFile(
-            contentResolver = contentResolver,
+            contentResolver = context.contentResolver,
             mimeType = mimeType,
             standardDirectory = standardDirectory,
             appDirectoryName = appDirectoryName,
@@ -22,7 +24,7 @@ class Storage(
         )
     } else {
         ScopedStorageFile(
-            contentResolver = contentResolver,
+            contentResolver = context.contentResolver,
             mimeType = mimeType,
             standardDirectory = standardDirectory,
             appDirectoryName = appDirectoryName,

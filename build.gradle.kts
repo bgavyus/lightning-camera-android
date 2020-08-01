@@ -1,5 +1,6 @@
 buildscript {
     val kotlinVersion by extra("1.3.72")
+    val hiltVersion by extra("2.28.3-alpha")
 
     repositories {
         google()
@@ -9,6 +10,7 @@ buildscript {
     dependencies {
         classpath("com.android.tools.build:gradle:4.0.1")
         classpath(kotlin("gradle-plugin", kotlinVersion))
+        classpath("com.google.dagger:hilt-android-gradle-plugin:$hiltVersion")
     }
 }
 

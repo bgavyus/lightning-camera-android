@@ -10,8 +10,11 @@ import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.storage.StorageFile
 import java.nio.ByteBuffer
 
-class Writer(private val file: StorageFile, format: MediaFormat, rotation: Rotation) :
-    DeferScope() {
+class Writer(
+    private val file: StorageFile,
+    format: MediaFormat,
+    rotation: Rotation
+) : DeferScope() {
     companion object {
         private val TAG = Writer::class.simpleName
 

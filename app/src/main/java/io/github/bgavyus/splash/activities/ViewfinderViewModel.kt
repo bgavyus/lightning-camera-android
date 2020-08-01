@@ -4,6 +4,9 @@ import android.content.Context
 import android.media.MediaFormat
 import android.renderscript.RenderScript
 import android.view.TextureView
+import androidx.hilt.lifecycle.ViewModelInject
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.splash.R
 import io.github.bgavyus.splash.capture.CameraConnection
 import io.github.bgavyus.splash.capture.CameraMetadata
@@ -15,6 +18,7 @@ import io.github.bgavyus.splash.graphics.StreamView
 import io.github.bgavyus.splash.graphics.detection.Detector
 import io.github.bgavyus.splash.graphics.detection.MotionDetector
 import io.github.bgavyus.splash.graphics.media.Recorder
+import io.github.bgavyus.splash.permissions.PermissionsManager
 import io.github.bgavyus.splash.storage.StandardDirectory
 import io.github.bgavyus.splash.storage.Storage
 import kotlinx.coroutines.Dispatchers
@@ -23,17 +27,20 @@ import kotlinx.coroutines.coroutineScope
 import java.text.SimpleDateFormat
 import java.util.*
 
-class ViewfinderViewModel(
-    private val context: Context,
+class ViewfinderViewModel @ViewModelInject constructor(
+    @ApplicationContext private val context: Context,
     private val storage: Storage,
     private val device: Device,
-    private val textureView: TextureView,
-    private val renderScript: RenderScript
-) : DeferScope() {
+    private val renderScript: RenderScript,
+    private val permissionsManager: PermissionsManager
+) : ViewModel() {
+    private val deferScope = DeferScope()
     private lateinit var recorder: Recorder
     private lateinit var detector: Detector
 
-    suspend fun create() = coroutineScope {
+    suspend fun grantPermissions() = permissionsManager.grantAll()
+
+    suspend fun stream(textureView: TextureView) = coroutineScope {
         val currentTimeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
 
         val deferredFile = async(Dispatchers.IO) {
@@ -43,7 +50,7 @@ class ViewfinderViewModel(
                 appDirectoryName = context.getString(R.string.video_folder_name),
                 name = "VID_$currentTimeStamp.mp4"
             )
-                .also { defer(it::close) }
+                .also { deferScope.defer(it::close) }
         }
 
         val cameraMetadata = CameraMetadata(context)
@@ -54,39 +61,40 @@ class ViewfinderViewModel(
             val rotation = cameraMetadata.orientation + device.orientation
 
             Recorder(file, rotation, cameraMetadata.videoSize, cameraMetadata.fpsRange)
-                .also { defer(it::close) }
+                .also { deferScope.defer(it::close) }
         }
 
         val deferredDetector = async(Dispatchers.IO) {
             MotionDetector(renderScript, cameraMetadata.videoSize)
-                .also { defer(it::close) }
+                .also { deferScope.defer(it::close) }
         }
 
         val deferredDuplicator = async {
             val view = StreamView(device, textureView, cameraMetadata.videoSize)
                 .apply { start() }
-                .also { defer(it::close) }
+                .also { deferScope.defer(it::close) }
 
             detector = deferredDetector.await()
 
             ImageConsumerDuplicator(listOf(detector, view), cameraMetadata.videoSize)
                 .apply { start() }
-                .also { defer(it::close) }
+                .also { deferScope.defer(it::close) }
         }
 
         val connection = CameraConnection(context, cameraMetadata)
             .apply { open() }
-            .also { defer(it::close) }
+            .also { deferScope.defer(it::close) }
 
         recorder = deferredRecorder.await()
         val duplicator = deferredDuplicator.await()
 
         CameraSession(cameraMetadata, connection, listOf(recorder, duplicator))
             .apply { open() }
-            .also { defer(it::close) }
+            .also { deferScope.defer(it::close) }
     }
 
     fun record() = recorder.record()
     fun loss() = recorder.loss()
     fun detectingStates() = detector.detectingStates()
+    override fun onCleared() = deferScope.close()
 }

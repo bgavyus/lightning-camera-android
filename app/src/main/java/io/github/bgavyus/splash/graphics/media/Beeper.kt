@@ -3,8 +3,9 @@ package io.github.bgavyus.splash.graphics.media
 import android.media.AudioManager
 import android.media.ToneGenerator
 import io.github.bgavyus.splash.common.DeferScope
+import javax.inject.Inject
 
-class Beeper : DeferScope() {
+class Beeper @Inject constructor() : DeferScope() {
     private val generator = ToneGenerator(AudioManager.STREAM_MUSIC, ToneGenerator.MAX_VOLUME)
         .apply { defer(::release) }
 

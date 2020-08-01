@@ -8,6 +8,7 @@ import android.hardware.camera2.CameraMetadata
 import android.util.Log
 import android.util.Range
 import android.util.Size
+import dagger.hilt.android.qualifiers.ActivityContext
 import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.common.area
 import io.github.bgavyus.splash.common.middle
@@ -31,15 +32,7 @@ class CameraMetadata(
             ?: throw RuntimeException("Failed to get camera manager service")
 
         try {
-            id = manager.cameraIdList.firstOrNull {
-                val characteristics = manager.getCameraCharacteristics(it)
-                val capabilities =
-                    characteristics[CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES]
-                        ?: return@firstOrNull false
-
-                return@firstOrNull CameraMetadata.REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO in capabilities
-            } ?: throw CameraError(CameraErrorType.HighSpeedNotAvailable)
-
+            id = manager.highSpeedCameraId()
             val characteristics = manager.getCameraCharacteristics(id)
 
             val config = characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]
@@ -63,3 +56,12 @@ class CameraMetadata(
         }
     }
 }
+
+private fun CameraManager.highSpeedCameraId() = cameraIdList.firstOrNull {
+    val characteristics = getCameraCharacteristics(it)
+    val capabilities =
+        characteristics[CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES]
+            ?: return@firstOrNull false
+
+    return@firstOrNull CameraMetadata.REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO in capabilities
+} ?: throw CameraError(CameraErrorType.HighSpeedNotAvailable)

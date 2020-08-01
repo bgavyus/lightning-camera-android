@@ -2,54 +2,46 @@ package io.github.bgavyus.splash.activities
 
 import android.content.res.Configuration
 import android.os.Bundle
-import android.renderscript.RenderScript
 import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.widget.CompoundButton
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.core.view.isInvisible
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.splash.capture.CameraError
-import io.github.bgavyus.splash.common.Application
 import io.github.bgavyus.splash.common.DeferScope
-import io.github.bgavyus.splash.common.Device
 import io.github.bgavyus.splash.common.resourceId
 import io.github.bgavyus.splash.databinding.ActivityViewfinderBinding
 import io.github.bgavyus.splash.graphics.media.Beeper
 import io.github.bgavyus.splash.permissions.PermissionError
-import io.github.bgavyus.splash.permissions.PermissionsManager
-import io.github.bgavyus.splash.permissions.PermissionsRequester
-import io.github.bgavyus.splash.storage.Storage
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.util.*
+import javax.inject.Inject
 
 // TODO: Handle rotation
 // TODO: Use images in toggle button
 // TODO: Replace visual indicator dot with red frame
 // TODO: Replace with fragment
+@AndroidEntryPoint
 class ViewfinderActivity : FragmentActivity(), CompoundButton.OnCheckedChangeListener {
     companion object {
         // TODO: Replace TAGs with logger
         private val TAG = ViewfinderActivity::class.simpleName
     }
 
-    private lateinit var storage: Storage
-    private lateinit var permissionsRequester: PermissionsRequester
-    private lateinit var permissionsManager: PermissionsManager
+    private val viewModel: ViewfinderViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate(savedInstanceState = $savedInstanceState)")
         super.onCreate(savedInstanceState)
-
-        storage = Storage(contentResolver)
-        permissionsRequester = PermissionsRequester(supportFragmentManager)
-        permissionsManager = PermissionsManager(Application.context, storage, permissionsRequester)
 
         enterFullScreen()
         inflateView()
@@ -73,7 +65,7 @@ class ViewfinderActivity : FragmentActivity(), CompoundButton.OnCheckedChangeLis
 
     private fun grantPermissions() = lifecycleScope.launch {
         try {
-            permissionsManager.grantAll()
+            viewModel.grantPermissions()
         } catch (error: PermissionError) {
             finishWithMessage(error.resourceId)
         }
@@ -99,20 +91,10 @@ class ViewfinderActivity : FragmentActivity(), CompoundButton.OnCheckedChangeLis
         }
     }
 
-    private lateinit var viewModel: ViewfinderViewModel
-
     private fun init() = lifecycleScope.launch {
         try {
-            viewModel = ViewfinderViewModel(
-                context = Application.context,
-                storage = storage,
-                device = Device(Application.context),
-                textureView = binding.textureView,
-                renderScript = RenderScript.create(Application.context)
-            ).apply {
-                create()
-                focusDeferScope.defer(::close)
-
+            viewModel.apply {
+                stream(binding.textureView)
                 detectingStates()
                     .onEach { onDetectionStateChanged(it) }
                     .launchIn(lifecycleScope)
@@ -145,7 +127,8 @@ class ViewfinderActivity : FragmentActivity(), CompoundButton.OnCheckedChangeLis
         binding.detectionIndicator.isInvisible = !active
     }
 
-    private val beeper = Beeper()
+    @Inject
+    lateinit var beeper: Beeper
 
     private fun setAudibleDetectionIndicatorActive(active: Boolean) {
         if (active) {
@@ -179,11 +162,11 @@ class ViewfinderActivity : FragmentActivity(), CompoundButton.OnCheckedChangeLis
 
     private fun getDefaultString(resourceId: Int): String {
         val config = Configuration().apply { setLocale(Locale.ROOT) }
-        return Application.context.createConfigurationContext(config).getString(resourceId)
+        return applicationContext.createConfigurationContext(config).getString(resourceId)
     }
 
     private fun showMessage(resourceId: Int) {
-        Toast.makeText(Application.context, resourceId, Toast.LENGTH_LONG).run {
+        Toast.makeText(applicationContext, resourceId, Toast.LENGTH_LONG).run {
             setGravity(Gravity.CENTER, /* xOffset = */ 0, /* yOffset = */ 0)
             show()
         }

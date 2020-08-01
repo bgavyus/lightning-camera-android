@@ -43,26 +43,28 @@ class CameraConnection(
 }
 
 @SuppressLint("MissingPermission")
-private fun CameraManager.openCamera(id: String, handler: Handler): Flow<CameraDevice> =
-    callbackFlow {
-        val callback = object : CameraDevice.StateCallback() {
-            override fun onOpened(camera: CameraDevice) = sendBlocking(camera)
+private fun CameraManager.openCamera(
+    id: String,
+    handler: Handler
+): Flow<CameraDevice> = callbackFlow {
+    val callback = object : CameraDevice.StateCallback() {
+        override fun onOpened(camera: CameraDevice) = sendBlocking(camera)
 
-            override fun onDisconnected(camera: CameraDevice) =
-                cancel(CameraError(CameraErrorType.Disconnected))
+        override fun onDisconnected(camera: CameraDevice) =
+            cancel(CameraError(CameraErrorType.Disconnected))
 
-            override fun onError(camera: CameraDevice, error: Int) =
-                cancel(CameraError.fromStateError(error))
+        override fun onError(camera: CameraDevice, error: Int) =
+            cancel(CameraError.fromStateError(error))
 
-            private fun cancel(error: CameraError) =
-                cancel(CancellationException(error.type.name, error))
-        }
-
-        try {
-            openCamera(id, callback, handler)
-        } catch (error: CameraAccessException) {
-            throw CameraError.fromAccessException(error)
-        }
-
-        awaitClose()
+        private fun cancel(error: CameraError) =
+            cancel(CancellationException(error.type.name, error))
     }
+
+    try {
+        openCamera(id, callback, handler)
+    } catch (error: CameraAccessException) {
+        throw CameraError.fromAccessException(error)
+    }
+
+    awaitClose()
+}

@@ -18,7 +18,7 @@ class StreamView(
     private val bufferSize: Size
 ) : DeferScope(), ImageConsumer, TextureView.SurfaceTextureListener {
     private lateinit var _surface: Surface
-    private val initCompletion = CompletableDeferred<Unit>()
+    private val startCompletion = CompletableDeferred<Unit>()
 
     suspend fun start() {
         textureView.run {
@@ -29,7 +29,7 @@ class StreamView(
             }
         }
 
-        initCompletion.await()
+        startCompletion.await()
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) =
@@ -41,7 +41,7 @@ class StreamView(
         _surface = Surface(textureView.surfaceTexture)
             .apply { defer(::release) }
 
-        initCompletion.complete(Unit)
+        startCompletion.complete(Unit)
     }
 
     override val surface: Surface
@@ -79,5 +79,5 @@ class StreamView(
     }
 
     override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {}
-    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?) = true
+    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?) = /* releaseSurface = */ true
 }

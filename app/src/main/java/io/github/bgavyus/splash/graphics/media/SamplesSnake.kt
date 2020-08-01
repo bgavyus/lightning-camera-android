@@ -6,7 +6,10 @@ import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.Snake
 import java.nio.ByteBuffer
 
-class SamplesSnake(sampleSize: Int, samplesCount: Int): DeferScope() {
+class SamplesSnake(
+    sampleSize: Int,
+    samplesCount: Int
+) : DeferScope() {
     companion object {
         private val TAG = SamplesSnake::class.simpleName
     }
