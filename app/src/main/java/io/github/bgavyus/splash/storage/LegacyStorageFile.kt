@@ -4,6 +4,8 @@ import android.content.ContentResolver
 import android.content.ContentValues
 import android.os.Environment
 import android.provider.MediaStore
+import io.github.bgavyus.splash.permissions.PermissionMissingException
+import io.github.bgavyus.splash.permissions.PermissionGroup
 import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException
@@ -31,18 +33,24 @@ class LegacyStorageFile(
     private val file = File(parentDirectory, name)
         .apply { delete() }
 
-    private val outputStream = file.outputStream()
+    private val outputStream = try {
+        file.outputStream()
+    } catch (_: SecurityException) {
+        throw PermissionMissingException(PermissionGroup.Storage)
+    }
+
     override val descriptor: FileDescriptor get() = outputStream.fd
     override val path: String get() = file.path
-    override var keep = false
+    private var pending = true
 
-    override fun close() {
-        outputStream.close()
-
-        if (keep) {
+    override fun keep() {
+        if (pending) {
             save()
+            pending = false
         }
     }
+
+    override fun close() = outputStream.close()
 
     private fun save() {
         if (!file.renameTo(file)) {

@@ -9,6 +9,6 @@ class Beeper @Inject constructor() : DeferScope() {
     private val generator = ToneGenerator(AudioManager.STREAM_MUSIC, ToneGenerator.MAX_VOLUME)
         .apply { defer(::release) }
 
-    fun start() = generator.startTone(ToneGenerator.TONE_DTMF_0)
+    fun start() { generator.startTone(ToneGenerator.TONE_DTMF_0) }
     fun stop() = generator.stopTone()
 }

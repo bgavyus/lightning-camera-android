@@ -3,7 +3,7 @@ package io.github.bgavyus.splash.graphics.detection
 import android.renderscript.Allocation
 import android.renderscript.RenderScript
 import android.util.Size
-import io.github.bgavyus.splash.common.area
+import io.github.bgavyus.splash.common.extensions.area
 import kotlin.math.absoluteValue
 
 class MotionDetector(

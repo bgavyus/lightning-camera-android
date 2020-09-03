@@ -21,14 +21,14 @@
         android:layout_height="wrap_content"
         android:src="@android:drawable/ic_notification_overlay"
         android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/toggle_button"
+        app:layout_constraintBottom_toTopOf="@+id/watch_toggle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="ContentDescription" />
 
     <ToggleButton
-        android:id="@+id/toggle_button"
+        android:id="@+id/watch_toggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"

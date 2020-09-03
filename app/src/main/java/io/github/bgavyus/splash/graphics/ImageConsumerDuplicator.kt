@@ -3,6 +3,7 @@ package io.github.bgavyus.splash.graphics
 import android.annotation.SuppressLint
 import android.graphics.SurfaceTexture
 import android.os.Build
+import android.os.Handler
 import android.util.Log
 import android.util.Size
 import android.view.Surface
@@ -13,14 +14,18 @@ import com.otaliastudios.opengl.surface.EglWindowSurface
 import com.otaliastudios.opengl.texture.GlTexture
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.SingleThreadHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.android.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 
-class ImageConsumerDuplicator(
-    private val consumers: Iterable<ImageConsumer>,
-    private val bufferSize: Size
-) : DeferScope(), ImageConsumer,
-    SurfaceTexture.OnFrameAvailableListener {
+class ImageConsumerDuplicator : DeferScope(), ImageConsumer {
     companion object {
         private val TAG = ImageConsumerDuplicator::class.simpleName
     }
@@ -28,22 +33,39 @@ class ImageConsumerDuplicator(
     private val handler = SingleThreadHandler(TAG)
         .apply { defer(::close) }
 
-    private lateinit var windows: List<EglWindowSurface>
+    private val dispatcher = handler.asCoroutineDispatcher(TAG)
+    private val scope = CoroutineScope(dispatcher)
+        .apply { defer { cancel() } }
+
+    private lateinit var core: EglCore
     private lateinit var program: GlTextureProgram
     private lateinit var surfaceTexture: SurfaceTexture
     private lateinit var entireViewport: GlRect
     override lateinit var surface: Surface
 
-    suspend fun start() = withContext(handler.asCoroutineDispatcher(TAG)) {
-        val core = EglCore(flags = EglCore.FLAG_TRY_GLES3)
-            .apply { defer(::release) }
+    private val windows = mutableSetOf<EglWindowSurface>().apply {
+        defer {
+            forEach { it.release() }
+            clear()
+        }
+    }
 
-        windows = consumers.map {
-            EglWindowSurface(core, it.surface)
+    suspend fun addConsumer(consumer: ImageConsumer) = withContext(dispatcher) {
+        if (windows.isEmpty()) {
+            core = EglCore(flags = EglCore.FLAG_TRY_GLES3)
                 .apply { defer(::release) }
         }
-            .apply { first().makeCurrent() }
 
+        val windowSurface = EglWindowSurface(core, consumer.surface)
+
+        if (windows.isEmpty()) {
+            windowSurface.makeCurrent()
+        }
+
+        windows.add(windowSurface)
+    }
+
+    suspend fun start() = withContext(dispatcher) {
         val texture = GlTexture()
 
         program = GlTextureProgram().apply {
@@ -52,9 +74,11 @@ class ImageConsumerDuplicator(
         }
 
         surfaceTexture = SurfaceTexture(texture.id).apply {
-            setOnFrameAvailableListener(this@ImageConsumerDuplicator, handler)
-            setDefaultBufferSize(bufferSize.width, bufferSize.height)
             defer(::release)
+
+            updates(handler)
+                .onEach { onFrameAvailable() }
+                .launchIn(scope)
         }
 
         entireViewport = GlRect()
@@ -62,10 +86,13 @@ class ImageConsumerDuplicator(
 
         @SuppressLint("Recycle")
         surface = Surface(surfaceTexture)
-            .apply { defer(::release) }
     }
 
-    override fun onFrameAvailable(surface: SurfaceTexture?) {
+    fun setBufferSize(bufferSize: Size) {
+        surfaceTexture.setDefaultBufferSize(bufferSize.width, bufferSize.height)
+    }
+
+    private fun onFrameAvailable() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (surfaceTexture.isReleased) {
                 Log.d(TAG, "Ignoring frame after release")
@@ -82,4 +109,9 @@ class ImageConsumerDuplicator(
             window.swapBuffers()
         }
     }
+}
+
+private fun SurfaceTexture.updates(handler: Handler): Flow<Unit> = callbackFlow {
+    setOnFrameAvailableListener({ sendBlocking(Unit) }, handler)
+    awaitClose { setOnFrameAvailableListener(null) }
 }

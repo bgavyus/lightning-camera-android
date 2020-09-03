@@ -4,21 +4,23 @@ import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.util.Log
-import android.util.Range
 import android.util.Size
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.Rotation
-import io.github.bgavyus.splash.common.area
-import io.github.bgavyus.splash.common.middle
+import io.github.bgavyus.splash.common.extensions.area
 import io.github.bgavyus.splash.graphics.ImageConsumer
 import io.github.bgavyus.splash.storage.StorageFile
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import java.nio.ByteBuffer
 
 class Recorder(
-    private val file: StorageFile,
-    private val rotation: Rotation,
     videoSize: Size,
-    fpsRange: Range<Int>
+    framesPerSecond: Int
 ) : DeferScope(), ImageConsumer, EncoderListener {
     companion object {
         private val TAG = Recorder::class.simpleName
@@ -31,9 +33,19 @@ class Recorder(
         private const val MIN_BUFFER_TIME_MILLISECONDS = 50
     }
 
+    private val scope = CoroutineScope(Dispatchers.IO)
+        .apply { defer { cancel() } }
+
+    var rotation = Rotation.Natural
+    val file = MutableStateFlow(null as StorageFile?)
+    private val format = MutableStateFlow(null as MediaFormat?)
+
     private val encoder: Encoder
 
     init {
+        defer(::closeWriter)
+        bind()
+
         val format = MediaFormat.createVideoFormat(
             MediaFormat.MIMETYPE_VIDEO_AVC,
             videoSize.width,
@@ -46,10 +58,10 @@ class Recorder(
 
             setInteger(
                 MediaFormat.KEY_BIT_RATE,
-                fpsRange.middle * videoSize.area / COMPRESSION_FACTOR
+                framesPerSecond * videoSize.area / COMPRESSION_FACTOR
             )
 
-            setInteger(MediaFormat.KEY_CAPTURE_RATE, fpsRange.middle)
+            setInteger(MediaFormat.KEY_CAPTURE_RATE, framesPerSecond)
 
             setInteger(MediaFormat.KEY_FRAME_RATE, PLAYBACK_FPS)
 
@@ -65,12 +77,28 @@ class Recorder(
         }
     }
 
-    private lateinit var writer: Writer
+    private fun bind() {
+        combine(file, format) { file, format ->
+            closeWriter()
+
+            if (file != null && format != null) {
+                writer = Writer(file, format, rotation)
+            }
+        }
+            .launchIn(scope)
+    }
+
+    private fun closeWriter() {
+        writer?.close()
+        writer = null
+    }
+
+    private var writer: Writer? = null
     private var recording = false
 
     private val snake = SamplesSnake(
         sampleSize = videoSize.area,
-        samplesCount = fpsRange.upper * MIN_BUFFER_TIME_MILLISECONDS / MILLIS_IN_UNIT + KEY_FRAME_INTERVAL_FRAMES - 1
+        samplesCount = framesPerSecond * MIN_BUFFER_TIME_MILLISECONDS / MILLIS_IN_UNIT + KEY_FRAME_INTERVAL_FRAMES - 1
     )
 
     private var lastPts = 0L
@@ -81,8 +109,7 @@ class Recorder(
     override val surface get() = encoder.surface
 
     override fun onFormatAvailable(format: MediaFormat) {
-        writer = Writer(file, format, rotation)
-            .also { defer(it::close) }
+        this.format.value = format
     }
 
     override fun onBufferAvailable(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
@@ -108,6 +135,7 @@ class Recorder(
     }
 
     fun record() {
+        Log.i(TAG, "Recording")
         snake.drain(::write)
         recording = true
     }
@@ -115,10 +143,11 @@ class Recorder(
     private fun write(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
         // TODO: Use actual PTS
         info.presentationTimeUs = ptsGenerator.next()
-        writer.write(buffer, info)
+        writer?.write(buffer, info)
     }
 
     fun loss() {
+        Log.i(TAG, "Losing")
         recording = false
     }
 

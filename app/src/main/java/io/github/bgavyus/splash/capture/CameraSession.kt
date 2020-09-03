@@ -4,6 +4,7 @@ import android.hardware.camera2.*
 import android.hardware.camera2.params.OutputConfiguration
 import android.hardware.camera2.params.SessionConfiguration
 import android.os.Build
+import android.util.Range
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.SingleThreadHandler
 import io.github.bgavyus.splash.graphics.ImageConsumer
@@ -13,7 +14,7 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 class CameraSession(
-    private val cameraMetadata: CameraMetadata,
+    private val framesPerSecond: Int,
     private val connection: CameraConnection,
     private val consumers: Iterable<ImageConsumer>
 ) : DeferScope() {
@@ -33,17 +34,17 @@ class CameraSession(
                         defer(session::close)
                         continuation.resume(Unit)
                     } catch (error: CameraAccessException) {
-                        continuation.resumeWithException(CameraError.fromAccessException(error))
+                        continuation.resumeWithException(CameraException.fromAccessException(error))
                     }
                 }
 
                 override fun onConfigureFailed(session: CameraCaptureSession) {
-                    val type = CameraErrorType.ConfigureFailed
-                    continuation.resumeWithException(CameraError(type))
+                    val type = CameraExceptionType.ConfigureFailed
+                    continuation.resumeWithException(CameraException(type))
                 }
             })
         } catch (error: CameraAccessException) {
-            continuation.resumeWithException(CameraError.fromAccessException(error))
+            continuation.resumeWithException(CameraException.fromAccessException(error))
         }
     }
 
@@ -75,7 +76,7 @@ class CameraSession(
     private fun startSession(session: CameraConstrainedHighSpeedCaptureSession) {
         session.run {
             val captureRequest = device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
-                set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, cameraMetadata.fpsRange)
+                set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, framesPerSecond.toRange())
                 consumers.forEach { addTarget(it.surface) }
             }.build()
 
@@ -84,3 +85,5 @@ class CameraSession(
         }
     }
 }
+
+private fun <T : Comparable<T>> T.toRange() = Range(this, this)

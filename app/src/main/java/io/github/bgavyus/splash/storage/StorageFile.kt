@@ -5,5 +5,5 @@ import java.io.FileDescriptor
 interface StorageFile : AutoCloseable {
     val descriptor: FileDescriptor
     val path: String
-    var keep: Boolean
+    fun keep()
 }

@@ -8,6 +8,10 @@ import android.util.Log
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.storage.StorageFile
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
 
 class Writer(
@@ -18,8 +22,12 @@ class Writer(
     companion object {
         private val TAG = Writer::class.simpleName
 
+        // TODO: Check if WEBM is playable even when the muxer hasn't stopped
         private const val OUTPUT_FORMAT = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
     }
+
+    private val scope = CoroutineScope(Dispatchers.IO)
+        .apply { defer { cancel() } }
 
     private val track: Int
     private var active = false
@@ -53,8 +61,11 @@ class Writer(
     }
 
     fun write(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+        if (!active) {
+            scope.launch { file.keep() }
+            active = true
+        }
+
         muxer.writeSampleData(track, buffer, info)
-        active = true
-        file.keep = true
     }
 }

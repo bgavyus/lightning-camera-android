@@ -5,6 +5,7 @@
     android:installLocation="auto">
 
     <uses-permission android:name="android.permission.CAMERA" />
+
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
@@ -16,9 +17,11 @@
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
+
     <uses-feature
         android:name="android.hardware.camera.any"
         android:required="true" />
+
     <uses-feature
         android:name="android.hardware.camera.level.full"
         android:required="true" />
@@ -26,6 +29,7 @@
     <uses-feature
         android:name="android.hardware.touchscreen"
         android:required="false" />
+
     <uses-feature
         android:name="android.hardware.faketouch"
         android:required="true" />
@@ -38,7 +42,8 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".activities.ViewfinderActivity">
+
+        <activity android:name=".activities.viewfinder.ViewfinderActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

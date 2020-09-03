@@ -4,16 +4,13 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
-import androidx.activity.ComponentActivity
-import androidx.activity.result.contract.ActivityResultContract
-import androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions
-import dagger.hilt.android.qualifiers.ActivityContext
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.splash.storage.Storage
-import kotlinx.coroutines.CompletableDeferred
 import javax.inject.Inject
 
 class PermissionsManager @Inject constructor(
-    @ActivityContext private val context: Context,
+    @ApplicationContext private val context: Context,
+    private val permissionRequester: PermissionRequester,
     private val storage: Storage
 ) {
     companion object {
@@ -27,10 +24,14 @@ class PermissionsManager @Inject constructor(
             return
         }
 
-        Log.i(TAG, "Requesting permissions")
         request(permissionsToRequest)
-
         validateAllGranted()
+    }
+
+    private suspend fun request(permissions: Collection<String>) {
+        Log.i(TAG, "Requesting permissions")
+        val result = permissionRequester.request(permissions)
+        Log.d(TAG, "Result: $result")
     }
 
     private fun missingPermissions() = ArrayList<String>().apply {
@@ -43,12 +44,6 @@ class PermissionsManager @Inject constructor(
         }
     }
 
-    private suspend fun request(permissions: Collection<String>) {
-        val activity = context as ComponentActivity
-        val result = activity.call(RequestMultiplePermissions(), permissions.toTypedArray())
-        Log.d(TAG, "Result: $result")
-    }
-
     private fun validateAllGranted() {
         validateCameraGranted()
         validateStorageGranted()
@@ -56,7 +51,7 @@ class PermissionsManager @Inject constructor(
 
     private fun validateCameraGranted() {
         if (!cameraGranted) {
-            throw PermissionError(PermissionGroup.Camera)
+            throw PermissionMissingException(PermissionGroup.Camera)
         }
     }
 
@@ -65,7 +60,7 @@ class PermissionsManager @Inject constructor(
 
     private fun validateStorageGranted() {
         if (!storageGranted) {
-            throw PermissionError(PermissionGroup.Storage)
+            throw PermissionMissingException(PermissionGroup.Storage)
         }
     }
 
@@ -74,16 +69,9 @@ class PermissionsManager @Inject constructor(
 
     private fun granted(permission: String) =
         context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
-}
 
-private suspend fun <Input, Output> ComponentActivity.call(
-    contract: ActivityResultContract<Input, Output>,
-    input: Input
-): Output {
-    val deferred = CompletableDeferred<Output>()
-    val launcher = registerForActivityResult(contract) { deferred.complete(it) }
-    launcher.launch(input)
-    val output = deferred.await()
-    launcher.unregister()
-    return output
+    fun canRequestPermission(id: String) =
+        context.packageManager.getPackageInfo(context.packageName, PackageManager.GET_PERMISSIONS)
+            .requestedPermissions
+            .contains(id)
 }

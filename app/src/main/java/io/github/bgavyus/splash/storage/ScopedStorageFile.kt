@@ -7,13 +7,15 @@ import android.net.Uri
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
-import android.text.format.DateUtils
 import java.io.File.separator
 import java.io.IOException
+import java.time.Clock
+import java.time.Period
 
 @TargetApi(Build.VERSION_CODES.Q)
 class ScopedStorageFile(
     private val contentResolver: ContentResolver,
+    clock: Clock,
     mimeType: String,
     standardDirectory: StandardDirectory,
     appDirectoryName: String,
@@ -32,9 +34,8 @@ class ScopedStorageFile(
 
             put(MediaStore.MediaColumns.IS_PENDING, true.toInt())
 
-            // TODO: Refactor to use DI
-            val expirationTime = (System.currentTimeMillis() + DateUtils.DAY_IN_MILLIS) / 1000
-            put(MediaStore.MediaColumns.DATE_EXPIRES, expirationTime)
+            val expirationTime = clock.instant().plus(Period.ofDays(1))
+            put(MediaStore.MediaColumns.DATE_EXPIRES, expirationTime.epochSecond)
         }
 
         uri = contentResolver.insert(standardDirectory.externalStorageContentUri, contentValues)
@@ -48,15 +49,20 @@ class ScopedStorageFile(
         get() = file.fileDescriptor
             ?: throw IOException("Failed to get file descriptor")
 
-    override val path: String get() = throw NotImplementedError()
-    override var keep = false
+    override val path get() = throw NotImplementedError()
+    private var pending = true
+
+    override fun keep() {
+        if (pending) {
+            save()
+            pending = false
+        }
+    }
 
     override fun close() {
         file.close()
 
-        if (keep) {
-            save()
-        } else {
+        if (pending) {
             discard()
         }
     }
