@@ -43,7 +43,9 @@
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
         tools:ignore="GoogleAppIndexingWarning">
 
-        <activity android:name=".activities.viewfinder.ViewfinderActivity">
+        <activity
+            android:name=".activities.viewfinder.ViewfinderActivity"
+            android:screenOrientation="fullUser">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
