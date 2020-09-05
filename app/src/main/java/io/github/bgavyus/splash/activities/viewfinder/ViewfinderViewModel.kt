@@ -27,9 +27,11 @@ import io.github.bgavyus.splash.graphics.media.Recorder
 import io.github.bgavyus.splash.permissions.PermissionMissingException
 import io.github.bgavyus.splash.permissions.PermissionsManager
 import io.github.bgavyus.splash.storage.Storage
-import io.github.bgavyus.splash.storage.StorageFile
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 class ViewfinderViewModel @ViewModelInject constructor(
     @ApplicationContext private val context: Context,
@@ -54,7 +56,6 @@ class ViewfinderViewModel @ViewModelInject constructor(
     val watching = MutableStateFlow(false)
     val transformMatrix = MutableStateFlow(Matrix())
     val surfaceTexture = MutableStateFlow(null as SurfaceTexture?)
-    val file = MutableStateFlow(null as StorageFile?)
     val lastException = MutableStateFlow(null as Exception?)
 
     private val deferredMetadata = viewModelScope.async {
@@ -100,12 +101,11 @@ class ViewfinderViewModel @ViewModelInject constructor(
     private val deferredRecorder = viewModelScope.async(Dispatchers.IO) {
         val metadata = deferredMetadata.await()
 
-        Recorder(metadata.frameSize, metadata.framesPerSecond)
+        Recorder(storage, metadata.frameSize, metadata.framesPerSecond)
             .apply { deferScope.defer(::close) }
     }
 
     init {
-        activeDeferScope.defer(::closeFile)
         bind()
     }
 
@@ -120,9 +120,9 @@ class ViewfinderViewModel @ViewModelInject constructor(
             detecting.onToggle(on = beeper::start, off = beeper::stop),
             watching.combine(detecting) { a, b -> a && b }
                 .onToggle(on = recorder::record, off = recorder::loss),
-            file.reflectTo(recorder.file),
             viewSize.reflectTo(holder.viewSize),
-            holder.transformMatrix.reflectTo(transformMatrix)
+            holder.transformMatrix.reflectTo(transformMatrix),
+            recorder.lastException.reflectTo(lastException)
         )
     }
 
@@ -138,13 +138,17 @@ class ViewfinderViewModel @ViewModelInject constructor(
         val recorder = deferredRecorder.await()
 
         try {
+            recorder.apply {
+                activeDeferScope.defer(::stop)
+                start()
+            }
+
             Display(context).apply {
                 activeDeferScope.defer(::close)
 
                 rotations().onEach {
-                    recorder.rotation = metadata.orientation - it
+                    recorder.rotation.value = metadata.orientation - it
                     holder.rotation.value = it
-                    regenerateFile()
                 }
                     .launchIn(activeCoroutineScope)
             }
@@ -170,17 +174,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
         }
     }
 
-    private suspend fun regenerateFile() = withContext(Dispatchers.IO) {
-        closeFile()
-        file.value = storage.generateFile()
-    }
-
     private fun deactivate() = activeDeferScope.close()
-
-    private fun closeFile() {
-        file.value?.close()
-        file.value = null
-    }
 
     fun adjustBufferSize() {
         val size = cameraMetadata?.frameSize ?: return

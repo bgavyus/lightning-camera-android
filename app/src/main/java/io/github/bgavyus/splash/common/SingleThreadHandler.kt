@@ -14,7 +14,7 @@ class SingleThreadHandler : Handler, AutoCloseable {
     private constructor(thread: HandlerThread) : super(thread.looper) {
         thread.apply {
             deferScope.defer {
-                Logger.debug("Quiting thread $name")
+                Logger.debug("Quiting $name thread")
                 quitSafely()
             }
         }

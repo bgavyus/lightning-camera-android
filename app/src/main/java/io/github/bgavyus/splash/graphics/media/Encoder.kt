@@ -17,6 +17,9 @@ class Encoder(format: MediaFormat) : DeferScope(), ImageConsumer {
     override val surface: Surface
 
     init {
+        val mimeType = format.getString(MediaFormat.KEY_MIME)
+            ?: throw IllegalArgumentException()
+
         val callback = object : MediaCodec.Callback() {
             override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
                 Logger.debug("onOutputFormatChanged(format = $format)")
@@ -74,7 +77,7 @@ class Encoder(format: MediaFormat) : DeferScope(), ImageConsumer {
             override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {}
         }
 
-        MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_VIDEO_AVC).run {
+        MediaCodec.createEncoderByType(mimeType).run {
             defer(::release)
             setCallback(callback, handler)
 

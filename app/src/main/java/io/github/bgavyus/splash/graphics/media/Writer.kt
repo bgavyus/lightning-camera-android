@@ -20,7 +20,6 @@ class Writer(
     rotation: Rotation
 ) : DeferScope() {
     companion object {
-        // TODO: Check if WEBM is playable even when the muxer hasn't stopped
         private const val OUTPUT_FORMAT = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
     }
 

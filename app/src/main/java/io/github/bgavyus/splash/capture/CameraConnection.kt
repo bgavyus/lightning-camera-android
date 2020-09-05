@@ -37,10 +37,7 @@ class CameraConnection(
 }
 
 @SuppressLint("MissingPermission")
-private fun CameraManager.openCamera(
-    id: String,
-    handler: Handler
-) = callbackFlow<CameraDevice> {
+private fun CameraManager.openCamera(id: String, handler: Handler) = callbackFlow<CameraDevice> {
     val callback = object : CameraDevice.StateCallback() {
         override fun onOpened(camera: CameraDevice) = sendBlocking(camera)
 
