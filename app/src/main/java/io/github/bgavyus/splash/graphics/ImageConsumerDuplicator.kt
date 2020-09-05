@@ -19,7 +19,6 @@ import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -41,6 +40,7 @@ class ImageConsumerDuplicator : DeferScope(), ImageConsumer {
 
     private val windows = mutableSetOf<EglWindowSurface>().apply {
         defer {
+            Logger.debug("Releasing surfaces")
             forEach { it.release() }
             clear()
         }
@@ -107,7 +107,7 @@ class ImageConsumerDuplicator : DeferScope(), ImageConsumer {
     }
 }
 
-private fun SurfaceTexture.updates(handler: Handler): Flow<Unit> = callbackFlow {
+private fun SurfaceTexture.updates(handler: Handler) = callbackFlow {
     setOnFrameAvailableListener({ sendBlocking(Unit) }, handler)
     awaitClose { setOnFrameAvailableListener(null) }
 }

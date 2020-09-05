@@ -144,8 +144,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
                 rotations().onEach {
                     recorder.rotation = metadata.orientation - it
                     holder.rotation.value = it
-                    // TODO: Fix crash
-//                    regenerateFile()
+                    regenerateFile()
                 }
                     .launchIn(activeCoroutineScope)
             }

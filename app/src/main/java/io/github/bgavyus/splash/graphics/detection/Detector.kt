@@ -12,7 +12,10 @@ import io.github.bgavyus.splash.graphics.ImageConsumer
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 
 abstract class Detector(
     renderScript: RenderScript,
@@ -47,7 +50,7 @@ abstract class Detector(
         .flowOn(handler.asCoroutineDispatcher(Detector::class.simpleName))
 }
 
-private fun Allocation.buffers(): Flow<Unit> = callbackFlow {
+private fun Allocation.buffers() = callbackFlow {
     setOnBufferAvailableListener { sendBlocking(ioReceive()) }
     awaitClose { setOnBufferAvailableListener(null) }
 }

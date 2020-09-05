@@ -16,7 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -41,7 +40,7 @@ class CameraConnection(
 private fun CameraManager.openCamera(
     id: String,
     handler: Handler
-): Flow<CameraDevice> = callbackFlow {
+) = callbackFlow<CameraDevice> {
     val callback = object : CameraDevice.StateCallback() {
         override fun onOpened(camera: CameraDevice) = sendBlocking(camera)
 

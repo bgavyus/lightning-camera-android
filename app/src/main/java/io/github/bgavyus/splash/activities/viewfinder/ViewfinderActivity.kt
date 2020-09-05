@@ -22,7 +22,6 @@ import io.github.bgavyus.splash.common.extensions.reflectTo
 import io.github.bgavyus.splash.databinding.ActivityViewfinderBinding
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filterNotNull
 import java.io.IOException
@@ -120,7 +119,7 @@ class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListene
     }
 }
 
-private fun ToggleButton.checked(): Flow<Boolean> = callbackFlow {
+private fun ToggleButton.checked() = callbackFlow {
     setOnCheckedChangeListener { _, checked -> sendBlocking(checked) }
     awaitClose { setOnCheckedChangeListener(null) }
 }
