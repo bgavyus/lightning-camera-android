@@ -1,22 +1,15 @@
 package io.github.bgavyus.splash.graphics.media
 
 import android.media.MediaCodec
-import android.util.Log
 import io.github.bgavyus.splash.common.DeferScope
+import io.github.bgavyus.splash.common.Logger
 import io.github.bgavyus.splash.common.Snake
 import java.nio.ByteBuffer
 
-class SamplesSnake(
-    sampleSize: Int,
-    samplesCount: Int
-) : DeferScope() {
-    companion object {
-        private val TAG = SamplesSnake::class.simpleName
-    }
-
+class SamplesSnake(sampleSize: Int, samplesCount: Int) : DeferScope() {
     private val snake = Snake(Array(samplesCount) { Sample(sampleSize) }.apply {
         defer {
-            Log.d(TAG, "Freeing samples")
+            Logger.debug("Freeing samples")
             forEach { it.close() }
         }
     })
@@ -38,6 +31,6 @@ class SamplesSnake(
             }
         }
 
-        Log.d(TAG, "Skipped partial frames: $skippedFrames")
+        Logger.debug("Skipped partial frames: $skippedFrames")
     }
 }

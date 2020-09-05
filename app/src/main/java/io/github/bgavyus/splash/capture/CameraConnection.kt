@@ -9,8 +9,8 @@ import android.os.Handler
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.SingleThreadHandler
 import io.github.bgavyus.splash.common.extensions.systemService
-import io.github.bgavyus.splash.permissions.PermissionMissingException
 import io.github.bgavyus.splash.permissions.PermissionGroup
+import io.github.bgavyus.splash.permissions.PermissionMissingException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -25,17 +25,13 @@ class CameraConnection(
     private val context: Context,
     private val cameraId: String
 ) : DeferScope() {
-    companion object {
-        private val TAG = CameraConnection::class.simpleName
-    }
-
-    private val handler = SingleThreadHandler(TAG)
+    private val handler = SingleThreadHandler(CameraConnection::class.simpleName)
         .apply { defer(::close) }
 
     lateinit var device: CameraDevice
 
     suspend fun open() = withContext(Dispatchers.IO) {
-        device = context.systemService(CameraManager::class).openCamera(cameraId, handler)
+        device = context.systemService<CameraManager>().openCamera(cameraId, handler)
             .first()
             .apply { defer(::close) }
     }
@@ -56,7 +52,7 @@ private fun CameraManager.openCamera(
             cancel(CameraException.fromStateError(error))
 
         private fun cancel(exception: CameraException) =
-            cancel(CancellationException(CameraException::class.java.simpleName, exception))
+            cancel(CancellationException(CameraException::class.simpleName, exception))
     }
 
     try {

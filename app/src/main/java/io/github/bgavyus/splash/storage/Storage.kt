@@ -35,7 +35,7 @@ class Storage @Inject constructor(
         standardDirectory: StandardDirectory,
         appDirectoryName: String,
         name: String
-    ) = if (legacy) {
+    ) = if (isLegacy) {
         LegacyStorageFile(
             contentResolver,
             mimeType,
@@ -54,6 +54,6 @@ class Storage @Inject constructor(
         )
     }
 
-    val legacy
+    val isLegacy
         get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || Environment.isExternalStorageLegacy()
 }

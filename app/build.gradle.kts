@@ -56,7 +56,7 @@ dependencies {
     val kotlinVersion: String by rootProject.extra
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.8")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
 
     val hiltVersion: String by rootProject.extra
     implementation("com.google.dagger:hilt-android:$hiltVersion")
@@ -66,11 +66,11 @@ dependencies {
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:$jetpackHiltVersion")
     kapt("androidx.hilt:hilt-compiler:$jetpackHiltVersion")
 
-    implementation("androidx.constraintlayout:constraintlayout:2.0.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.0.1")
     implementation("androidx.fragment:fragment-ktx:1.3.0-alpha08")
 
     // https://github.com/natario1/Egloo/tags
-    implementation("com.otaliastudios.opengl:egloo:0.5.2")
+    implementation("com.otaliastudios.opengl:egloo:0.5.3")
 
     androidTestImplementation("androidx.test:runner:1.3.0")
 }

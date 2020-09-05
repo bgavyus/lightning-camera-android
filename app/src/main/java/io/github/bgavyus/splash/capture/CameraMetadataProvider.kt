@@ -17,7 +17,7 @@ class CameraMetadataProvider @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     suspend fun highSpeed() = withContext(Dispatchers.IO) {
-        val manager = context.systemService(CameraManager::class)
+        val manager = context.systemService<CameraManager>()
 
         try {
             val (id, characteristics) = manager.cameraIdList

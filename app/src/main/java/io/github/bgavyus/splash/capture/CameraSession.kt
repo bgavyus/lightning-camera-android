@@ -18,11 +18,7 @@ class CameraSession(
     private val connection: CameraConnection,
     private val consumers: Iterable<ImageConsumer>
 ) : DeferScope() {
-    companion object {
-        private val TAG = CameraSession::class.simpleName
-    }
-
-    private val handler = SingleThreadHandler(TAG)
+    private val handler = SingleThreadHandler(CameraSession::class.simpleName)
         .apply { defer(::close) }
 
     suspend fun open(): Unit = suspendCoroutine { continuation ->

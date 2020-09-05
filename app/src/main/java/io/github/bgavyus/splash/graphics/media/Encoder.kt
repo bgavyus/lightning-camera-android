@@ -2,18 +2,14 @@ package io.github.bgavyus.splash.graphics.media
 
 import android.media.MediaCodec
 import android.media.MediaFormat
-import android.util.Log
 import android.view.Surface
 import io.github.bgavyus.splash.common.DeferScope
+import io.github.bgavyus.splash.common.Logger
 import io.github.bgavyus.splash.common.SingleThreadHandler
 import io.github.bgavyus.splash.graphics.ImageConsumer
 
 class Encoder(format: MediaFormat) : DeferScope(), ImageConsumer {
-    companion object {
-        private val TAG = Encoder::class.simpleName
-    }
-
-    private val handler = SingleThreadHandler(TAG)
+    private val handler = SingleThreadHandler(Encoder::class.simpleName)
         .apply { defer(::close) }
 
     var listener: EncoderListener? = null
@@ -23,7 +19,7 @@ class Encoder(format: MediaFormat) : DeferScope(), ImageConsumer {
     init {
         val callback = object : MediaCodec.Callback() {
             override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
-                Log.d(TAG, "onOutputFormatChanged(format = $format)")
+                Logger.debug("onOutputFormatChanged(format = $format)")
                 listener?.onFormatAvailable(format)
             }
 
@@ -35,17 +31,17 @@ class Encoder(format: MediaFormat) : DeferScope(), ImageConsumer {
             ) {
                 try {
                     if (info.codecConfig) {
-                        Log.d(TAG, "Got codec config")
+                        Logger.debug("Got codec config")
                         return
                     }
 
                     if (info.endOfStream) {
-                        Log.w(TAG, "Got end of stream")
+                        Logger.warn("Got end of stream")
                         return
                     }
 
                     if (info.empty) {
-                        Log.w(TAG, "Got empty buffer")
+                        Logger.warn("Got empty buffer")
                         return
                     }
 
@@ -53,25 +49,25 @@ class Encoder(format: MediaFormat) : DeferScope(), ImageConsumer {
                         val buffer = codec.getOutputBuffer(index)
 
                         if (buffer == null) {
-                            Log.w(TAG, "Got null buffer")
+                            Logger.warn("Got null buffer")
                             return
                         }
 
                         listener?.onBufferAvailable(buffer, info)
                     } catch (_: IllegalStateException) {
-                        Log.d(TAG, "Ignoring buffer after release")
+                        Logger.debug("Ignoring buffer after release")
                     }
                 } finally {
                     try {
                         codec.releaseOutputBuffer(index, /* render = */ false)
                     } catch (_: IllegalStateException) {
-                        Log.d(TAG, "Ignoring buffer after release")
+                        Logger.debug("Ignoring buffer after release")
                     }
                 }
             }
 
             override fun onError(codec: MediaCodec, error: MediaCodec.CodecException) {
-                Log.e(TAG, "Media codec error", error)
+                Logger.error("Media codec error", error)
                 listener?.onEncoderError(error)
             }
 

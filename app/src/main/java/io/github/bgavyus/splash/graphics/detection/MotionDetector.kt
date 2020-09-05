@@ -10,10 +10,6 @@ class MotionDetector(
     renderScript: RenderScript,
     bufferSize: Size
 ) : Detector(renderScript, bufferSize) {
-    companion object {
-        private val TAG = MotionDetector::class.simpleName
-    }
-
     private val maxRate = CHANNELS * MAX_INTENSITY * bufferSize.area.toFloat()
 
     private val script = ScriptC_motion(renderScript)
@@ -30,7 +26,7 @@ class MotionDetector(
         val diff = ratio - lastRatio
         lastFrameAllocation.copyFrom(inputAllocation)
         lastRatio = ratio
-        // Log.v(TAG, "Ratio: $ratio")
+//        Logger.verbose("Ratio: $ratio")
         return diff.absoluteValue > 0.001
     }
 }

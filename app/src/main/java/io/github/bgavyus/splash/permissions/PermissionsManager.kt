@@ -3,8 +3,8 @@ package io.github.bgavyus.splash.permissions
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.bgavyus.splash.common.Logger
 import io.github.bgavyus.splash.storage.Storage
 import javax.inject.Inject
 
@@ -13,10 +13,6 @@ class PermissionsManager @Inject constructor(
     private val permissionRequester: PermissionRequester,
     private val storage: Storage
 ) {
-    companion object {
-        private val TAG = PermissionsManager::class.simpleName
-    }
-
     suspend fun grantAll() {
         val permissionsToRequest = missingPermissions()
 
@@ -29,9 +25,9 @@ class PermissionsManager @Inject constructor(
     }
 
     private suspend fun request(permissions: Collection<String>) {
-        Log.i(TAG, "Requesting permissions")
+        Logger.info("Requesting permissions")
         val result = permissionRequester.request(permissions)
-        Log.d(TAG, "Result: $result")
+        Logger.debug("Result: $result")
     }
 
     private fun missingPermissions() = ArrayList<String>().apply {
@@ -65,7 +61,7 @@ class PermissionsManager @Inject constructor(
     }
 
     private val storageGranted
-        get() = !storage.legacy || granted(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        get() = !storage.isLegacy || granted(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
     private fun granted(permission: String) =
         context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED

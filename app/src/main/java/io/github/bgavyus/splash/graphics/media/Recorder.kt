@@ -3,9 +3,9 @@ package io.github.bgavyus.splash.graphics.media
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
-import android.util.Log
 import android.util.Size
 import io.github.bgavyus.splash.common.DeferScope
+import io.github.bgavyus.splash.common.Logger
 import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.common.extensions.area
 import io.github.bgavyus.splash.graphics.ImageConsumer
@@ -23,8 +23,6 @@ class Recorder(
     framesPerSecond: Int
 ) : DeferScope(), ImageConsumer, EncoderListener {
     companion object {
-        private val TAG = Recorder::class.simpleName
-
         private const val MILLIS_IN_UNIT = 1_000
         private const val MICROS_IN_UNIT = 1_000_000
         private const val KEY_FRAME_INTERVAL_FRAMES = 10
@@ -127,7 +125,7 @@ class Recorder(
             val framesSkipped = PLAYBACK_FPS * (pts - lastPts) / MICROS_IN_UNIT - 1
 
             if (framesSkipped > 0) {
-                Log.v(TAG, "Frames Skipped: $framesSkipped")
+                Logger.debug("Frames Skipped: $framesSkipped")
             }
         }
 
@@ -135,7 +133,7 @@ class Recorder(
     }
 
     fun record() {
-        Log.i(TAG, "Recording")
+        Logger.info("Recording")
         snake.drain(::write)
         recording = true
     }
@@ -147,7 +145,7 @@ class Recorder(
     }
 
     fun loss() {
-        Log.i(TAG, "Losing")
+        Logger.info("Losing")
         recording = false
     }
 

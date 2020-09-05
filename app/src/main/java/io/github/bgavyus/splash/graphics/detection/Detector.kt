@@ -19,13 +19,11 @@ abstract class Detector(
     bufferSize: Size
 ) : DeferScope(), ImageConsumer {
     companion object {
-        private val TAG = Detector::class.simpleName
-
         const val CHANNELS = 3
         const val MAX_INTENSITY = 255
     }
 
-    private val handler = SingleThreadHandler(TAG)
+    private val handler = SingleThreadHandler(Detector::class.simpleName)
         .apply { defer(::close) }
 
     protected val inputAllocation: Allocation = Allocation.createTyped(
@@ -46,7 +44,7 @@ abstract class Detector(
     fun detectingStates() = inputAllocation.buffers()
         .map { detecting() }
         .distinctUntilChanged()
-        .flowOn(handler.asCoroutineDispatcher(TAG))
+        .flowOn(handler.asCoroutineDispatcher(Detector::class.simpleName))
 }
 
 private fun Allocation.buffers(): Flow<Unit> = callbackFlow {

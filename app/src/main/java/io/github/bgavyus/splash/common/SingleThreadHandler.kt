@@ -2,16 +2,11 @@ package io.github.bgavyus.splash.common
 
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.Log
 import io.github.bgavyus.splash.BuildConfig
 import kotlin.time.TimeSource
 import kotlin.time.seconds
 
 class SingleThreadHandler : Handler, AutoCloseable {
-    companion object {
-        private val TAG = SingleThreadHandler::class.simpleName
-    }
-
     private val deferScope = DeferScope()
 
     constructor(name: String?) : this(HandlerThread(name).apply { start() })
@@ -19,7 +14,7 @@ class SingleThreadHandler : Handler, AutoCloseable {
     private constructor(thread: HandlerThread) : super(thread.looper) {
         thread.apply {
             deferScope.defer {
-                Log.d(TAG, "Quiting thread $name")
+                Logger.debug("Quiting thread $name")
                 quitSafely()
             }
         }
@@ -44,7 +39,7 @@ class SingleThreadHandler : Handler, AutoCloseable {
 
             val dispatches = messages / 2
             val dispatchesPerSeconds = dispatches / elapsedTime.inSeconds
-            Log.v(TAG, "Dispatch rate for thread ${looper.thread.name}: $dispatchesPerSeconds")
+            Logger.verbose("Dispatch rate for thread ${looper.thread.name}: $dispatchesPerSeconds")
             mark += elapsedTime
             messages = 0
         }

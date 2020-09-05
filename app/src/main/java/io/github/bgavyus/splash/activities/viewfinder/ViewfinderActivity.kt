@@ -2,7 +2,6 @@ package io.github.bgavyus.splash.activities.viewfinder
 
 import android.content.res.Configuration
 import android.graphics.SurfaceTexture
-import android.util.Log
 import android.util.Size
 import android.view.Gravity
 import android.view.TextureView
@@ -15,6 +14,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.splash.R
+import io.github.bgavyus.splash.common.Logger
 import io.github.bgavyus.splash.common.ResourceCapable
 import io.github.bgavyus.splash.common.extensions.callOnEach
 import io.github.bgavyus.splash.common.extensions.launchAll
@@ -33,11 +33,6 @@ import java.util.*
 // TODO: Replace with fragment
 @AndroidEntryPoint
 class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListener {
-    companion object {
-        // TODO: Replace TAGs with logger
-        private val TAG = ViewfinderActivity::class.simpleName
-    }
-
     private val viewModel: ViewfinderViewModel by viewModels()
     private lateinit var binding: ActivityViewfinderBinding
 
@@ -63,7 +58,7 @@ class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListene
     private suspend fun grantPermissions() = viewModel.grantPermissions()
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
-        Log.d(TAG, "onWindowFocusChanged(hasFocus = $hasFocus)")
+        Logger.debug("onWindowFocusChanged(hasFocus = $hasFocus)")
         viewModel.active.value = hasFocus
     }
 
@@ -111,7 +106,7 @@ class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListene
     }
 
     private fun showMessage(resourceId: Int) {
-        Log.d(TAG, "Showing message: ${getDefaultString(resourceId)}")
+        Logger.debug("Showing message: ${getDefaultString(resourceId)}")
 
         Toast.makeText(applicationContext, resourceId, Toast.LENGTH_LONG).run {
             setGravity(Gravity.CENTER, /* xOffset = */ 0, /* yOffset = */ 0)

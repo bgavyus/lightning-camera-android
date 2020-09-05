@@ -4,8 +4,8 @@ import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.os.Build
-import android.util.Log
 import io.github.bgavyus.splash.common.DeferScope
+import io.github.bgavyus.splash.common.Logger
 import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.storage.StorageFile
 import kotlinx.coroutines.CoroutineScope
@@ -20,8 +20,6 @@ class Writer(
     rotation: Rotation
 ) : DeferScope() {
     companion object {
-        private val TAG = Writer::class.simpleName
-
         // TODO: Check if WEBM is playable even when the muxer hasn't stopped
         private const val OUTPUT_FORMAT = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
     }
@@ -38,10 +36,10 @@ class Writer(
         MediaMuxer(file.path, OUTPUT_FORMAT)
     }.apply {
         defer {
-            Log.d(TAG, "Attempting to release muxer")
+            Logger.debug("Attempting to release muxer")
 
             if (active) {
-                Log.d(TAG, "Releasing muxer")
+                Logger.debug("Releasing muxer")
                 release()
             }
         }
@@ -51,10 +49,10 @@ class Writer(
         start()
 
         defer {
-            Log.d(TAG, "Attempting to stop muxer")
+            Logger.debug("Attempting to stop muxer")
 
             if (active) {
-                Log.d(TAG, "Stopping muxer")
+                Logger.debug("Stopping muxer")
                 stop()
             }
         }

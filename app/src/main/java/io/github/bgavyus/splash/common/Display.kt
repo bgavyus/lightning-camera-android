@@ -16,16 +16,12 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 class Display(private val context: Context) : DeferScope() {
-    companion object {
-        private val TAG = Display::class.simpleName
-    }
-
-    private val handler = SingleThreadHandler(TAG)
+    private val handler = SingleThreadHandler(Display::class.simpleName)
         .apply { defer(::close) }
 
     fun rotations(): Flow<Rotation> {
-        val sensorManager = context.systemService(SensorManager::class)
-        val defaultDisplay = context.systemService(WindowManager::class).defaultDisplay
+        val sensorManager = context.systemService<SensorManager>()
+        val defaultDisplay = context.systemService<WindowManager>().defaultDisplay
 
         return sensorManager.samples(
             sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),

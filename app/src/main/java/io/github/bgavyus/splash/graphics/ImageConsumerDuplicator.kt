@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.graphics.SurfaceTexture
 import android.os.Build
 import android.os.Handler
-import android.util.Log
 import android.util.Size
 import android.view.Surface
 import com.otaliastudios.opengl.core.EglCore
@@ -13,6 +12,7 @@ import com.otaliastudios.opengl.program.GlTextureProgram
 import com.otaliastudios.opengl.surface.EglWindowSurface
 import com.otaliastudios.opengl.texture.GlTexture
 import io.github.bgavyus.splash.common.DeferScope
+import io.github.bgavyus.splash.common.Logger
 import io.github.bgavyus.splash.common.SingleThreadHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.android.asCoroutineDispatcher
@@ -26,14 +26,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 
 class ImageConsumerDuplicator : DeferScope(), ImageConsumer {
-    companion object {
-        private val TAG = ImageConsumerDuplicator::class.simpleName
-    }
-
-    private val handler = SingleThreadHandler(TAG)
+    private val handler = SingleThreadHandler(ImageConsumerDuplicator::class.simpleName)
         .apply { defer(::close) }
 
-    private val dispatcher = handler.asCoroutineDispatcher(TAG)
+    private val dispatcher = handler.asCoroutineDispatcher(ImageConsumerDuplicator::class.simpleName)
     private val scope = CoroutineScope(dispatcher)
         .apply { defer { cancel() } }
 
@@ -95,7 +91,7 @@ class ImageConsumerDuplicator : DeferScope(), ImageConsumer {
     private fun onFrameAvailable() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (surfaceTexture.isReleased) {
-                Log.d(TAG, "Ignoring frame after release")
+                Logger.debug("Ignoring frame after release")
                 return
             }
         }

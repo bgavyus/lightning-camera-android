@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.renderscript.RenderScript
-import android.util.Log
 import android.util.Size
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.ViewModel
@@ -16,6 +15,7 @@ import io.github.bgavyus.splash.capture.CameraMetadataProvider
 import io.github.bgavyus.splash.capture.CameraSession
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.Display
+import io.github.bgavyus.splash.common.Logger
 import io.github.bgavyus.splash.common.extensions.launchAll
 import io.github.bgavyus.splash.common.extensions.onToggle
 import io.github.bgavyus.splash.common.extensions.reflectTo
@@ -39,10 +39,6 @@ class ViewfinderViewModel @ViewModelInject constructor(
     private val storage: Storage,
     private val beeper: Beeper
 ) : ViewModel() {
-    companion object {
-        private val TAG = ViewfinderViewModel::class.simpleName
-    }
-
     private val deferScope = DeferScope()
 
     private val activeDeferScope = DeferScope()
@@ -65,7 +61,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
         cameraMetadataProvider.highSpeed()
             .also {
                 cameraMetadata = it
-                Log.d(TAG, "Stream configurations: ${it.streamConfigurations}")
+                Logger.debug("Stream configurations: ${it.streamConfigurations}")
             }
     }
 
@@ -149,7 +145,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
                     recorder.rotation = metadata.orientation - it
                     holder.rotation.value = it
                     // TODO: Fix crash
-                    regenerateFile()
+//                    regenerateFile()
                 }
                     .launchIn(activeCoroutineScope)
             }
@@ -170,7 +166,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
                 open()
             }
         } catch (exception: Exception) {
-            Log.e(TAG, "Failed to activate", exception)
+            Logger.error("Failed to activate", exception)
             lastException.value = exception
         }
     }
