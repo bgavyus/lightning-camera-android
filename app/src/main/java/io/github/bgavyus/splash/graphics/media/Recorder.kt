@@ -130,7 +130,7 @@ class Recorder(
             val framesSkipped = PLAYBACK_FPS * (pts - lastPts) / MICROS_IN_UNIT - 1
 
             if (framesSkipped > 0) {
-                Logger.debug("Frames Skipped: $framesSkipped")
+                Logger.verbose("Frames Skipped: $framesSkipped")
             }
         }
 
