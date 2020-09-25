@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.FullScreen" parent="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>
