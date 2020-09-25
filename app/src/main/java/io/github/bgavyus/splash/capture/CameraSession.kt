@@ -47,14 +47,7 @@ class CameraSession(
     private fun createCaptureSession(callback: CameraCaptureSession.StateCallback) {
         val outputSurfaces = consumers.map { it.surface }
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-            @Suppress("DEPRECATION")
-            connection.device.createConstrainedHighSpeedCaptureSession(
-                outputSurfaces,
-                callback,
-                handler
-            )
-        } else {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             val outputConfigs = outputSurfaces.map { OutputConfiguration(it) }
             val executor = Executor { handler.post(it) }
 
@@ -66,6 +59,13 @@ class CameraSession(
             )
 
             connection.device.createCaptureSession(sessionConfig)
+        } else {
+            @Suppress("DEPRECATION")
+            connection.device.createConstrainedHighSpeedCaptureSession(
+                outputSurfaces,
+                callback,
+                handler
+            )
         }
     }
 
