@@ -1,6 +1,6 @@
 buildscript {
-    val kotlinVersion by extra("1.4.0")
-    val hiltVersion by extra("2.28.3-alpha")
+    val kotlinVersion by extra("1.4.10")
+    val hiltVersion by extra("2.29.1-alpha")
 
     repositories {
         google()
