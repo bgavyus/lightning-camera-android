@@ -6,6 +6,7 @@ import android.util.Size
 import android.view.Surface
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.Rotation
+import io.github.bgavyus.splash.common.extensions.reflectTo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -26,8 +27,9 @@ class TextureHolder(surfaceTexture: SurfaceTexture) : DeferScope(), ImageConsume
 
     init {
         combine(viewSize, bufferSize, rotation) { viewSize, bufferSize, rotation ->
-            transformMatrix.value = TransformMatrixFactory.create(viewSize, bufferSize, rotation)
+            TransformMatrixFactory.create(viewSize, bufferSize, rotation)
         }
+            .reflectTo(transformMatrix)
             .launchIn(scope)
     }
 }
