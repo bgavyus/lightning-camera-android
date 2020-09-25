@@ -110,7 +110,7 @@ class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListene
         Logger.debug("Showing message: ${getDefaultString(resourceId)}")
 
         Toast.makeText(applicationContext, resourceId, Toast.LENGTH_LONG).run {
-            setGravity(Gravity.CENTER, /* xOffset = */ 0, /* yOffset = */ 0)
+            setGravity(Gravity.CENTER, 0, 0)
             show()
         }
     }

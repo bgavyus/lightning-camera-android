@@ -73,12 +73,12 @@ class ScopedStorageFile(
             put(MediaStore.MediaColumns.IS_PENDING, false.toInt())
         }
 
-        contentResolver.update(uri, values, /* where = */ null, /* selectionArgs = */ null)
+        contentResolver.update(uri, values, null, null)
     }
 
     private fun discard() {
         val rowsDeletedCount =
-            contentResolver.delete(uri, /* where = */ null, /* selectionArgs = */ null)
+            contentResolver.delete(uri, null, null)
 
         if (rowsDeletedCount == 0) {
             throw IOException("Failed to delete")

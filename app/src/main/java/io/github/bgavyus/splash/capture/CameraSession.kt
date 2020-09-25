@@ -77,7 +77,7 @@ class CameraSession(
             }.build()
 
             val requests = createHighSpeedRequestList(captureRequest)
-            setRepeatingBurst(requests, /* listener = */ null, handler)
+            setRepeatingBurst(requests, null, handler)
         }
     }
 }

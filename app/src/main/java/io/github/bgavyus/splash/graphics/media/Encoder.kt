@@ -62,7 +62,7 @@ class Encoder(format: MediaFormat) : DeferScope(), ImageConsumer {
                     }
                 } finally {
                     try {
-                        codec.releaseOutputBuffer(index, /* render = */ false)
+                        codec.releaseOutputBuffer(index, false)
                     } catch (_: IllegalStateException) {
                         Logger.debug("Ignoring buffer after release")
                     }
@@ -83,8 +83,8 @@ class Encoder(format: MediaFormat) : DeferScope(), ImageConsumer {
 
             configure(
                 format,
-                /* surface = */ null,
-                /* crypto = */ null,
+                null,
+                null,
                 MediaCodec.CONFIGURE_FLAG_ENCODE
             )
 
