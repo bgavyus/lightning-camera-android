@@ -14,7 +14,6 @@ import java.time.Clock
 @Module
 object ApplicationModule {
     @Provides
-    // TODO: Replace with API 24 supported clock
     fun provideClock(): Clock = Clock.systemDefaultZone()
 
     @Provides
