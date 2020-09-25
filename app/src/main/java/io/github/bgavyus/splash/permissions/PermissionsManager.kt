@@ -65,9 +65,4 @@ class PermissionsManager @Inject constructor(
 
     private fun granted(permission: String) =
         context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
-
-    fun canRequestPermission(id: String) =
-        context.packageManager.getPackageInfo(context.packageName, PackageManager.GET_PERMISSIONS)
-            .requestedPermissions
-            .contains(id)
 }

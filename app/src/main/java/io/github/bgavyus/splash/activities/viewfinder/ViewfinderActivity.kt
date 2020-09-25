@@ -5,7 +5,6 @@ import android.graphics.SurfaceTexture
 import android.util.Size
 import android.view.Gravity
 import android.view.TextureView
-import android.view.View
 import android.widget.Toast
 import android.widget.ToggleButton
 import androidx.activity.viewModels
