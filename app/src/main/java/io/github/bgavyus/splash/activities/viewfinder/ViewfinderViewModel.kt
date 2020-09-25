@@ -48,6 +48,9 @@ class ViewfinderViewModel @ViewModelInject constructor(
 
     private val activeCoroutineScope = CoroutineScope(viewModelScope.coroutineContext)
 
+    private val display = Display(context)
+        .apply { deferScope.defer(::close) }
+
     private var cameraMetadata: CameraMetadata? = null
 
     val active = MutableStateFlow(false)
@@ -143,15 +146,11 @@ class ViewfinderViewModel @ViewModelInject constructor(
                 start()
             }
 
-            Display(context).apply {
-                activeDeferScope.defer(::close)
-
-                rotations().onEach {
-                    recorder.rotation.value = metadata.orientation - it
-                    holder.rotation.value = it
-                }
-                    .launchIn(activeCoroutineScope)
+            display.rotations().onEach {
+                recorder.rotation.value = metadata.orientation - it
+                holder.rotation.value = it
             }
+                .launchIn(activeCoroutineScope)
 
             val connection = CameraConnection(context, metadata.id).apply {
                 activeDeferScope.defer(::close)

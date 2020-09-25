@@ -5,8 +5,8 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.hardware.display.DisplayManager
 import android.os.Handler
-import android.view.WindowManager
 import io.github.bgavyus.splash.common.extensions.systemService
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
@@ -17,11 +17,13 @@ import kotlinx.coroutines.flow.map
 
 class Display(private val context: Context) : DeferScope() {
     private val handler = SingleThreadHandler(Display::class.simpleName)
-        .apply { defer(::close) }
+        .also { defer(it::close) }
 
     fun rotations(): Flow<Rotation> {
         val sensorManager = context.systemService<SensorManager>()
-        val defaultDisplay = context.systemService<WindowManager>().defaultDisplay
+
+        val display = context.systemService<DisplayManager>().displays.first()
+            ?: throw RuntimeException()
 
         return sensorManager.samples(
             sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
@@ -29,7 +31,7 @@ class Display(private val context: Context) : DeferScope() {
             maxReportLatencyUs = 100000,
             handler = handler
         )
-            .map { defaultDisplay.rotation }
+            .map { display.rotation }
             .distinctUntilChanged()
             .map { Rotation.fromSurfaceRotation(it) }
     }

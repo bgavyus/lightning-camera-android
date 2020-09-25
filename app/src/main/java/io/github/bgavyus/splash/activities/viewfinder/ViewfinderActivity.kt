@@ -29,7 +29,6 @@ import java.util.*
 
 // TODO: Use images in toggle button
 // TODO: Replace visual indicator dot with red frame
-// TODO: Replace with fragment
 @AndroidEntryPoint
 class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListener {
     private val viewModel: ViewfinderViewModel by viewModels()
