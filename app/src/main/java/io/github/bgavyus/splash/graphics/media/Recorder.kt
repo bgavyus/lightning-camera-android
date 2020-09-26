@@ -152,7 +152,7 @@ class Recorder(
         writer?.write(buffer, info)
     }
 
-    fun loss() {
+    fun lose() {
         Logger.info("Losing")
         recording = false
     }

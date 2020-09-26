@@ -80,7 +80,6 @@ class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListene
         viewModel.viewSize.value = Size(width, height)
     }
 
-    // TODO: Find less frequent trigger for buffer adjustments
     override fun onSurfaceTextureUpdated(surface: SurfaceTexture) = viewModel.adjustBufferSize()
 
     private fun setDetectionIndicatorActive(active: Boolean) {

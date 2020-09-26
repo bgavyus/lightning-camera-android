@@ -122,7 +122,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
             detector.detectingStates().reflectTo(detecting),
             detecting.onToggle(on = beeper::start, off = beeper::stop),
             watching.combine(detecting) { a, b -> a && b }
-                .onToggle(on = recorder::record, off = recorder::loss),
+                .onToggle(on = recorder::record, off = recorder::lose),
             viewSize.reflectTo(holder.viewSize),
             holder.transformMatrix.reflectTo(transformMatrix),
             recorder.lastException.reflectTo(lastException)
