@@ -25,10 +25,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 
 class ImageConsumerDuplicator : DeferScope() {
-    private val handler = SingleThreadHandler(ImageConsumerDuplicator::class.simpleName)
+    private val handler = SingleThreadHandler(javaClass.simpleName)
         .apply { defer(::close) }
 
-    private val dispatcher = handler.asCoroutineDispatcher(ImageConsumerDuplicator::class.simpleName)
+    private val dispatcher = handler.asCoroutineDispatcher(javaClass.simpleName)
     private val scope = CoroutineScope(dispatcher)
         .apply { defer(::cancel) }
 

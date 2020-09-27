@@ -8,7 +8,7 @@ import io.github.bgavyus.splash.common.Logger
 import io.github.bgavyus.splash.common.SingleThreadHandler
 
 class Encoder(format: MediaFormat) : DeferScope() {
-    private val handler = SingleThreadHandler(Encoder::class.simpleName)
+    private val handler = SingleThreadHandler(javaClass.simpleName)
         .apply { defer(::close) }
 
     var listener: EncoderListener? = null

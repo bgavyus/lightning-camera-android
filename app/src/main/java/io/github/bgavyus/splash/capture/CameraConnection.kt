@@ -24,7 +24,7 @@ class CameraConnection(
     private val context: Context,
     private val cameraId: String
 ) : DeferScope() {
-    private val handler = SingleThreadHandler(CameraConnection::class.simpleName)
+    private val handler = SingleThreadHandler(javaClass.simpleName)
         .apply { defer(::close) }
 
     lateinit var device: CameraDevice

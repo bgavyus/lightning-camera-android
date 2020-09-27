@@ -17,7 +17,7 @@ class CameraSession(
     private val connection: CameraConnection,
     private val surfaces: List<Surface>
 ) : DeferScope() {
-    private val handler = SingleThreadHandler(CameraSession::class.simpleName)
+    private val handler = SingleThreadHandler(javaClass.simpleName)
         .apply { defer(::close) }
 
     suspend fun open(): Unit = suspendCoroutine { continuation ->

@@ -25,7 +25,7 @@ abstract class Detector(
         const val MAX_INTENSITY = 255
     }
 
-    private val handler = SingleThreadHandler(Detector::class.simpleName)
+    private val handler = SingleThreadHandler(javaClass.simpleName)
         .apply { defer(::close) }
 
     protected val inputAllocation: Allocation = Allocation.createTyped(
@@ -46,7 +46,7 @@ abstract class Detector(
     fun detectingStates() = inputAllocation.buffers()
         .map { detecting() }
         .distinctUntilChanged()
-        .flowOn(handler.asCoroutineDispatcher(Detector::class.simpleName))
+        .flowOn(handler.asCoroutineDispatcher(javaClass.simpleName))
 }
 
 private fun Allocation.buffers() = callbackFlow {

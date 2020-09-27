@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 class Display(private val context: Context) : DeferScope() {
-    private val handler = SingleThreadHandler(Display::class.simpleName)
+    private val handler = SingleThreadHandler(javaClass.simpleName)
         .also { defer(it::close) }
 
     fun rotations(): Flow<Rotation> {
