@@ -30,7 +30,7 @@ class ImageConsumerDuplicator : DeferScope(), ImageConsumer {
 
     private val dispatcher = handler.asCoroutineDispatcher(ImageConsumerDuplicator::class.simpleName)
     private val scope = CoroutineScope(dispatcher)
-        .apply { defer { cancel() } }
+        .apply { defer(::cancel) }
 
     private lateinit var core: EglCore
     private lateinit var program: GlTextureProgram

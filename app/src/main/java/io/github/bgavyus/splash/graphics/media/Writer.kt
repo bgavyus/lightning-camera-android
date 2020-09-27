@@ -24,7 +24,7 @@ class Writer(
     }
 
     private val scope = CoroutineScope(Dispatchers.IO)
-        .apply { defer { cancel() } }
+        .apply { defer(::cancel) }
 
     private val track: Int
     private var active = false

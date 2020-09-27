@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.launchIn
 
 class TextureHolder(surfaceTexture: SurfaceTexture) : DeferScope(), ImageConsumer {
     private val scope = CoroutineScope(Dispatchers.Default)
-        .apply { defer { cancel() } }
+        .apply { defer(::cancel) }
 
     val viewSize = MutableStateFlow(Size(1, 1))
     val bufferSize = MutableStateFlow(Size(1, 1))

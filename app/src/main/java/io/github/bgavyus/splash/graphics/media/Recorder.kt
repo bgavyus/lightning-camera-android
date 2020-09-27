@@ -35,7 +35,7 @@ class Recorder(
     }
 
     private val scope = CoroutineScope(Dispatchers.IO)
-        .apply { defer { cancel() } }
+        .apply { defer(::cancel) }
 
     private var format: MediaFormat? = null
     val rotation = MutableStateFlow(Rotation.Natural)
