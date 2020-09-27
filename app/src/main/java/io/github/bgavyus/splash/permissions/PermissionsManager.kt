@@ -10,8 +10,7 @@ import javax.inject.Inject
 
 class PermissionsManager @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val permissionRequester: PermissionRequester,
-    private val storage: Storage
+    private val permissionRequester: PermissionRequester
 ) {
     suspend fun grantAll() {
         val permissionsToRequest = missingPermissions()
@@ -61,7 +60,7 @@ class PermissionsManager @Inject constructor(
     }
 
     private val storageGranted
-        get() = !storage.isLegacy || granted(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        get() = !Storage.isLegacy || granted(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
     private fun granted(permission: String) =
         context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED

@@ -21,6 +21,9 @@ class Storage @Inject constructor(
     companion object {
         const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
         const val FILE_EXTENSION = "mp4"
+
+        val isLegacy
+            get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || Environment.isExternalStorageLegacy()
     }
 
     suspend fun generateFile(): StorageFile {
@@ -61,7 +64,4 @@ class Storage @Inject constructor(
             )
         }
     }
-
-    val isLegacy
-        get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || Environment.isExternalStorageLegacy()
 }
