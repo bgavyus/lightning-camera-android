@@ -8,7 +8,6 @@ import android.util.Size
 import android.view.Surface
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.SingleThreadHandler
-import io.github.bgavyus.splash.graphics.ImageConsumer
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
@@ -20,7 +19,7 @@ import kotlinx.coroutines.flow.map
 abstract class Detector(
     renderScript: RenderScript,
     bufferSize: Size
-) : DeferScope(), ImageConsumer {
+) : DeferScope() {
     companion object {
         const val CHANNELS = 3
         const val MAX_INTENSITY = 255
@@ -41,7 +40,7 @@ abstract class Detector(
     )
         .apply { defer(::destroy) }
 
-    override val surface: Surface = inputAllocation.surface
+    val surface: Surface = inputAllocation.surface
     abstract fun detecting(): Boolean
 
     fun detectingStates() = inputAllocation.buffers()

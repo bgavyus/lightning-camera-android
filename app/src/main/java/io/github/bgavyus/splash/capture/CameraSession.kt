@@ -5,10 +5,9 @@ import android.hardware.camera2.params.OutputConfiguration
 import android.hardware.camera2.params.SessionConfiguration
 import android.os.Build
 import android.util.Range
+import android.view.Surface
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.SingleThreadHandler
-import io.github.bgavyus.splash.graphics.ImageConsumer
-import java.util.concurrent.Executor
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -16,7 +15,7 @@ import kotlin.coroutines.suspendCoroutine
 class CameraSession(
     private val framesPerSecond: Int,
     private val connection: CameraConnection,
-    private val consumers: Iterable<ImageConsumer>
+    private val surfaces: List<Surface>
 ) : DeferScope() {
     private val handler = SingleThreadHandler(CameraSession::class.simpleName)
         .apply { defer(::close) }
@@ -45,16 +44,11 @@ class CameraSession(
     }
 
     private fun createCaptureSession(callback: CameraCaptureSession.StateCallback) {
-        val outputSurfaces = consumers.map { it.surface }
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val outputConfigs = outputSurfaces.map { OutputConfiguration(it) }
-            val executor = Executor { handler.post(it) }
-
             val sessionConfig = SessionConfiguration(
                 SessionConfiguration.SESSION_HIGH_SPEED,
-                outputConfigs,
-                executor,
+                surfaces.map { OutputConfiguration(it) },
+                handler::post,
                 callback
             )
 
@@ -62,7 +56,7 @@ class CameraSession(
         } else {
             @Suppress("DEPRECATION")
             connection.device.createConstrainedHighSpeedCaptureSession(
-                outputSurfaces,
+                surfaces,
                 callback,
                 handler
             )
@@ -73,7 +67,7 @@ class CameraSession(
         session.run {
             val captureRequest = device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
                 set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, framesPerSecond.toRange())
-                consumers.forEach { addTarget(it.surface) }
+                surfaces.forEach { addTarget(it) }
             }.build()
 
             val requests = createHighSpeedRequestList(captureRequest)

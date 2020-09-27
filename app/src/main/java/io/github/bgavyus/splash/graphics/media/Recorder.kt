@@ -8,7 +8,6 @@ import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.Logger
 import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.common.extensions.area
-import io.github.bgavyus.splash.graphics.ImageConsumer
 import io.github.bgavyus.splash.storage.Storage
 import io.github.bgavyus.splash.storage.StorageFile
 import kotlinx.coroutines.CoroutineScope
@@ -23,7 +22,7 @@ class Recorder(
     private val storage: Storage,
     videoSize: Size,
     framesPerSecond: Int
-) : DeferScope(), ImageConsumer, EncoderListener {
+) : DeferScope(), EncoderListener {
     companion object {
         private const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
         private const val MILLIS_IN_UNIT = 1_000
@@ -74,7 +73,7 @@ class Recorder(
         }
     }
 
-    override val surface get() = encoder.surface
+    val surface get() = encoder.surface
 
     var file: StorageFile? = null
 

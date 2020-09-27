@@ -94,8 +94,8 @@ class ViewfinderViewModel @ViewModelInject constructor(
 
         ImageConsumerDuplicator().apply {
             deferScope.defer(::close)
-            addConsumer(detector)
-            addConsumer(holder)
+            addSurface(detector.surface)
+            addSurface(holder.surface)
             start()
             setBufferSize(metadata.frameSize)
         }
@@ -162,7 +162,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
             CameraSession(
                 metadata.framesPerSecond,
                 connection,
-                listOf(recorder, duplicator)
+                listOf(recorder.surface, duplicator.surface)
             ).apply {
                 activeDeferScope.defer(::close)
                 open()

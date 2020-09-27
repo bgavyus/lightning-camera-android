@@ -6,15 +6,14 @@ import android.view.Surface
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.Logger
 import io.github.bgavyus.splash.common.SingleThreadHandler
-import io.github.bgavyus.splash.graphics.ImageConsumer
 
-class Encoder(format: MediaFormat) : DeferScope(), ImageConsumer {
+class Encoder(format: MediaFormat) : DeferScope() {
     private val handler = SingleThreadHandler(Encoder::class.simpleName)
         .apply { defer(::close) }
 
     var listener: EncoderListener? = null
 
-    override val surface: Surface
+    val surface: Surface
 
     init {
         val mimeType = format.getString(MediaFormat.KEY_MIME)

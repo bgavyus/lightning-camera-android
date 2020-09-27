@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 
-class ImageConsumerDuplicator : DeferScope(), ImageConsumer {
+class ImageConsumerDuplicator : DeferScope() {
     private val handler = SingleThreadHandler(ImageConsumerDuplicator::class.simpleName)
         .apply { defer(::close) }
 
@@ -36,7 +36,7 @@ class ImageConsumerDuplicator : DeferScope(), ImageConsumer {
     private lateinit var program: GlTextureProgram
     private lateinit var surfaceTexture: SurfaceTexture
     private lateinit var entireViewport: GlRect
-    override lateinit var surface: Surface
+    lateinit var surface: Surface
 
     private val windows = mutableSetOf<EglWindowSurface>().apply {
         defer {
@@ -46,13 +46,13 @@ class ImageConsumerDuplicator : DeferScope(), ImageConsumer {
         }
     }
 
-    suspend fun addConsumer(consumer: ImageConsumer) = withContext(dispatcher) {
+    suspend fun addSurface(surface: Surface) = withContext(dispatcher) {
         if (windows.isEmpty()) {
             core = EglCore(flags = EglCore.FLAG_TRY_GLES3)
                 .apply { defer(::release) }
         }
 
-        val windowSurface = EglWindowSurface(core, consumer.surface)
+        val windowSurface = EglWindowSurface(core, surface)
 
         if (windows.isEmpty()) {
             windowSurface.makeCurrent()

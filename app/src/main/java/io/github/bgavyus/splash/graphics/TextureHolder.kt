@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 
-class TextureHolder(surfaceTexture: SurfaceTexture) : DeferScope(), ImageConsumer {
+class TextureHolder(surfaceTexture: SurfaceTexture) : DeferScope() {
     private val scope = CoroutineScope(Dispatchers.Default)
         .apply { defer(::cancel) }
 
@@ -23,7 +23,7 @@ class TextureHolder(surfaceTexture: SurfaceTexture) : DeferScope(), ImageConsume
     val rotation = MutableStateFlow(Rotation.Natural)
     val transformMatrix = MutableStateFlow(Matrix())
 
-    override val surface = Surface(surfaceTexture)
+    val surface = Surface(surfaceTexture)
 
     init {
         combine(viewSize, bufferSize, rotation) { viewSize, bufferSize, rotation ->
