@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 
-class ImageConsumerDuplicator : DeferScope() {
+class SurfaceDuplicator : DeferScope() {
     private val handler = SingleThreadHandler(javaClass.simpleName)
         .apply { defer(::close) }
 

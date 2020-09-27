@@ -19,7 +19,7 @@ import io.github.bgavyus.splash.common.Logger
 import io.github.bgavyus.splash.common.extensions.launchAll
 import io.github.bgavyus.splash.common.extensions.onToggle
 import io.github.bgavyus.splash.common.extensions.reflectTo
-import io.github.bgavyus.splash.graphics.ImageConsumerDuplicator
+import io.github.bgavyus.splash.graphics.SurfaceDuplicator
 import io.github.bgavyus.splash.graphics.TextureHolder
 import io.github.bgavyus.splash.graphics.detection.LightningDetector
 import io.github.bgavyus.splash.graphics.media.Beeper
@@ -92,7 +92,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
         val detector = deferredDetector.await()
         val holder = deferredHolder.await()
 
-        ImageConsumerDuplicator().apply {
+        SurfaceDuplicator().apply {
             deferScope.defer(::close)
             addSurface(detector.surface)
             addSurface(holder.surface)
