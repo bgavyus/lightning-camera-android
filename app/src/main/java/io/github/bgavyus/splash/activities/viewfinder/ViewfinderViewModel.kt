@@ -5,6 +5,7 @@ import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.renderscript.RenderScript
 import android.util.Size
+import android.view.Surface
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,11 +17,12 @@ import io.github.bgavyus.splash.capture.CameraSession
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.Display
 import io.github.bgavyus.splash.common.Logger
+import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.common.extensions.launchAll
 import io.github.bgavyus.splash.common.extensions.onToggle
 import io.github.bgavyus.splash.common.extensions.reflectTo
 import io.github.bgavyus.splash.graphics.SurfaceDuplicator
-import io.github.bgavyus.splash.graphics.TextureHolder
+import io.github.bgavyus.splash.graphics.TransformMatrixFactory
 import io.github.bgavyus.splash.graphics.detection.LightningDetector
 import io.github.bgavyus.splash.graphics.media.Beeper
 import io.github.bgavyus.splash.graphics.media.Recorder
@@ -53,6 +55,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
 
     private var cameraMetadata: CameraMetadata? = null
 
+    private val displayRotation = MutableStateFlow(Rotation.Natural)
     val active = MutableStateFlow(false)
     val detecting = MutableStateFlow(false)
     val viewSize = MutableStateFlow(Size(1, 1))
@@ -76,26 +79,17 @@ class ViewfinderViewModel @ViewModelInject constructor(
             .apply { deferScope.defer(::close) }
     }
 
-    private val deferredHolder = viewModelScope.async {
-        val metadata = deferredMetadata.await()
-        val surfaceTexture = surfaceTexture.filterNotNull().first()
-            .apply { deferScope.defer(::release) }
-
-        TextureHolder(surfaceTexture).apply {
-            deferScope.defer(::close)
-            bufferSize.value = metadata.frameSize
-        }
-    }
-
     private val deferredDuplicator = viewModelScope.async {
         val metadata = deferredMetadata.await()
         val detector = deferredDetector.await()
-        val holder = deferredHolder.await()
+
+        val surfaceTexture = surfaceTexture.filterNotNull().first()
+            .apply { deferScope.defer(::release) }
 
         SurfaceDuplicator().apply {
             deferScope.defer(::close)
             addSurface(detector.surface)
-            addSurface(holder.surface)
+            addSurface(Surface(surfaceTexture))
             start()
             setBufferSize(metadata.frameSize)
         }
@@ -113,7 +107,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
     }
 
     private fun bind() = viewModelScope.launch {
-        val holder = deferredHolder.await()
+        val metadata = deferredMetadata.await()
         val recorder = deferredRecorder.await()
         val detector = deferredDetector.await()
 
@@ -121,11 +115,19 @@ class ViewfinderViewModel @ViewModelInject constructor(
             active.onToggle(on = ::activate, off = ::deactivate),
             detector.detectingStates().reflectTo(detecting),
             detecting.onToggle(on = beeper::start, off = beeper::stop),
-            watching.combine(detecting) { a, b -> a && b }
+            recorder.lastException.reflectTo(lastException),
+
+            displayRotation
+                .onEach { metadata.orientation - it }
+                .reflectTo(recorder.rotation),
+
+            combine(watching, detecting) { watching, detecting -> watching && detecting }
                 .onToggle(on = recorder::record, off = recorder::lose),
-            viewSize.reflectTo(holder.viewSize),
-            holder.transformMatrix.reflectTo(transformMatrix),
-            recorder.lastException.reflectTo(lastException)
+
+            combine(viewSize, displayRotation) { viewSize, displayRotation ->
+                TransformMatrixFactory.create(viewSize, metadata.frameSize, displayRotation)
+            }
+                .reflectTo(transformMatrix)
         )
     }
 
@@ -137,7 +139,6 @@ class ViewfinderViewModel @ViewModelInject constructor(
 
     private fun activate() = activeCoroutineScope.launch {
         val metadata = deferredMetadata.await()
-        val holder = deferredHolder.await()
         val recorder = deferredRecorder.await()
 
         try {
@@ -146,10 +147,8 @@ class ViewfinderViewModel @ViewModelInject constructor(
                 start()
             }
 
-            display.rotations().onEach {
-                recorder.rotation.value = metadata.orientation - it
-                holder.rotation.value = it
-            }
+            display.rotations()
+                .reflectTo(displayRotation)
                 .launchIn(activeCoroutineScope)
 
             val connection = CameraConnection(context, metadata.id).apply {

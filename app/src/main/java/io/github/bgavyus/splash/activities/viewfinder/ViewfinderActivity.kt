@@ -61,7 +61,7 @@ class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListene
 
     private fun bind() {
         binding.textureView.surfaceTextureListener = this
-        viewModel.surfaceTexture.value?.let { binding.textureView.setSurfaceTexture(it) }
+        viewModel.surfaceTexture.value?.let(binding.textureView::setSurfaceTexture)
 
         lifecycleScope.launchAll(
             viewModel.transformMatrix.callOnEach(binding.textureView::setTransform),

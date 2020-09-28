@@ -2,6 +2,7 @@ package io.github.bgavyus.splash.capture
 
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraDevice
+import androidx.annotation.StringRes
 import io.github.bgavyus.splash.common.ResourceCapable
 
 class CameraException(type: CameraExceptionType) : Exception(), ResourceCapable {
@@ -28,5 +29,5 @@ class CameraException(type: CameraExceptionType) : Exception(), ResourceCapable 
         )
     }
 
-    override val resourceId = type.resourceId
+    @StringRes override val resourceId = type.resourceId
 }
