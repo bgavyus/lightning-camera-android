@@ -77,8 +77,7 @@ class ScopedStorageFile(
     }
 
     private fun discard() {
-        val rowsDeletedCount =
-            contentResolver.delete(uri, null, null)
+        val rowsDeletedCount = contentResolver.delete(uri, null, null)
 
         if (rowsDeletedCount == 0) {
             throw IOException("Failed to delete")

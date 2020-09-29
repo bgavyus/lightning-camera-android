@@ -46,13 +46,7 @@ class Storage @Inject constructor(
         name: String
     ) = withContext(Dispatchers.IO) {
         if (isLegacy) {
-            LegacyStorageFile(
-                contentResolver,
-                mimeType,
-                standardDirectory,
-                appDirectoryName,
-                name
-            )
+            LegacyStorageFile(contentResolver, mimeType, standardDirectory, appDirectoryName, name)
         } else {
             ScopedStorageFile(
                 contentResolver,
