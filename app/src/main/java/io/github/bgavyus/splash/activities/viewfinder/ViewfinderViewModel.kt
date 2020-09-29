@@ -10,10 +10,10 @@ import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.github.bgavyus.splash.capture.CameraConnection
+import io.github.bgavyus.splash.capture.CameraConnectionFactory
 import io.github.bgavyus.splash.capture.CameraMetadata
 import io.github.bgavyus.splash.capture.CameraMetadataProvider
-import io.github.bgavyus.splash.capture.CameraSession
+import io.github.bgavyus.splash.capture.CameraSessionFactory
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.Display
 import io.github.bgavyus.splash.common.Logger
@@ -53,12 +53,20 @@ class ViewfinderViewModel @ViewModelInject constructor(
     private val display = Display(context)
         .apply { deferScope.defer(::close) }
 
+    private val cameraConnectionFactory = CameraConnectionFactory(context)
+        .apply { deferScope.defer(::close) }
+
+    private val cameraSessionFactory = CameraSessionFactory()
+        .apply { deferScope.defer(::close) }
+
     private var cameraMetadata: CameraMetadata? = null
 
     private val displayRotation = MutableStateFlow(Rotation.Natural)
     val active = MutableStateFlow(false)
+    // TODO: Set detecting to false when inactive
     val detecting = MutableStateFlow(false)
     val viewSize = MutableStateFlow(Size(1, 1))
+    // TODO: Set watching to false when inactive
     val watching = MutableStateFlow(false)
     val transformMatrix = MutableStateFlow(Matrix())
     val surfaceTexture = MutableStateFlow(null as SurfaceTexture?)
@@ -138,34 +146,26 @@ class ViewfinderViewModel @ViewModelInject constructor(
     }
 
     private fun activate() = activeCoroutineScope.launch {
-        val metadata = deferredMetadata.await()
-        val recorder = deferredRecorder.await()
-
         try {
-            recorder.apply {
-                activeDeferScope.defer(::stop)
-                start()
-            }
-
             display.rotations()
                 .reflectTo(displayRotation)
                 .launchIn(activeCoroutineScope)
 
-            val connection = CameraConnection(context, metadata.id).apply {
-                activeDeferScope.defer(::close)
-                open()
+            val recorder = deferredRecorder.await().apply {
+                activeDeferScope.defer(::stop)
+                start()
             }
+
+            val metadata = deferredMetadata.await()
+
+            val device = cameraConnectionFactory.open(metadata.id)
+                .apply { activeDeferScope.defer(::close) }
 
             val duplicator = deferredDuplicator.await()
+            val surfaces = listOf(recorder.surface, duplicator.surface)
 
-            CameraSession(
-                metadata.framesPerSecond,
-                connection,
-                listOf(recorder.surface, duplicator.surface)
-            ).apply {
-                activeDeferScope.defer(::close)
-                open()
-            }
+            cameraSessionFactory.create(device, surfaces, metadata.framesPerSecond)
+                .apply { activeDeferScope.defer(::close) }
         } catch (exception: Exception) {
             Logger.error("Failed to activate", exception)
             lastException.value = exception

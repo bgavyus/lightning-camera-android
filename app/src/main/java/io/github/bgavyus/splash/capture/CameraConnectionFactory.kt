@@ -20,19 +20,13 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
-class CameraConnection(
-    private val context: Context,
-    private val cameraId: String
-) : DeferScope() {
+class CameraConnectionFactory(private val context: Context) : DeferScope() {
     private val handler = SingleThreadHandler(javaClass.simpleName)
         .apply { defer(::close) }
 
-    lateinit var device: CameraDevice
-
-    suspend fun open() = withContext(Dispatchers.IO) {
-        device = context.systemService<CameraManager>().openCamera(cameraId, handler)
+    suspend fun open(cameraId: String) = withContext(Dispatchers.IO) {
+        context.systemService<CameraManager>().openCamera(cameraId, handler)
             .first()
-            .apply { defer(::close) }
     }
 }
 
