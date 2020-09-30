@@ -18,6 +18,7 @@ import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.Display
 import io.github.bgavyus.splash.common.Logger
 import io.github.bgavyus.splash.common.Rotation
+import io.github.bgavyus.splash.common.extensions.and
 import io.github.bgavyus.splash.common.extensions.launchAll
 import io.github.bgavyus.splash.common.extensions.onToggle
 import io.github.bgavyus.splash.common.extensions.reflectTo
@@ -63,10 +64,8 @@ class ViewfinderViewModel @ViewModelInject constructor(
 
     private val displayRotation = MutableStateFlow(Rotation.Natural)
     val active = MutableStateFlow(false)
-    // TODO: Set detecting to false when inactive
     val detecting = MutableStateFlow(false)
     val viewSize = MutableStateFlow(Size(1, 1))
-    // TODO: Set watching to false when inactive
     val watching = MutableStateFlow(false)
     val transformMatrix = MutableStateFlow(Matrix())
     val surfaceTexture = MutableStateFlow(null as SurfaceTexture?)
@@ -122,14 +121,14 @@ class ViewfinderViewModel @ViewModelInject constructor(
         launchAll(
             active.onToggle(on = ::activate, off = ::deactivate),
             detector.detectingStates().reflectTo(detecting),
-            detecting.onToggle(on = beeper::start, off = beeper::stop),
+            (active and detecting).onToggle(on = beeper::start, off = beeper::stop),
             recorder.lastException.reflectTo(lastException),
 
             displayRotation
                 .onEach { metadata.orientation - it }
                 .reflectTo(recorder.rotation),
 
-            combine(watching, detecting) { watching, detecting -> watching && detecting }
+            (active and detecting and watching)
                 .onToggle(on = recorder::record, off = recorder::lose),
 
             combine(viewSize, displayRotation) { viewSize, displayRotation ->
