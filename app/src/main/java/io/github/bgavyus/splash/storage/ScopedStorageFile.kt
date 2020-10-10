@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
+import io.github.bgavyus.splash.common.Logger
 import java.io.File.separator
 import java.io.IOException
 import java.time.Clock
@@ -40,6 +41,8 @@ class ScopedStorageFile(
 
         uri = contentResolver.insert(standardDirectory.externalStorageContentUri, contentValues)
             ?: throw IOException("Failed to create")
+
+        Logger.debug("Inserted URI: $uri")
 
         file = contentResolver.openFileDescriptor(uri, "w")
             ?: throw IOException("Failed to open")
