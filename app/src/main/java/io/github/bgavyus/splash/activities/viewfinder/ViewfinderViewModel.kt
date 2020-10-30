@@ -24,7 +24,7 @@ import io.github.bgavyus.splash.common.extensions.onToggle
 import io.github.bgavyus.splash.common.extensions.reflectTo
 import io.github.bgavyus.splash.graphics.SurfaceDuplicator
 import io.github.bgavyus.splash.graphics.TransformMatrixFactory
-import io.github.bgavyus.splash.graphics.detection.LightningDetector
+import io.github.bgavyus.splash.graphics.detection.MotionDetector
 import io.github.bgavyus.splash.graphics.media.Beeper
 import io.github.bgavyus.splash.graphics.media.Recorder
 import io.github.bgavyus.splash.permissions.PermissionMissingException
@@ -82,7 +82,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
     private val deferredDetector = viewModelScope.async(Dispatchers.IO) {
         val metadata = deferredMetadata.await()
 
-        LightningDetector(renderScript, metadata.frameSize)
+        MotionDetector(renderScript, metadata.frameSize)
             .apply { deferScope.defer(::close) }
     }
 
