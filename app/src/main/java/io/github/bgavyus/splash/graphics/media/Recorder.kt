@@ -75,8 +75,7 @@ class Recorder(
 
     val surface get() = encoder.surface
 
-    var file: StorageFile? = null
-
+    private var file: StorageFile? = null
     private var writer: Writer? = null
 
     override fun onFormatAvailable(format: MediaFormat) {
