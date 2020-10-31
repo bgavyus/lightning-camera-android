@@ -30,8 +30,11 @@ import io.github.bgavyus.splash.graphics.media.Recorder
 import io.github.bgavyus.splash.permissions.PermissionMissingException
 import io.github.bgavyus.splash.permissions.PermissionsManager
 import io.github.bgavyus.splash.storage.Storage
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 class ViewfinderViewModel @ViewModelInject constructor(
     @ApplicationContext private val context: Context,
@@ -45,9 +48,6 @@ class ViewfinderViewModel @ViewModelInject constructor(
 
     private val activeDeferScope = DeferScope()
         .apply { deferScope.defer(::close) }
-
-    private val activeCoroutineScope = CoroutineScope(viewModelScope.coroutineContext)
-        .apply { activeDeferScope.defer(::cancel) }
 
     private val display = Display(context)
         .apply { deferScope.defer(::close) }
@@ -142,11 +142,11 @@ class ViewfinderViewModel @ViewModelInject constructor(
         lastException.value = exception
     }
 
-    private fun activate() = activeCoroutineScope.launch {
+    private fun activate() = viewModelScope.launch {
         try {
             display.rotations()
                 .reflectTo(displayRotation)
-                .launchIn(activeCoroutineScope)
+                .launchIn(this)
 
             val recorder = deferredRecorder.await().apply {
                 activeDeferScope.defer(::stop)
@@ -169,6 +169,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
             lastException.value = exception
         }
     }
+        .apply { activeDeferScope.defer(::cancel) }
 
     private fun deactivate() = activeDeferScope.close()
 
