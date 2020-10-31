@@ -10,10 +10,7 @@ import android.os.Handler
 import io.github.bgavyus.splash.common.extensions.systemService
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 
 class Display(private val context: Context) : DeferScope() {
     private val handler = SingleThreadHandler(javaClass.simpleName)
@@ -34,6 +31,7 @@ class Display(private val context: Context) : DeferScope() {
             .map { display.rotation }
             .distinctUntilChanged()
             .map { Rotation.fromSurfaceRotation(it) }
+            .onEach { Logger.debug("Rotation changed: $it") }
     }
 }
 
