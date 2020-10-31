@@ -91,10 +91,16 @@ class Recorder(
 
     suspend fun start() {
         stop()
+
         val file = storage.generateFile()
-        val format = format ?: return
+            .also { file = it }
+
+        val format = format ?: run {
+            Logger.debug("Format unavailable")
+            return
+        }
+
         writer = Writer(file, format, rotation.value)
-        this.file = file
     }
 
     fun stop() {
