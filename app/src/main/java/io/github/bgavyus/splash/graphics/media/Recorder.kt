@@ -146,7 +146,6 @@ class Recorder(
         generateSequence(0L) { it + MICROS_IN_UNIT / PLAYBACK_FPS }.iterator()
 
     private fun write(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-        // TODO: Use actual PTS
         info.presentationTimeUs = ptsGenerator.next()
         writer?.write(buffer, info)
     }
