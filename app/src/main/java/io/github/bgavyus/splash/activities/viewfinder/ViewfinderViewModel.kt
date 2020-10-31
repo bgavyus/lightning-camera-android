@@ -25,7 +25,6 @@ import io.github.bgavyus.splash.common.extensions.reflectTo
 import io.github.bgavyus.splash.graphics.SurfaceDuplicator
 import io.github.bgavyus.splash.graphics.TransformMatrixFactory
 import io.github.bgavyus.splash.graphics.detection.MotionDetector
-import io.github.bgavyus.splash.graphics.media.Beeper
 import io.github.bgavyus.splash.graphics.media.Recorder
 import io.github.bgavyus.splash.permissions.PermissionMissingException
 import io.github.bgavyus.splash.permissions.PermissionsManager
@@ -41,8 +40,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
     private val permissionsManager: PermissionsManager,
     private val cameraMetadataProvider: CameraMetadataProvider,
     private val renderScript: RenderScript,
-    private val storage: Storage,
-    private val beeper: Beeper
+    private val storage: Storage
 ) : ViewModel() {
     private val deferScope = DeferScope()
 
@@ -119,7 +117,6 @@ class ViewfinderViewModel @ViewModelInject constructor(
         launchAll(
             active.onToggle(on = ::activate, off = ::deactivate),
             detector.detectingStates().reflectTo(detecting),
-            (active and detecting).onToggle(on = beeper::start, off = beeper::stop),
             recorder.lastException.reflectTo(lastException),
 
             displayRotation
