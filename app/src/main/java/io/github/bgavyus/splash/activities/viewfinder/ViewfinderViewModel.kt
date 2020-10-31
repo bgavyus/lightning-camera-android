@@ -122,7 +122,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
             recorder.lastException.reflectTo(lastException),
 
             displayRotation
-                .onEach { metadata.orientation - it }
+                .map { metadata.orientation - it }
                 .reflectTo(recorder.rotation),
 
             (active and detecting and watching)
