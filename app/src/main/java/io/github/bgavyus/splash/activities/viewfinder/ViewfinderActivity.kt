@@ -3,7 +3,6 @@ package io.github.bgavyus.splash.activities.viewfinder
 import android.content.res.Configuration
 import android.graphics.SurfaceTexture
 import android.util.Size
-import android.view.Gravity
 import android.view.TextureView
 import android.widget.Toast
 import android.widget.ToggleButton
@@ -103,11 +102,7 @@ class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListene
 
     private fun showMessage(resourceId: Int) {
         Logger.debug("Showing message: ${getDefaultString(resourceId)}")
-
-        Toast.makeText(applicationContext, resourceId, Toast.LENGTH_LONG).run {
-            setGravity(Gravity.CENTER, 0, 0)
-            show()
-        }
+        Toast.makeText(applicationContext, resourceId, Toast.LENGTH_LONG).show()
     }
 
     private fun getDefaultString(resourceId: Int): String {
