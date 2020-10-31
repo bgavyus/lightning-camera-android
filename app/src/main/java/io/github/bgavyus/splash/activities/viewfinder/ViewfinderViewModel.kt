@@ -30,11 +30,8 @@ import io.github.bgavyus.splash.graphics.media.Recorder
 import io.github.bgavyus.splash.permissions.PermissionMissingException
 import io.github.bgavyus.splash.permissions.PermissionsManager
 import io.github.bgavyus.splash.storage.Storage
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 
 class ViewfinderViewModel @ViewModelInject constructor(
     @ApplicationContext private val context: Context,
@@ -69,7 +66,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
     val watching = MutableStateFlow(false)
     val transformMatrix = MutableStateFlow(Matrix())
     val surfaceTexture = MutableStateFlow(null as SurfaceTexture?)
-    val lastException = MutableStateFlow(null as Exception?)
+    val lastException = MutableStateFlow(null as Throwable?)
 
     private val deferredMetadata = viewModelScope.async {
         cameraMetadataProvider.highSpeed()
@@ -165,8 +162,9 @@ class ViewfinderViewModel @ViewModelInject constructor(
 
             cameraSessionFactory.create(device, surfaces, metadata.framesPerSecond)
                 .apply { activeDeferScope.defer(::close) }
+        } catch (exception: CancellationException) {
+            lastException.value = exception.cause ?: exception
         } catch (exception: Exception) {
-            Logger.error("Failed to activate", exception)
             lastException.value = exception
         }
     }

@@ -87,7 +87,7 @@ class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListene
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture) = /* shouldRelease = */ false
 
-    private fun onException(exception: Exception) = finishWithMessage(
+    private fun onException(exception: Throwable) = finishWithMessage(
         when (exception) {
             is ResourceCapable -> exception.resourceId
             is IOException -> R.string.error_io
