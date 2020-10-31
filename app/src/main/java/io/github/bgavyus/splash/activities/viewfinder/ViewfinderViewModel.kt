@@ -47,6 +47,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
         .apply { deferScope.defer(::close) }
 
     private val activeCoroutineScope = CoroutineScope(viewModelScope.coroutineContext)
+        .apply { activeDeferScope.defer(::cancel) }
 
     private val display = Display(context)
         .apply { deferScope.defer(::close) }
