@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
 import io.github.bgavyus.splash.common.Logger
+import io.github.bgavyus.splash.common.extensions.toInt
 import java.io.File.separator
 import java.io.IOException
 import java.time.Clock
@@ -87,5 +88,3 @@ class ScopedStorageFile(
         }
     }
 }
-
-private fun Boolean.toInt() = if (this) 1 else 0
