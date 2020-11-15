@@ -8,6 +8,7 @@ data class CameraMetadata(
     val streamConfigurations: Iterable<StreamConfiguration>
 ) {
     // TODO: Convert to flows
-    val framesPerSecond get() = streamConfigurations.first().framesPerSecond
-    val frameSize get() = streamConfigurations.first().frameSize
+    private val activeConfig get() = streamConfigurations.elementAt(0)
+    val framesPerSecond get() = activeConfig.framesPerSecond
+    val frameSize get() = activeConfig.frameSize
 }
