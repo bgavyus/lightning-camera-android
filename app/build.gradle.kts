@@ -51,7 +51,7 @@ android {
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.0.10")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.0")
 
     val kotlinVersion: String by rootProject.extra
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
@@ -72,6 +72,7 @@ dependencies {
 
     // https://github.com/natario1/Egloo/tags
     implementation("com.otaliastudios.opengl:egloo:0.5.3")
+    implementation("com.aliasi:lingpipe:4.0.1")
 
     androidTestImplementation("androidx.test:runner:1.3.0")
 }
