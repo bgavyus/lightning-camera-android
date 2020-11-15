@@ -23,6 +23,7 @@ abstract class Detector(
     companion object {
         const val CHANNELS = 3
         const val MAX_INTENSITY = 255
+        const val FRAMES_PER_SECONDS = 30
     }
 
     private val handler = SingleThreadHandler(javaClass.simpleName)
