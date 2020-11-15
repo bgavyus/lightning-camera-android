@@ -4,8 +4,8 @@ class Snake<Element>(private val nodes: Array<Element>) {
     private var head = 0
     private var size = 0
 
-    fun feed(block: (Element) -> Unit) {
-        block(nodes[head])
+    fun feed(block: (Element) -> Element) {
+        nodes[head] = block(nodes[head])
         advance()
 
         if (!full) {

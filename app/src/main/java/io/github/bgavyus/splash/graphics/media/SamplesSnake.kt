@@ -16,6 +16,7 @@ class SamplesSnake(sampleSize: Int, samplesCount: Int) : DeferScope() {
 
     fun feed(buffer: ByteBuffer, info: MediaCodec.BufferInfo) = snake.feed { sample ->
         sample.copyFrom(buffer, info)
+        sample
     }
 
     fun drain(block: (ByteBuffer, MediaCodec.BufferInfo) -> Unit) {
