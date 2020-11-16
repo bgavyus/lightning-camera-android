@@ -26,8 +26,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import java.io.IOException
 import java.util.*
 
-// TODO: Use images in toggle button
-// TODO: Replace visual indicator dot with red frame
 @AndroidEntryPoint
 class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListener {
     private val viewModel: ViewfinderViewModel by viewModels()
