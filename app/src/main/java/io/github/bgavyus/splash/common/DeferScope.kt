@@ -2,7 +2,6 @@ package io.github.bgavyus.splash.common
 
 import java.util.*
 
-// TODO: Support async blocks
 open class DeferScope : AutoCloseable {
     private val stack = ArrayDeque<Block>()
 

@@ -25,7 +25,6 @@ class Encoder(format: MediaFormat) : DeferScope() {
                 listener?.onFormatAvailable(format)
             }
 
-            // TODO: Convert to native
             override fun onOutputBufferAvailable(
                 codec: MediaCodec,
                 index: Int,
