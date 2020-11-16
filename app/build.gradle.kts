@@ -51,7 +51,7 @@ android {
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.0")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.1")
 
     val kotlinVersion: String by rootProject.extra
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
@@ -66,7 +66,7 @@ dependencies {
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:$jetpackHiltVersion")
     kapt("androidx.hilt:hilt-compiler:$jetpackHiltVersion")
 
-    implementation("androidx.core:core-ktx:1.5.0-alpha04")
+    implementation("androidx.core:core-ktx:1.5.0-alpha05")
     implementation("androidx.fragment:fragment-ktx:1.3.0-beta01")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
 
