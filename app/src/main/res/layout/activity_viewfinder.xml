@@ -17,11 +17,11 @@
 
     <ImageView
         android:id="@+id/detection_indicator"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@android:drawable/ic_notification_overlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:src="#41FF0000"
         android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/watch_toggle"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -29,11 +29,14 @@
 
     <ToggleButton
         android:id="@+id/watch_toggle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:background="@drawable/watch_toggle"
+        android:textOff=""
+        android:textOn=""
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/detection_indicator" />
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
