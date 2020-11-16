@@ -25,9 +25,9 @@ class PeakDetector(
 
     private fun detecting(sample: Double): Boolean {
 //        Logger.verbose("${100 * mean}")
-        val zScore = (sample - mean).absoluteValue
-//        Logger.verbose("${100 * zScore}")
-        return zScore > deviationThreshold
+        val deviation = (sample - mean).absoluteValue
+//        Logger.verbose("${100 * deviation}")
+        return deviation > deviationThreshold
     }
 
     private fun add(sample: Double) {
