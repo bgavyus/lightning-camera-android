@@ -72,7 +72,6 @@ dependencies {
 
     // https://github.com/natario1/Egloo/tags
     implementation("com.otaliastudios.opengl:egloo:0.5.3")
-    implementation("com.aliasi:lingpipe:4.0.1")
 
     androidTestImplementation("androidx.test:runner:1.3.0")
 }
