@@ -7,12 +7,7 @@ import io.github.bgavyus.splash.common.Snake
 import java.nio.ByteBuffer
 
 class SamplesSnake(sampleSize: Int, samplesCount: Int) : DeferScope() {
-    private val snake = Snake(Array(samplesCount) { Sample(sampleSize) }.apply {
-        defer {
-            Logger.debug("Freeing samples")
-            forEach { it.close() }
-        }
-    })
+    private val snake = Snake(Array(samplesCount) { Sample(sampleSize) })
 
     fun feed(buffer: ByteBuffer, info: MediaCodec.BufferInfo) = snake.feed { sample ->
         sample.copyFrom(buffer, info)

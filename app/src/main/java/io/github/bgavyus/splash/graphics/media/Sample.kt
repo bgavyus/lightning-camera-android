@@ -3,17 +3,13 @@ package io.github.bgavyus.splash.graphics.media
 import android.media.MediaCodec
 import java.nio.ByteBuffer
 
-class Sample(maxSize: Int) : AutoCloseable {
+class Sample(maxSize: Int) {
     val buffer: ByteBuffer = ByteBuffer.allocateDirect(maxSize)
     val info = MediaCodec.BufferInfo()
 
     fun copyFrom(otherBuffer: ByteBuffer, otherInfo: MediaCodec.BufferInfo) {
         buffer.copyFrom(otherBuffer)
         info.copyFrom(otherInfo)
-    }
-
-    override fun close() {
-        // TODO: Release buffer
     }
 }
 
