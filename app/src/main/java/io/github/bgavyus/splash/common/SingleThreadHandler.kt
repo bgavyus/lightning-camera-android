@@ -12,12 +12,7 @@ class SingleThreadHandler : Handler, AutoCloseable {
     constructor(name: String?) : this(HandlerThread(name).apply { start() })
 
     private constructor(thread: HandlerThread) : super(thread.looper) {
-        thread.apply {
-            deferScope.defer {
-                Logger.debug("Quiting $name thread")
-                quitSafely()
-            }
-        }
+        deferScope.defer(thread::quitSafely)
 
         if (BuildConfig.DEBUG) {
             monitorDispatchRate()

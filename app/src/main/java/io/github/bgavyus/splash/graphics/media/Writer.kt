@@ -5,7 +5,6 @@ import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.os.Build
 import io.github.bgavyus.splash.common.DeferScope
-import io.github.bgavyus.splash.common.Logger
 import io.github.bgavyus.splash.common.Rotation
 import io.github.bgavyus.splash.storage.StorageFile
 import kotlinx.coroutines.CoroutineScope
@@ -34,33 +33,17 @@ class Writer(
     } else {
         MediaMuxer(file.path, OUTPUT_FORMAT)
     }.apply {
-        defer {
-            Logger.debug("Attempting to release muxer")
-
-            if (active) {
-                Logger.debug("Releasing muxer")
-                release()
-            }
-        }
-
         setOrientationHint(rotation.degrees)
         track = addTrack(format)
         start()
-
-        defer {
-            Logger.debug("Attempting to stop muxer")
-
-            if (active) {
-                Logger.debug("Stopping muxer")
-                stop()
-            }
-        }
     }
 
     fun write(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
         if (!active) {
             scope.launch { file.keep() }
             active = true
+            defer(muxer::release)
+            defer(muxer::stop)
         }
 
         muxer.writeSampleData(track, buffer, info)

@@ -38,13 +38,7 @@ class SurfaceDuplicator : DeferScope() {
     private lateinit var entireViewport: GlRect
     lateinit var surface: Surface
 
-    private val windows = mutableSetOf<EglWindowSurface>().apply {
-        defer {
-            Logger.debug("Releasing surfaces")
-            forEach { it.release() }
-            clear()
-        }
-    }
+    private val windows = mutableSetOf<EglWindowSurface>()
 
     suspend fun addSurface(surface: Surface) = withContext(dispatcher) {
         if (windows.isEmpty()) {
@@ -53,6 +47,7 @@ class SurfaceDuplicator : DeferScope() {
         }
 
         val windowSurface = EglWindowSurface(core, surface)
+            .apply { defer(::release) }
 
         if (windows.isEmpty()) {
             windowSurface.makeCurrent()
