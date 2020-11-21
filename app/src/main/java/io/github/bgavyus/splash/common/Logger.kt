@@ -1,6 +1,7 @@
 package io.github.bgavyus.splash.common
 
 import android.util.Log
+import io.github.bgavyus.splash.BuildConfig
 
 object Logger {
     private val tagRegex = Regex("""(\w+)(?:$|\$)""")
@@ -13,7 +14,9 @@ object Logger {
     fun error(message: String, throwable: Throwable) = log(Log.ERROR, concat(message, throwable))
 
     private fun log(priority: Int, message: String) {
-        Log.println(priority, tag(), message)
+        if (BuildConfig.DEBUG) {
+            Log.println(priority, tag(), message)
+        }
     }
 
     private fun tag(): String {
