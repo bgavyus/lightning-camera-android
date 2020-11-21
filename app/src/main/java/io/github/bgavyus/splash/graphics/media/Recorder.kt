@@ -90,6 +90,7 @@ class Recorder(
     }
 
     suspend fun start() {
+        Logger.info("Starting")
         stop()
 
         val file = storage.generateFile()

@@ -23,6 +23,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.onEach
 import java.io.IOException
 import java.util.*
 
@@ -52,7 +53,7 @@ class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListene
     private suspend fun grantPermissions() = viewModel.grantPermissions()
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
-        Logger.debug("onWindowFocusChanged(hasFocus = $hasFocus)")
+        Logger.debug("Window has focus? $hasFocus")
         viewModel.active.value = hasFocus
     }
 
@@ -63,7 +64,11 @@ class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListene
         lifecycleScope.launchAll(
             viewModel.transformMatrix.callOnEach(binding.textureView::setTransform),
             viewModel.detecting.callOnEach(::setDetectionIndicatorActive),
-            binding.watchToggle.checked().reflectTo(viewModel.watching),
+
+            binding.watchToggle.checked()
+                .onEach { Logger.info("Watching? $it") }
+                .reflectTo(viewModel.watching),
+
             viewModel.lastException.filterNotNull().callOnEach(::onException)
         )
     }

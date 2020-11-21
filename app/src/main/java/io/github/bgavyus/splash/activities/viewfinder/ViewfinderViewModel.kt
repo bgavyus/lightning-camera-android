@@ -138,6 +138,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
     suspend fun grantPermissions() = try {
         permissionsManager.grantAll()
     } catch (exception: PermissionMissingException) {
+        Logger.error("Permissions not granted", exception)
         lastException.value = exception
     }
 
@@ -163,8 +164,10 @@ class ViewfinderViewModel @ViewModelInject constructor(
             cameraSessionFactory.create(device, surfaces, metadata.framesPerSecond)
                 .apply { activeDeferScope.defer(::close) }
         } catch (exception: CancellationException) {
+            Logger.error("Cancellation exception while activating", exception)
             lastException.value = exception.cause ?: exception
         } catch (exception: Exception) {
+            Logger.error("Failed to activate", exception)
             lastException.value = exception
         }
     }
