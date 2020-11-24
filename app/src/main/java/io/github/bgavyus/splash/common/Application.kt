@@ -12,6 +12,6 @@ class Application : Application() {
     }
 
     private fun logState() {
-        Logger.info("Storage type: ${if (Storage.isLegacy) "legacy" else "scoped"}")
+        Logger.info("Storage scoped? ${Storage.isScoped}")
     }
 }

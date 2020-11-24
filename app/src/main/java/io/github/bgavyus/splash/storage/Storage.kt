@@ -22,8 +22,8 @@ class Storage @Inject constructor(
         const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
         const val FILE_EXTENSION = "mp4"
 
-        val isLegacy
-            get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || Environment.isExternalStorageLegacy()
+        val isScoped
+            get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !Environment.isExternalStorageLegacy()
     }
 
     suspend fun generateFile(): StorageFile {
@@ -45,9 +45,7 @@ class Storage @Inject constructor(
         appDirectoryName: String,
         name: String
     ) = withContext(Dispatchers.IO) {
-        if (isLegacy) {
-            LegacyStorageFile(contentResolver, mimeType, standardDirectory, appDirectoryName, name)
-        } else {
+        if (isScoped) {
             ScopedStorageFile(
                 contentResolver,
                 clock,
@@ -56,6 +54,8 @@ class Storage @Inject constructor(
                 appDirectoryName,
                 name
             )
+        } else {
+            LegacyStorageFile(contentResolver, mimeType, standardDirectory, appDirectoryName, name)
         }
     }
 }

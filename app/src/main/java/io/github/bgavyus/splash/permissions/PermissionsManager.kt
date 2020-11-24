@@ -60,7 +60,7 @@ class PermissionsManager @Inject constructor(
     }
 
     private val storageGranted
-        get() = !Storage.isLegacy || granted(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        get() = Storage.isScoped || granted(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
     private fun granted(permission: String) =
         context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
