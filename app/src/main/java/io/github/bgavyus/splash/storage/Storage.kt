@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Environment
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.splash.R
+import io.github.bgavyus.splash.common.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.Clock
@@ -24,6 +25,10 @@ class Storage @Inject constructor(
 
         val isScoped
             get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !Environment.isExternalStorageLegacy()
+    }
+
+    init {
+        Logger.info("Scoped? $isScoped")
     }
 
     suspend fun generateFile(): StorageFile {
