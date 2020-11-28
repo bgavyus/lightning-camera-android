@@ -28,7 +28,7 @@ import java.io.IOException
 import java.util.*
 
 @AndroidEntryPoint
-class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListener {
+class ViewfinderActivity : FragmentActivity() {
     private val viewModel: ViewfinderViewModel by viewModels()
     private lateinit var binding: ActivityViewfinderBinding
 
@@ -59,13 +59,16 @@ class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListene
 
     private fun bind() {
         viewModel.surfaceTexture.value?.let(binding.textureView::setSurfaceTexture)
-            ?: binding.textureView.surfaceTexture?.let {
-                onSurfaceTextureAvailable(it, binding.textureView.width, binding.textureView.height)
-            }
-
-        binding.textureView.surfaceTextureListener = this
 
         lifecycleScope.launchAll(
+            binding.textureView.surfaceTextureEvents().onEach {
+                when (it) {
+                    is SurfaceTextureEvent.Available -> viewModel.surfaceTexture.value = it.surface
+                    is SurfaceTextureEvent.SizeChanged -> viewModel.viewSize.value = it.size
+                    SurfaceTextureEvent.Updated -> viewModel.adjustBufferSize()
+                }
+            },
+
             viewModel.transformMatrix.callOnEach(binding.textureView::setTransform),
             viewModel.detecting.callOnEach(::setDetectionIndicatorActive),
 
@@ -77,22 +80,9 @@ class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListene
         )
     }
 
-    override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-        viewModel.surfaceTexture.value = surface
-        onSurfaceTextureSizeChanged(surface, width, height)
-    }
-
-    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
-        viewModel.viewSize.value = Size(width, height)
-    }
-
-    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) = viewModel.adjustBufferSize()
-
     private fun setDetectionIndicatorActive(active: Boolean) {
         binding.detectionIndicator.isInvisible = !active
     }
-
-    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture) = /* shouldRelease = */ false
 
     private fun onException(exception: Throwable) = finishWithMessage(
         when (exception) {
@@ -121,4 +111,31 @@ class ViewfinderActivity : FragmentActivity(), TextureView.SurfaceTextureListene
 private fun ToggleButton.checked() = callbackFlow {
     setOnCheckedChangeListener { _, checked -> sendBlocking(checked) }
     awaitClose { setOnCheckedChangeListener(null) }
+}
+
+private sealed class SurfaceTextureEvent {
+    data class Available(val surface: SurfaceTexture) : SurfaceTextureEvent()
+    data class SizeChanged(val size: Size) : SurfaceTextureEvent()
+    object Updated : SurfaceTextureEvent()
+}
+
+private fun TextureView.surfaceTextureEvents() = callbackFlow<SurfaceTextureEvent> {
+    val listener = object : TextureView.SurfaceTextureListener {
+        override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+            sendBlocking(SurfaceTextureEvent.Available(surface))
+            onSurfaceTextureSizeChanged(surface, width, height)
+        }
+
+        override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) =
+            sendBlocking(SurfaceTextureEvent.SizeChanged(Size(width, height)))
+
+        override fun onSurfaceTextureUpdated(surface: SurfaceTexture) =
+            sendBlocking(SurfaceTextureEvent.Updated)
+
+        override fun onSurfaceTextureDestroyed(surface: SurfaceTexture) = /* shouldRelease */ false
+    }
+
+    surfaceTexture?.let { listener.onSurfaceTextureAvailable(it, width, height) }
+    surfaceTextureListener = listener
+    awaitClose()
 }
