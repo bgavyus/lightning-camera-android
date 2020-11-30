@@ -11,7 +11,6 @@ import io.github.bgavyus.splash.common.SingleThreadHandler
 import io.github.bgavyus.splash.common.extensions.systemService
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionMissingException
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
@@ -42,7 +41,7 @@ private fun CameraManager.openCamera(id: String, handler: Handler) = callbackFlo
             cancel(CameraException.fromStateError(error))
 
         private fun cancel(exception: CameraException) =
-            cancel(CancellationException(exception.javaClass.simpleName, exception))
+            cancel(exception.javaClass.simpleName, exception)
     }
 
     try {
