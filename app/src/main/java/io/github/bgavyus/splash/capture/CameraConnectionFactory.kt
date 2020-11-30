@@ -8,11 +8,11 @@ import android.hardware.camera2.CameraManager
 import android.os.Handler
 import io.github.bgavyus.splash.common.DeferScope
 import io.github.bgavyus.splash.common.SingleThreadHandler
+import io.github.bgavyus.splash.common.extensions.cancel
 import io.github.bgavyus.splash.common.extensions.systemService
 import io.github.bgavyus.splash.permissions.PermissionGroup
 import io.github.bgavyus.splash.permissions.PermissionMissingException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.callbackFlow
@@ -39,9 +39,6 @@ private fun CameraManager.openCamera(id: String, handler: Handler) = callbackFlo
 
         override fun onError(camera: CameraDevice, error: Int) =
             cancel(CameraException.fromStateError(error))
-
-        private fun cancel(exception: CameraException) =
-            cancel(exception.javaClass.simpleName, exception)
     }
 
     try {
