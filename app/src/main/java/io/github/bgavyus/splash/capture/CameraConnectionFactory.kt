@@ -42,7 +42,7 @@ private fun CameraManager.openCamera(id: String, handler: Handler) = callbackFlo
             cancel(CameraException.fromStateError(error))
 
         private fun cancel(exception: CameraException) =
-            cancel(CancellationException(CameraException::class.simpleName, exception))
+            cancel(CancellationException(exception.javaClass.simpleName, exception))
     }
 
     try {
