@@ -10,7 +10,7 @@ android {
     buildToolsVersion = "29.0.3"
 
     defaultConfig {
-        applicationId = "io.github.bgavyus.splash"
+        applicationId = "io.github.bgavyus.lightningcamera"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdkVersion(24)
         targetSdkVersion(30)

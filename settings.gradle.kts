@@ -1,2 +1,2 @@
 include(":app")
-rootProject.name = "Splash"
+rootProject.name = "Lightning Camera"
