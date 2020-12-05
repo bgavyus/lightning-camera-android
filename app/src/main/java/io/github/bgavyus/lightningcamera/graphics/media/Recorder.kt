@@ -2,6 +2,7 @@ package io.github.bgavyus.lightningcamera.graphics.media
 
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
+import android.media.MediaCodecList
 import android.media.MediaFormat
 import android.util.Size
 import io.github.bgavyus.lightningcamera.common.DeferScope
@@ -27,8 +28,6 @@ class Recorder(
         private const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
         private const val MILLIS_IN_UNIT = 1_000
         private const val MICROS_IN_UNIT = 1_000_000
-        private const val KEY_FRAME_INTERVAL_FRAMES = 10
-        private const val COMPRESSION_FACTOR = 5
         private const val PLAYBACK_FPS = 5
         private const val MIN_BUFFER_TIME_MILLISECONDS = 50
     }
@@ -52,19 +51,19 @@ class Recorder(
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
             )
 
+            val codecInfo = MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos
+                .find { it.supportedTypes.contains(MIME_TYPE) }
+                ?: throw RuntimeException()
+
             setInteger(
                 MediaFormat.KEY_BIT_RATE,
-                framesPerSecond * videoSize.area / COMPRESSION_FACTOR
+                codecInfo.getCapabilitiesForType(MIME_TYPE).videoCapabilities.bitrateRange.upper
+                    .also { Logger.debug("Bit rate: $it") }
             )
 
             setInteger(MediaFormat.KEY_OPERATING_RATE, framesPerSecond)
-
             setInteger(MediaFormat.KEY_FRAME_RATE, PLAYBACK_FPS)
-
-            setFloat(
-                MediaFormat.KEY_I_FRAME_INTERVAL,
-                KEY_FRAME_INTERVAL_FRAMES.toFloat() / PLAYBACK_FPS
-            )
+            setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 0)
         }
 
         encoder = Encoder(format).also {
@@ -115,7 +114,7 @@ class Recorder(
 
     private val snake = SamplesSnake(
         sampleSize = videoSize.area,
-        samplesCount = framesPerSecond * MIN_BUFFER_TIME_MILLISECONDS / MILLIS_IN_UNIT + KEY_FRAME_INTERVAL_FRAMES - 1
+        samplesCount = framesPerSecond * MIN_BUFFER_TIME_MILLISECONDS / MILLIS_IN_UNIT
     )
 
     override fun onBufferAvailable(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
