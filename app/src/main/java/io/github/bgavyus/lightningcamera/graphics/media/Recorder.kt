@@ -57,7 +57,7 @@ class Recorder(
                 framesPerSecond * videoSize.area / COMPRESSION_FACTOR
             )
 
-            setInteger(MediaFormat.KEY_CAPTURE_RATE, framesPerSecond)
+            setInteger(MediaFormat.KEY_OPERATING_RATE, framesPerSecond)
 
             setInteger(MediaFormat.KEY_FRAME_RATE, PLAYBACK_FPS)
 

@@ -7,9 +7,7 @@ data class CameraMetadata(
     val orientation: Rotation,
     val streamConfigurations: List<StreamConfiguration>
 ) {
-    private val activeStreamConfiguration = streamConfigurations.middle()
+    private val activeStreamConfiguration = streamConfigurations.last()
     val framesPerSecond get() = activeStreamConfiguration.framesPerSecond
     val frameSize get() = activeStreamConfiguration.frameSize
 }
-
-private fun <T> List<T>.middle(): T = get(size / 2)
