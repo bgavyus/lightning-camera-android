@@ -71,7 +71,6 @@ class ViewfinderViewModel @ViewModelInject constructor(
         cameraMetadataProvider.highSpeed()
             .also {
                 cameraMetadata = it
-                Logger.debug("Stream configurations: ${it.streamConfigurations}")
                 Logger.debug("FPS: ${it.framesPerSecond}")
                 Logger.debug("Frame Size: ${it.frameSize}")
             }
