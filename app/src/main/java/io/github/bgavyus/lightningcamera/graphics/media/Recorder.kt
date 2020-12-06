@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import java.nio.ByteBuffer
+import kotlin.math.ceil
 
 class Recorder(
     private val storage: Storage,
@@ -26,10 +27,9 @@ class Recorder(
 ) : DeferScope(), EncoderListener {
     companion object {
         private const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
-        private const val MILLIS_IN_UNIT = 1_000
         private const val MICROS_IN_UNIT = 1_000_000
         private const val PLAYBACK_FPS = 5
-        private const val MIN_BUFFER_TIME_MILLISECONDS = 50
+        private const val MIN_BUFFER_SECONDS = 0.01
     }
 
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -114,7 +114,7 @@ class Recorder(
 
     private val snake = SamplesSnake(
         sampleSize = videoSize.area,
-        samplesCount = framesPerSecond * MIN_BUFFER_TIME_MILLISECONDS / MILLIS_IN_UNIT
+        samplesCount = ceil(framesPerSecond * MIN_BUFFER_SECONDS).toInt()
     )
 
     override fun onBufferAvailable(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
