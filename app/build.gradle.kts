@@ -64,7 +64,7 @@ dependencies {
     kapt("androidx.hilt:hilt-compiler:$jetpackHiltVersion")
 
     implementation("androidx.core:core-ktx:1.5.0-alpha05")
-    implementation("androidx.fragment:fragment-ktx:1.3.0-beta01")
+    implementation("androidx.fragment:fragment-ktx:1.3.0-beta02")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
 
     // https://github.com/natario1/Egloo/tags

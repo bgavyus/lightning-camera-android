@@ -1,5 +1,5 @@
 buildscript {
-    val kotlinVersion by extra("1.4.20")
+    val kotlinVersion by extra("1.4.21")
     val hiltVersion by extra("2.30.1-alpha")
 
     repositories {
