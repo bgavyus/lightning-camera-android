@@ -16,8 +16,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdkVersion(24)
         targetSdkVersion(30)
-        versionCode = 8
-        versionName = "0.0.8"
+        versionCode = 9
+        versionName = "0.0.9"
     }
 
     buildFeatures {
