@@ -29,7 +29,7 @@ class Recorder(
         private const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
         private const val MICROS_IN_UNIT = 1_000_000
         private const val PLAYBACK_FPS = 5
-        private const val MIN_BUFFER_SECONDS = 0.01
+        private const val MIN_BUFFER_SECONDS = 0.05
     }
 
     private val scope = CoroutineScope(Dispatchers.IO)
