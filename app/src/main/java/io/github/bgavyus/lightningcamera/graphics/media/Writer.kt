@@ -33,6 +33,7 @@ class Writer(
     } else {
         MediaMuxer(file.path, OUTPUT_FORMAT)
     }.apply {
+        defer(::release)
         setOrientationHint(rotation.degrees)
         track = addTrack(format)
         start()
@@ -42,8 +43,6 @@ class Writer(
         if (!active) {
             scope.launch { file.keep() }
             active = true
-            defer(muxer::release)
-            defer(muxer::stop)
         }
 
         muxer.writeSampleData(track, buffer, info)
