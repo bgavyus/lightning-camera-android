@@ -3,6 +3,7 @@ plugins {
     kotlin("android")
     kotlin("kapt")
     id("dagger.hilt.android.plugin")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -69,6 +70,10 @@ dependencies {
 
     // https://github.com/natario1/Egloo/tags
     implementation("com.otaliastudios.opengl:egloo:0.5.3")
+
+    // https://firebase.google.com/support/release-notes/android
+    implementation(platform("com.google.firebase:firebase-bom:26.1.1"))
+    implementation("com.google.firebase:firebase-analytics-ktx")
 
     androidTestImplementation("androidx.test:runner:1.3.0")
 }
