@@ -4,6 +4,7 @@ plugins {
     kotlin("kapt")
     id("dagger.hilt.android.plugin")
     id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -73,6 +74,7 @@ dependencies {
 
     // https://firebase.google.com/support/release-notes/android
     implementation(platform("com.google.firebase:firebase-bom:26.1.1"))
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
 
     androidTestImplementation("androidx.test:runner:1.3.0")
