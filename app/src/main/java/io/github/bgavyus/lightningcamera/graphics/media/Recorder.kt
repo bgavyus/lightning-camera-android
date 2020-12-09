@@ -117,7 +117,10 @@ class Recorder(
         samplesCount = ceil(framesPerSecond * MIN_BUFFER_SECONDS).toInt()
     )
 
-    override fun onBufferAvailable(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    override fun onBufferAvailable(
+        buffer: ByteBuffer,
+        info: MediaCodec.BufferInfo
+    ) = synchronized(this) {
         if (recording) {
             write(buffer, info)
         } else {
@@ -125,7 +128,7 @@ class Recorder(
         }
     }
 
-    fun record() {
+    fun record() = synchronized(this) {
         Logger.info("Recording")
         snake.drain(::write)
         recording = true
@@ -139,7 +142,7 @@ class Recorder(
         writer?.write(buffer, info)
     }
 
-    fun lose() {
+    fun lose() = synchronized(this) {
         Logger.info("Losing")
         recording = false
     }
