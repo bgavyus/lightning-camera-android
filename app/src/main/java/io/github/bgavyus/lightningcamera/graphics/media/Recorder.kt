@@ -123,22 +123,6 @@ class Recorder(
         } else {
             snake.feed(buffer, info)
         }
-
-        logSkippedFrames(info.presentationTimeUs)
-    }
-
-    private var lastPts = 0L
-
-    private fun logSkippedFrames(pts: Long) {
-        if (lastPts > 0) {
-            val framesSkipped = PLAYBACK_FPS * (pts - lastPts) / MICROS_IN_UNIT - 1
-
-            if (framesSkipped > 0) {
-                Logger.verbose("Frames Skipped: $framesSkipped")
-            }
-        }
-
-        lastPts = pts
     }
 
     fun record() {
