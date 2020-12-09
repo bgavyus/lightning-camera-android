@@ -3,6 +3,7 @@ package io.github.bgavyus.lightningcamera.activities.viewfinder
 import android.content.res.Configuration
 import android.graphics.SurfaceTexture
 import android.util.Size
+import android.view.KeyEvent
 import android.view.TextureView
 import android.widget.Toast
 import android.widget.ToggleButton
@@ -78,6 +79,15 @@ class ViewfinderActivity : FragmentActivity() {
 
             viewModel.lastException.filterNotNull().callOnEach(::onException)
         )
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?) = when (keyCode) {
+        KeyEvent.KEYCODE_VOLUME_UP,
+        KeyEvent.KEYCODE_VOLUME_DOWN -> {
+            binding.watchToggle.toggle()
+            true
+        }
+        else -> super.onKeyDown(keyCode, event)
     }
 
     private fun setDetectionIndicatorActive(active: Boolean) {
