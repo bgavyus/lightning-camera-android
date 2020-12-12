@@ -31,17 +31,17 @@ class Encoder(format: MediaFormat) : DeferScope() {
                 info: MediaCodec.BufferInfo
             ) {
                 try {
-                    if (info.codecConfig) {
+                    if (info.isCodecConfig) {
                         Logger.debug("Got codec config")
                         return
                     }
 
-                    if (info.endOfStream) {
+                    if (info.isEndOfStream) {
                         Logger.warn("Got end of stream")
                         return
                     }
 
-                    if (info.empty) {
+                    if (info.size == 0) {
                         Logger.warn("Got empty buffer")
                         return
                     }
@@ -95,3 +95,8 @@ class Encoder(format: MediaFormat) : DeferScope() {
         }
     }
 }
+
+val MediaCodec.BufferInfo.isCodecConfig get() = flags.isSet(MediaCodec.BUFFER_FLAG_CODEC_CONFIG)
+val MediaCodec.BufferInfo.isEndOfStream get() = flags.isSet(MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+
+private fun Int.isSet(flag: Int) = and(flag) != 0
