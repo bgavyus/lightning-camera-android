@@ -6,6 +6,7 @@ import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CameraMetadata
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.bgavyus.lightningcamera.common.Logger
 import io.github.bgavyus.lightningcamera.common.Rotation
 import io.github.bgavyus.lightningcamera.common.extensions.area
 import io.github.bgavyus.lightningcamera.common.extensions.systemService
@@ -16,7 +17,7 @@ import javax.inject.Inject
 class CameraMetadataProvider @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    suspend fun highSpeed() = withContext(Dispatchers.IO) {
+    suspend fun collect() = withContext(Dispatchers.IO) {
         val manager = context.systemService<CameraManager>()
 
         try {
@@ -47,6 +48,7 @@ class CameraMetadataProvider @Inject constructor(
                 .maxByOrNull { (framesPerSecond, frameSize) -> framesPerSecond * frameSize.area }
                 ?: throw CameraException(CameraExceptionType.HighSpeedNotAvailable)
 
+            Logger.info("Metadata collected: orientation: $orientation, frames/second: $framesPerSecond, frame Size: $frameSize")
             CameraMetadata(id, orientation, framesPerSecond, frameSize)
         } catch (error: CameraAccessException) {
             throw CameraException.fromAccessException(error)

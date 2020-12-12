@@ -68,12 +68,8 @@ class ViewfinderViewModel @ViewModelInject constructor(
     val lastException = MutableStateFlow(null as Throwable?)
 
     private val deferredMetadata = viewModelScope.async {
-        cameraMetadataProvider.highSpeed()
-            .also {
-                cameraMetadata = it
-                Logger.debug("FPS: ${it.framesPerSecond}")
-                Logger.debug("Frame Size: ${it.frameSize}")
-            }
+        cameraMetadataProvider.collect()
+            .also { cameraMetadata = it }
     }
 
     private val deferredDetector = viewModelScope.async(Dispatchers.IO) {
