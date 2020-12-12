@@ -17,7 +17,7 @@ open class DeferScope : AutoCloseable {
             try {
                 block.invoke()
             } catch (exception: Exception) {
-                Logger.warn("Exception while closing", exception)
+                Logger.error("Exception while closing", exception)
             }
         }
     }
