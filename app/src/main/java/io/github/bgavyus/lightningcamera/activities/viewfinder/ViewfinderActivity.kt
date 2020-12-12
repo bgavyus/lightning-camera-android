@@ -1,6 +1,5 @@
 package io.github.bgavyus.lightningcamera.activities.viewfinder
 
-import android.content.res.Configuration
 import android.graphics.SurfaceTexture
 import android.util.Size
 import android.view.KeyEvent
@@ -8,6 +7,7 @@ import android.view.TextureView
 import android.widget.Toast
 import android.widget.ToggleButton
 import androidx.activity.viewModels
+import androidx.annotation.StringRes
 import androidx.core.view.WindowCompat
 import androidx.core.view.isInvisible
 import androidx.fragment.app.FragmentActivity
@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.onEach
 import java.io.IOException
-import java.util.*
 
 @AndroidEntryPoint
 class ViewfinderActivity : FragmentActivity() {
@@ -54,7 +53,7 @@ class ViewfinderActivity : FragmentActivity() {
     private suspend fun grantPermissions() = viewModel.grantPermissions()
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
-        Logger.debug("Window has focus? $hasFocus")
+        Logger.info("Screen in focus? $hasFocus")
         viewModel.active.value = hasFocus
     }
 
@@ -102,19 +101,13 @@ class ViewfinderActivity : FragmentActivity() {
         }
     )
 
-    private fun finishWithMessage(resourceId: Int) {
-        showMessage(resourceId)
+    private fun finishWithMessage(@StringRes message: Int) {
+        showMessage(message)
         finish()
     }
 
-    private fun showMessage(resourceId: Int) {
-        Logger.debug("Showing message: ${getDefaultString(resourceId)}")
-        Toast.makeText(applicationContext, resourceId, Toast.LENGTH_LONG).show()
-    }
-
-    private fun getDefaultString(resourceId: Int): String {
-        val config = Configuration().apply { setLocale(Locale.ROOT) }
-        return applicationContext.createConfigurationContext(config).getString(resourceId)
+    private fun showMessage(@StringRes message: Int) {
+        Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
     }
 }
 
