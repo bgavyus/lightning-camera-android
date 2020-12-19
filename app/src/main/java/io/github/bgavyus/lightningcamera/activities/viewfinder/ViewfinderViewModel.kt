@@ -133,7 +133,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
     suspend fun grantPermissions() = try {
         permissionsManager.grantAll()
     } catch (exception: PermissionMissingException) {
-        Logger.error("Permissions not granted", exception)
+        Logger.info("Permission not granted: ${exception.group}")
         lastException.value = exception
     }
 
