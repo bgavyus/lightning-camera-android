@@ -21,7 +21,7 @@ class Encoder(format: MediaFormat) : DeferScope() {
 
         val callback = object : MediaCodec.Callback() {
             override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
-                Logger.debug("onOutputFormatChanged(format = $format)")
+                Logger.debug("Output format changed: $format)")
                 listener?.onFormatAvailable(format)
             }
 
