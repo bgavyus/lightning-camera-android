@@ -58,7 +58,7 @@ class Recorder(
             setInteger(
                 MediaFormat.KEY_BIT_RATE,
                 codecInfo.getCapabilitiesForType(MIME_TYPE).videoCapabilities.bitrateRange.upper
-                    .also { Logger.debug("Bit rate: $it") }
+                    .also { Logger.info("Bit rate: $it") }
             )
 
             setInteger(MediaFormat.KEY_OPERATING_RATE, framesPerSecond)
