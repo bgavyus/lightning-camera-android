@@ -1,67 +1,36 @@
 package io.github.bgavyus.lightningcamera.permissions
 
-import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.lightningcamera.common.Logger
-import io.github.bgavyus.lightningcamera.storage.Storage
 import javax.inject.Inject
 
 class PermissionsManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val permissionRequester: PermissionRequester
 ) {
-    suspend fun grantAll() {
-        val permissionsToRequest = missingPermissions()
+    private val requestedPermissions = context.requestedPermissions().toSet()
+        .also { Logger.info("Requested permissions: ${it.joinToString()}") }
 
-        if (permissionsToRequest.isEmpty()) {
-            return
+    suspend fun requestMissing(permissions: Collection<String>): Set<String> {
+        val missingPermissions = permissions.filterNot(::isPermitted)
+
+        if (missingPermissions.isEmpty()) {
+            return emptySet()
         }
 
-        request(permissionsToRequest)
-        validateAllGranted()
+        Logger.info("Requesting permissions: ${missingPermissions.joinToString()}")
+        val result = permissionRequester.request(missingPermissions)
+        return result.filterNot(Map.Entry<String, Boolean>::value).keys
     }
 
-    private suspend fun request(permissions: Collection<String>) {
-        Logger.info("Requesting permissions")
-        val result = permissionRequester.request(permissions)
-        Logger.debug("Result: $result")
-    }
-
-    private fun missingPermissions() = ArrayList<String>().apply {
-        if (!cameraGranted) {
-            add(Manifest.permission.CAMERA)
-        }
-
-        if (!storageGranted) {
-            add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        }
-    }
-
-    private fun validateAllGranted() {
-        validateCameraGranted()
-        validateStorageGranted()
-    }
-
-    private fun validateCameraGranted() {
-        if (!cameraGranted) {
-            throw PermissionMissingException(PermissionGroup.Camera)
-        }
-    }
-
-    private val cameraGranted
-        get() = granted(Manifest.permission.CAMERA)
-
-    private fun validateStorageGranted() {
-        if (!storageGranted) {
-            throw PermissionMissingException(PermissionGroup.Storage)
-        }
-    }
-
-    private val storageGranted
-        get() = Storage.isScoped || granted(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-
-    private fun granted(permission: String) =
-        context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
+    private fun isPermitted(permission: String) =
+        permission !in requestedPermissions || context.hasGranted(permission)
 }
+
+private fun Context.requestedPermissions() =
+    packageManager.getPackageInfo(packageName, PackageManager.GET_PERMISSIONS).requestedPermissions
+
+private fun Context.hasGranted(permission: String) =
+    checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED

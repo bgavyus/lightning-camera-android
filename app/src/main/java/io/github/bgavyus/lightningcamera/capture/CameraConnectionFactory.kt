@@ -1,5 +1,6 @@
 package io.github.bgavyus.lightningcamera.capture
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.hardware.camera2.CameraAccessException
@@ -20,6 +21,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 class CameraConnectionFactory(private val context: Context) : DeferScope() {
+    companion object {
+        const val permission = Manifest.permission.CAMERA
+    }
+
     private val handler = SingleThreadHandler(javaClass.simpleName)
         .apply { defer(::close) }
 

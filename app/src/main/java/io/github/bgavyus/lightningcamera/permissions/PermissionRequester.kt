@@ -11,13 +11,10 @@ import javax.inject.Inject
 class PermissionRequester @Inject constructor(
     @ActivityContext private val context: Context
 ) {
-    suspend fun request(permissions: Collection<String>): MutableMap<String, Boolean> {
+    suspend fun request(permissions: Collection<String>): Map<String, Boolean> {
         val activity = context as ComponentActivity
-
-        return activity.call(
-            ActivityResultContracts.RequestMultiplePermissions(),
-            permissions.toTypedArray()
-        )
+        val contract = ActivityResultContracts.RequestMultiplePermissions()
+        return activity.call(contract, permissions.toTypedArray())
     }
 }
 
