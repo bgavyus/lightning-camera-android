@@ -77,13 +77,14 @@ class ViewfinderActivity : FragmentActivity() {
                 .onEach { Logger.info("Watching? $it") }
                 .reflectTo(viewModel.watching),
 
-            viewModel.lastException.filterNotNull().callOnEach(::onException)
+            viewModel.lastException.filterNotNull().callOnEach(::onException),
         )
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?) = when (keyCode) {
         KeyEvent.KEYCODE_VOLUME_UP,
-        KeyEvent.KEYCODE_VOLUME_DOWN -> {
+        KeyEvent.KEYCODE_VOLUME_DOWN,
+        -> {
             binding.watchToggle.toggle()
             true
         }

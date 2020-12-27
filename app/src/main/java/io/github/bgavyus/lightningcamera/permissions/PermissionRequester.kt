@@ -20,7 +20,7 @@ class PermissionRequester @Inject constructor(
 
 private suspend fun <Input, Output> ComponentActivity.call(
     contract: ActivityResultContract<Input, Output>,
-    input: Input
+    input: Input,
 ): Output {
     val deferred = CompletableDeferred<Output>()
     val launcher = registerForActivityResult(contract) { deferred.complete(it) }

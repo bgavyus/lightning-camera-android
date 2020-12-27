@@ -5,7 +5,7 @@ import kotlin.math.absoluteValue
 class PeakDetector(
     private val windowSize: Int,
     private val deviationThreshold: Double,
-    private val detectionWeight: Double
+    private val detectionWeight: Double,
 ) {
     private val snake = Snake(Array(windowSize) { 0.0 })
     private var sum = 0.0

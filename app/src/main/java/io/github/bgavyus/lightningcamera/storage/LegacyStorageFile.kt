@@ -16,7 +16,7 @@ class LegacyStorageFile(
     private val mimeType: String,
     private val standardDirectory: StandardDirectory,
     appDirectoryName: String,
-    name: String
+    name: String,
 ) : StorageFile {
     companion object {
         val permissions = listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -25,7 +25,7 @@ class LegacyStorageFile(
     private val parentDirectory =
         File(
             Environment.getExternalStoragePublicDirectory(standardDirectory.value),
-            appDirectoryName
+            appDirectoryName,
         ).apply {
             if (!exists()) {
                 if (!mkdirs()) {

@@ -14,7 +14,8 @@ enum class CameraExceptionType {
     Disabled,
     Device,
     Service,
-    Unknown;
+    Unknown,
+    ;
 
     companion object {
         fun fromAccessException(exception: CameraAccessException) = when (exception.reason) {

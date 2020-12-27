@@ -17,7 +17,7 @@ import javax.inject.Inject
 class Storage @Inject constructor(
     @ApplicationContext private val context: Context,
     private val contentResolver: ContentResolver,
-    private val clock: Clock
+    private val clock: Clock,
 ) {
     companion object {
         private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
@@ -43,7 +43,7 @@ class Storage @Inject constructor(
             mimeType = mimeType,
             standardDirectory = StandardDirectory.Movies,
             appDirectoryName = context.getString(R.string.video_folder_name),
-            name = "VID_$timeString.$fileExtension"
+            name = "VID_$timeString.$fileExtension",
         )
     }
 
@@ -51,7 +51,7 @@ class Storage @Inject constructor(
         mimeType: String,
         standardDirectory: StandardDirectory,
         appDirectoryName: String,
-        name: String
+        name: String,
     ) = withContext(Dispatchers.IO) {
         if (isScoped) {
             ScopedStorageFile(
@@ -60,7 +60,7 @@ class Storage @Inject constructor(
                 mimeType,
                 standardDirectory,
                 appDirectoryName,
-                name
+                name,
             )
         } else {
             LegacyStorageFile(
@@ -68,7 +68,7 @@ class Storage @Inject constructor(
                 mimeType,
                 standardDirectory,
                 appDirectoryName,
-                name
+                name,
             )
         }
     }

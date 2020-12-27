@@ -32,7 +32,7 @@ class CameraSessionFactory : DeferScope() {
 
 private suspend fun CameraDevice.createConstrainedHighSpeedCaptureSession(
     surfaces: List<Surface>,
-    handler: Handler
+    handler: Handler,
 ): CameraConstrainedHighSpeedCaptureSession = suspendCoroutine { continuation ->
     val callback = object : CameraCaptureSession.StateCallback() {
         override fun onConfigured(session: CameraCaptureSession) {
@@ -50,7 +50,7 @@ private suspend fun CameraDevice.createConstrainedHighSpeedCaptureSession(
                 SessionConfiguration.SESSION_HIGH_SPEED,
                 surfaces.map { OutputConfiguration(it) },
                 handler::post,
-                callback
+                callback,
             )
 
             createCaptureSession(sessionConfig)
@@ -59,7 +59,7 @@ private suspend fun CameraDevice.createConstrainedHighSpeedCaptureSession(
             createConstrainedHighSpeedCaptureSession(
                 surfaces,
                 callback,
-                handler
+                handler,
             )
         }
     } catch (error: CameraAccessException) {

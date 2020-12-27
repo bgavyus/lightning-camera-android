@@ -26,7 +26,7 @@ class Display(private val context: Context) : DeferScope() {
             sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
             samplingPeriodUs = SensorManager.SENSOR_DELAY_UI,
             maxReportLatencyUs = 100000,
-            handler = handler
+            handler = handler,
         )
             .map { display.rotation }
             .distinctUntilChanged()
@@ -39,7 +39,7 @@ private fun SensorManager.samples(
     sensor: Sensor,
     samplingPeriodUs: Int,
     maxReportLatencyUs: Int,
-    handler: Handler
+    handler: Handler,
 ) = callbackFlow<SensorEvent> {
     val listener = object : SensorEventListener {
         override fun onSensorChanged(event: SensorEvent) = sendBlocking(event)

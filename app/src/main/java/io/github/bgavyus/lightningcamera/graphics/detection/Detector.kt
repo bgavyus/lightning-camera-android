@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.map
 
 abstract class Detector(
     renderScript: RenderScript,
-    bufferSize: Size
+    bufferSize: Size,
 ) : DeferScope() {
     companion object {
         const val channels = 3
@@ -35,9 +35,9 @@ abstract class Detector(
             renderScript,
             Element.U8_4(renderScript),
             bufferSize.width,
-            bufferSize.height
+            bufferSize.height,
         ),
-        Allocation.USAGE_IO_INPUT or Allocation.USAGE_SCRIPT
+        Allocation.USAGE_IO_INPUT or Allocation.USAGE_SCRIPT,
     )
         .apply { defer(::destroy) }
 

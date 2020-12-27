@@ -6,7 +6,8 @@ enum class Rotation {
     Natural,
     Right,
     UpsideDown,
-    Left;
+    Left,
+    ;
 
     companion object {
         private const val fullCycleDegrees = 360

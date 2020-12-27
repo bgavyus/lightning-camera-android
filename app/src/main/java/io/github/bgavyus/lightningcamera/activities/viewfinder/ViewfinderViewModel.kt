@@ -40,7 +40,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
     private val permissionsManager: PermissionsManager,
     private val cameraMetadataProvider: CameraMetadataProvider,
     private val renderScript: RenderScript,
-    private val storage: Storage
+    private val storage: Storage,
 ) : ViewModel() {
     private val deferScope = DeferScope()
 
@@ -126,7 +126,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
             combine(viewSize, displayRotation) { viewSize, displayRotation ->
                 TransformMatrixFactory.create(viewSize, metadata.frameSize, displayRotation)
             }
-                .reflectTo(transformMatrix)
+                .reflectTo(transformMatrix),
         )
     }
 
