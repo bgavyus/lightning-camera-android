@@ -3,8 +3,7 @@
 
     <string name="video_folder_name" translatable="false">Strike</string>
 
-    <string name="error_camera_permission_not_granted">No permission to access camera</string>
-    <string name="error_storage_permission_not_granted">No permission to access storage</string>
+    <string name="error_permission_not_granted">No permission</string>
     <string name="error_high_speed_camera_not_available">Slow motion is not available</string>
     <string name="error_camera_disconnected">Camera disconnected</string>
     <string name="error_camera_in_use">Camera in use by another app</string>

@@ -1,11 +1,11 @@
 package io.github.bgavyus.lightningcamera.storage
 
+import android.Manifest
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.os.Environment
 import android.provider.MediaStore
 import io.github.bgavyus.lightningcamera.permissions.PermissionMissingException
-import io.github.bgavyus.lightningcamera.permissions.PermissionGroup
 import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException
@@ -18,6 +18,10 @@ class LegacyStorageFile(
     appDirectoryName: String,
     name: String
 ) : StorageFile {
+    companion object {
+        val permissions = listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    }
+
     private val parentDirectory =
         File(
             Environment.getExternalStoragePublicDirectory(standardDirectory.value),
@@ -36,7 +40,7 @@ class LegacyStorageFile(
     private val outputStream = try {
         file.outputStream()
     } catch (_: SecurityException) {
-        throw PermissionMissingException(PermissionGroup.Storage)
+        throw PermissionMissingException()
     }
 
     override val descriptor: FileDescriptor get() = outputStream.fd

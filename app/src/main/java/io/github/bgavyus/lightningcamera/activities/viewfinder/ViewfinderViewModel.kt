@@ -10,7 +10,6 @@ import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.github.bgavyus.lightningcamera.R
 import io.github.bgavyus.lightningcamera.capture.CameraConnectionFactory
 import io.github.bgavyus.lightningcamera.capture.CameraMetadata
 import io.github.bgavyus.lightningcamera.capture.CameraMetadataProvider
@@ -132,17 +131,12 @@ class ViewfinderViewModel @ViewModelInject constructor(
     }
 
     suspend fun grantPermissions() {
-        val permissions = listOf(CameraConnectionFactory.permission, Storage.permission)
-        val missingPermissions = permissionsManager.requestMissing(permissions)
+        val permissions = CameraConnectionFactory.permissions + storage.permissions
+        val hasGranted = permissionsManager.requestMissing(permissions)
 
-        val errorMessage = when {
-            CameraConnectionFactory.permission in missingPermissions -> R.string.error_camera_permission_not_granted
-            Storage.permission in missingPermissions -> R.string.error_storage_permission_not_granted
-            else -> return
+        if (!hasGranted) {
+            lastException.value = PermissionMissingException()
         }
-
-        Logger.info("Permissions not granted: $missingPermissions")
-        lastException.value = PermissionMissingException(errorMessage)
     }
 
     private fun activate() = viewModelScope.launch {

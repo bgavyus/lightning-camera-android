@@ -11,7 +11,6 @@ import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
 import io.github.bgavyus.lightningcamera.common.extensions.cancel
 import io.github.bgavyus.lightningcamera.common.extensions.systemService
-import io.github.bgavyus.lightningcamera.permissions.PermissionGroup
 import io.github.bgavyus.lightningcamera.permissions.PermissionMissingException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -22,15 +21,21 @@ import kotlinx.coroutines.withContext
 
 class CameraConnectionFactory(private val context: Context) : DeferScope() {
     companion object {
-        const val permission = Manifest.permission.CAMERA
+        val permissions = listOf(Manifest.permission.CAMERA)
     }
 
     private val handler = SingleThreadHandler(javaClass.simpleName)
         .apply { defer(::close) }
 
     suspend fun open(cameraId: String) = withContext(Dispatchers.IO) {
-        context.systemService<CameraManager>().openCamera(cameraId, handler)
-            .first()
+        try {
+            context.systemService<CameraManager>().openCamera(cameraId, handler)
+                .first()
+        } catch (exception: CameraAccessException) {
+            throw CameraException.fromAccessException(exception)
+        } catch (_: SecurityException) {
+            throw PermissionMissingException()
+        }
     }
 }
 
@@ -46,13 +51,6 @@ private fun CameraManager.openCamera(id: String, handler: Handler) = callbackFlo
             cancel(CameraException.fromStateError(error))
     }
 
-    try {
-        openCamera(id, callback, handler)
-    } catch (exception: CameraAccessException) {
-        throw CameraException.fromAccessException(exception)
-    } catch (_: SecurityException) {
-        throw PermissionMissingException(PermissionGroup.Camera)
-    }
-
+    openCamera(id, callback, handler)
     awaitClose()
 }

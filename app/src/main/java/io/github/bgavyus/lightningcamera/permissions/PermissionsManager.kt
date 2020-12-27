@@ -10,27 +10,21 @@ class PermissionsManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val permissionRequester: PermissionRequester
 ) {
-    private val requestedPermissions = context.requestedPermissions().toSet()
-        .also { Logger.info("Requested permissions: ${it.joinToString()}") }
-
-    suspend fun requestMissing(permissions: Collection<String>): Set<String> {
-        val missingPermissions = permissions.filterNot(::isPermitted)
+    suspend fun requestMissing(permissions: Collection<String>): Boolean {
+        val missingPermissions = permissions.filterNot(context::hasGranted)
 
         if (missingPermissions.isEmpty()) {
-            return emptySet()
+            Logger.info("Permissions already granted")
+            return true
         }
 
-        Logger.info("Requesting permissions: ${missingPermissions.joinToString()}")
+        Logger.info("Requesting: ${missingPermissions.joinToString()}")
         val result = permissionRequester.request(missingPermissions)
-        return result.filterNot(Map.Entry<String, Boolean>::value).keys
+
+        Logger.info("Result: $result")
+        return result.all(Map.Entry<String, Boolean>::value)
     }
-
-    private fun isPermitted(permission: String) =
-        permission !in requestedPermissions || context.hasGranted(permission)
 }
-
-private fun Context.requestedPermissions() =
-    packageManager.getPackageInfo(packageName, PackageManager.GET_PERMISSIONS).requestedPermissions
 
 private fun Context.hasGranted(permission: String) =
     checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED

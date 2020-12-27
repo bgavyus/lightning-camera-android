@@ -14,12 +14,13 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.R
+import io.github.bgavyus.lightningcamera.capture.CameraException
 import io.github.bgavyus.lightningcamera.common.Logger
-import io.github.bgavyus.lightningcamera.common.ResourceCapable
 import io.github.bgavyus.lightningcamera.common.extensions.callOnEach
 import io.github.bgavyus.lightningcamera.common.extensions.launchAll
 import io.github.bgavyus.lightningcamera.common.extensions.reflectTo
 import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
+import io.github.bgavyus.lightningcamera.permissions.PermissionMissingException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.callbackFlow
@@ -93,16 +94,8 @@ class ViewfinderActivity : FragmentActivity() {
         binding.detectionIndicator.isInvisible = !active
     }
 
-    private fun onException(exception: Throwable) = finishWithMessage(
-        when (exception) {
-            is ResourceCapable -> exception.resourceId
-            is IOException -> R.string.error_io
-            else -> R.string.error_uncaught
-        }
-    )
-
-    private fun finishWithMessage(@StringRes message: Int) {
-        showMessage(message)
+    private fun onException(exception: Throwable) {
+        showMessage(exception.friendlyMessage)
         finish()
     }
 
@@ -142,3 +135,11 @@ private fun TextureView.surfaceTextureEvents() = callbackFlow<SurfaceTextureEven
     surfaceTextureListener = listener
     awaitClose()
 }
+
+private val Throwable.friendlyMessage
+    @StringRes get() = when (this) {
+        is PermissionMissingException -> R.string.error_permission_not_granted
+        is IOException -> R.string.error_io
+        is CameraException -> type.message
+        else -> R.string.error_uncaught
+    }

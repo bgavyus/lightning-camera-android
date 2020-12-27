@@ -1,10 +1,10 @@
 package io.github.bgavyus.lightningcamera.storage
 
-import android.Manifest
 import android.content.ContentResolver
 import android.content.Context
 import android.media.MediaFormat
 import android.os.Build
+import android.os.Environment
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.lightningcamera.R
 import io.github.bgavyus.lightningcamera.common.Logger
@@ -22,12 +22,16 @@ class Storage @Inject constructor(
     companion object {
         private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
         private const val fileExtension = "mp4"
-        private val isScoped = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-        const val permission = Manifest.permission.WRITE_EXTERNAL_STORAGE
     }
 
-    init {
-        Logger.info("Scoped? $isScoped")
+    private val isScoped =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !Environment.isExternalStorageLegacy()
+            .also { Logger.info("Scoped? $it") }
+
+    val permissions = if (isScoped) {
+        emptyList()
+    } else {
+        LegacyStorageFile.permissions
     }
 
     suspend fun generateFile(): StorageFile {
