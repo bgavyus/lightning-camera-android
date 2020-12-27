@@ -56,7 +56,8 @@ dependencies {
     val kotlinVersion: String by rootProject.extra
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9")
+    // https://github.com/Kotlin/kotlinx.coroutines/releases
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.2")
 
     val hiltVersion: String by rootProject.extra
     implementation("com.google.dagger:hilt-android:$hiltVersion")
@@ -67,14 +68,14 @@ dependencies {
     kapt("androidx.hilt:hilt-compiler:$jetpackHiltVersion")
 
     implementation("androidx.core:core-ktx:1.5.0-alpha05")
-    implementation("androidx.fragment:fragment-ktx:1.3.0-beta02")
+    implementation("androidx.fragment:fragment-ktx:1.3.0-rc01")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
 
-    // https://github.com/natario1/Egloo/tags
+    // https://github.com/natario1/Egloo/releases
     implementation("com.otaliastudios.opengl:egloo:0.5.3")
 
     // https://firebase.google.com/support/release-notes/android
-    implementation(platform("com.google.firebase:firebase-bom:26.1.1"))
+    implementation(platform("com.google.firebase:firebase-bom:26.2.0"))
     implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-perf-ktx")
