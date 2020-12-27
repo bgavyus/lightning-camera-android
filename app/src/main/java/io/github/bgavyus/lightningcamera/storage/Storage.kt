@@ -25,7 +25,7 @@ class Storage @Inject constructor(
     }
 
     private val isScoped =
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !Environment.isExternalStorageLegacy()
+        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !Environment.isExternalStorageLegacy())
             .also { Logger.info("Scoped? $it") }
 
     val permissions = if (isScoped) {
