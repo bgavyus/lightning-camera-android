@@ -19,7 +19,7 @@ class Writer(
     rotation: Rotation
 ) : DeferScope() {
     companion object {
-        private const val OUTPUT_FORMAT = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
+        private const val outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
     }
 
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -29,9 +29,9 @@ class Writer(
     private var active = false
 
     private val muxer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        MediaMuxer(file.descriptor, OUTPUT_FORMAT)
+        MediaMuxer(file.descriptor, outputFormat)
     } else {
-        MediaMuxer(file.path, OUTPUT_FORMAT)
+        MediaMuxer(file.path, outputFormat)
     }.apply {
         defer(::release)
         setOrientationHint(rotation.degrees)

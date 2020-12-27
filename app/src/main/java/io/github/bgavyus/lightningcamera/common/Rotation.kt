@@ -9,7 +9,7 @@ enum class Rotation {
     Left;
 
     companion object {
-        private const val FULL_CYCLE_DEGREES = 360
+        private const val fullCycleDegrees = 360
         private val rotations = values()
 
         private fun fromIndex(index: Int) = rotations[Math.floorMod(index, rotations.size)]
@@ -22,10 +22,10 @@ enum class Rotation {
             else -> throw IllegalArgumentException()
         }
 
-        fun fromDegrees(degrees: Int) = fromIndex(degrees * rotations.size / FULL_CYCLE_DEGREES)
+        fun fromDegrees(degrees: Int) = fromIndex(degrees * rotations.size / fullCycleDegrees)
     }
 
-    val degrees: Int get() = ordinal * FULL_CYCLE_DEGREES / rotations.size
+    val degrees: Int get() = ordinal * fullCycleDegrees / rotations.size
 
     operator fun unaryMinus() = fromIndex(-ordinal)
     operator fun plus(other: Rotation) = fromIndex(ordinal + other.ordinal)

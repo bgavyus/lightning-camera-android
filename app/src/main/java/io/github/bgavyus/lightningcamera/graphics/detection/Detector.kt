@@ -21,9 +21,9 @@ abstract class Detector(
     bufferSize: Size
 ) : DeferScope() {
     companion object {
-        const val CHANNELS = 3
-        const val MAX_INTENSITY = 255
-        const val FRAMES_PER_SECONDS = 30
+        const val channels = 3
+        const val maxIntensity = 255
+        const val framesPerSeconds = 30
     }
 
     private val handler = SingleThreadHandler(javaClass.simpleName)

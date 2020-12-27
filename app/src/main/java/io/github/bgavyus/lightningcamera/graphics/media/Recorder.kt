@@ -26,10 +26,10 @@ class Recorder(
     framesPerSecond: Int
 ) : DeferScope(), EncoderListener {
     companion object {
-        private const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
-        private const val MICROS_IN_UNIT = 1_000_000
-        private const val PLAYBACK_FPS = 5
-        private const val MIN_BUFFER_SECONDS = 0.05
+        private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
+        private const val microsInUnit = 1_000_000
+        private const val playbackFps = 5
+        private const val minBufferSeconds = 0.05
     }
 
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -42,7 +42,7 @@ class Recorder(
 
     init {
         val format = MediaFormat.createVideoFormat(
-            MIME_TYPE,
+            mimeType,
             videoSize.width,
             videoSize.height
         ).apply {
@@ -52,17 +52,17 @@ class Recorder(
             )
 
             val codecInfo = MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos
-                .find { it.supportedTypes.contains(MIME_TYPE) }
+                .find { it.supportedTypes.contains(mimeType) }
                 ?: throw RuntimeException()
 
             setInteger(
                 MediaFormat.KEY_BIT_RATE,
-                codecInfo.getCapabilitiesForType(MIME_TYPE).videoCapabilities.bitrateRange.upper
+                codecInfo.getCapabilitiesForType(mimeType).videoCapabilities.bitrateRange.upper
                     .also { Logger.info("Bit rate: $it") }
             )
 
             setInteger(MediaFormat.KEY_OPERATING_RATE, framesPerSecond)
-            setInteger(MediaFormat.KEY_FRAME_RATE, PLAYBACK_FPS)
+            setInteger(MediaFormat.KEY_FRAME_RATE, playbackFps)
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 0)
         }
 
@@ -114,7 +114,7 @@ class Recorder(
 
     private val snake = SamplesSnake(
         sampleSize = videoSize.area,
-        samplesCount = ceil(framesPerSecond * MIN_BUFFER_SECONDS).toInt()
+        samplesCount = ceil(framesPerSecond * minBufferSeconds).toInt()
     )
 
     override fun onBufferAvailable(
@@ -135,7 +135,7 @@ class Recorder(
     }
 
     private var ptsGenerator =
-        generateSequence(0L) { it + MICROS_IN_UNIT / PLAYBACK_FPS }.iterator()
+        generateSequence(0L) { it + microsInUnit / playbackFps }.iterator()
 
     private fun write(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
         info.presentationTimeUs = ptsGenerator.next()

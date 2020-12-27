@@ -20,8 +20,8 @@ class Storage @Inject constructor(
     private val clock: Clock
 ) {
     companion object {
-        const val MIME_TYPE = MediaFormat.MIMETYPE_VIDEO_AVC
-        const val FILE_EXTENSION = "mp4"
+        private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
+        private const val fileExtension = "mp4"
 
         val isScoped
             get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !Environment.isExternalStorageLegacy()
@@ -37,10 +37,10 @@ class Storage @Inject constructor(
             .format(clock.instant())
 
         return file(
-            mimeType = MIME_TYPE,
+            mimeType = mimeType,
             standardDirectory = StandardDirectory.Movies,
             appDirectoryName = context.getString(R.string.video_folder_name),
-            name = "VID_$timeString.$FILE_EXTENSION"
+            name = "VID_$timeString.$fileExtension"
         )
     }
 
