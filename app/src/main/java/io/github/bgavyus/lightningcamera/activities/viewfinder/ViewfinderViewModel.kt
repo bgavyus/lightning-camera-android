@@ -131,7 +131,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
     }
 
     suspend fun grantPermissions() {
-        val permissions = CameraConnectionFactory.permissions + storage.permissions
+        val permissions = CameraConnectionFactory.permissions + Storage.permissions
         val hasGranted = permissionsManager.requestMissing(permissions)
 
         if (!hasGranted) {
