@@ -134,7 +134,7 @@ class Recorder(
         recording = true
     }
 
-    private var ptsGenerator =
+    private val ptsGenerator =
         generateSequence(0L) { it + microsInUnit / playbackFps }.iterator()
 
     private fun write(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
