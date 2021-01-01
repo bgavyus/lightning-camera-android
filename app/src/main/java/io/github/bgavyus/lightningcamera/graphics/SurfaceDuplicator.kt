@@ -30,21 +30,21 @@ class SurfaceDuplicator(
     private val scope = CoroutineScope(dispatcher)
         .apply { defer(::cancel) }
 
-    private var core = EglCore(flags = EglCore.FLAG_TRY_GLES3)
+    private val core = EglCore(flags = EglCore.FLAG_TRY_GLES3)
         .apply { defer(::release) }
 
-    private var windows = surfaces
+    private val windows = surfaces
         .map { EglWindowSurface(core, it) }
         .onEach { defer(it::release) }
         .apply { first().makeCurrent() }
 
-    private var texture = GlTexture()
+    private val texture = GlTexture()
 
-    private var program = GlTextureProgram()
+    private val program = GlTextureProgram()
         .apply { defer(::release) }
         .also { it.texture = texture }
 
-    private var surfaceTexture = SurfaceTexture(texture.id).apply {
+    private val surfaceTexture = SurfaceTexture(texture.id).apply {
         defer(::release)
         setDefaultBufferSize(bufferSize.width, bufferSize.height)
 
@@ -53,10 +53,10 @@ class SurfaceDuplicator(
             .launchIn(scope)
     }
 
-    private var entireViewport = GlRect()
+    private val entireViewport = GlRect()
         .apply { defer(::release) }
 
-    var surface = Surface(surfaceTexture)
+    val surface = Surface(surfaceTexture)
 
     private fun onFrameAvailable() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
