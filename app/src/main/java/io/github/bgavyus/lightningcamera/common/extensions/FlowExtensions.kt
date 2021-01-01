@@ -3,6 +3,7 @@ package io.github.bgavyus.lightningcamera.common.extensions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 
+fun Flow<Unit>.callOnEach(action: () -> Unit) = onEach { action() }
 fun <T> Flow<T>.callOnEach(action: (T) -> Unit) = onEach { action(it) }
 
 fun <T> Flow<T>.reflectTo(other: MutableStateFlow<T>) = onEach { other.value = it }

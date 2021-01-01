@@ -22,7 +22,7 @@ import io.github.bgavyus.lightningcamera.common.extensions.and
 import io.github.bgavyus.lightningcamera.common.extensions.launchAll
 import io.github.bgavyus.lightningcamera.common.extensions.onToggle
 import io.github.bgavyus.lightningcamera.common.extensions.reflectTo
-import io.github.bgavyus.lightningcamera.graphics.SurfaceDuplicator
+import io.github.bgavyus.lightningcamera.graphics.SurfaceDuplicatorFactory
 import io.github.bgavyus.lightningcamera.graphics.TransformMatrixFactory
 import io.github.bgavyus.lightningcamera.graphics.detection.MotionDetector
 import io.github.bgavyus.lightningcamera.graphics.media.Recorder
@@ -43,6 +43,9 @@ class ViewfinderViewModel @ViewModelInject constructor(
     private val storage: Storage,
 ) : ViewModel() {
     private val deferScope = DeferScope()
+
+    private val surfaceDuplicatorManager = SurfaceDuplicatorFactory()
+        .apply { deferScope.defer(::close) }
 
     private val activeDeferScope = DeferScope()
         .apply { deferScope.defer(::close) }
@@ -86,13 +89,10 @@ class ViewfinderViewModel @ViewModelInject constructor(
         val surfaceTexture = surfaceTexture.filterNotNull().first()
             .apply { deferScope.defer(::release) }
 
-        SurfaceDuplicator().apply {
-            deferScope.defer(::close)
-            addSurface(detector.surface)
-            addSurface(Surface(surfaceTexture))
-            start()
-            setBufferSize(metadata.frameSize)
-        }
+        val surfaces = listOf(detector.surface, Surface(surfaceTexture))
+
+        surfaceDuplicatorManager.create(metadata.frameSize, surfaces)
+            .apply { defer(::close) }
     }
 
     private val deferredRecorder = viewModelScope.async(Dispatchers.IO) {

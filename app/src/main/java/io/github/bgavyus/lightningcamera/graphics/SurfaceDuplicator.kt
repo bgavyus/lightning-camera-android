@@ -1,6 +1,5 @@
 package io.github.bgavyus.lightningcamera.graphics
 
-import android.annotation.SuppressLint
 import android.graphics.SurfaceTexture
 import android.os.Build
 import android.os.Handler
@@ -13,7 +12,7 @@ import com.otaliastudios.opengl.surface.EglWindowSurface
 import com.otaliastudios.opengl.texture.GlTexture
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Logger
-import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
+import io.github.bgavyus.lightningcamera.common.extensions.callOnEach
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -21,67 +20,43 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.withContext
 
-class SurfaceDuplicator : DeferScope() {
-    private val handler = SingleThreadHandler(javaClass.simpleName)
-        .apply { defer(::close) }
-
+class SurfaceDuplicator(
+    private val handler: Handler,
+    bufferSize: Size,
+    surfaces: Iterable<Surface>,
+) : DeferScope() {
     private val dispatcher = handler.asCoroutineDispatcher(javaClass.simpleName)
     private val scope = CoroutineScope(dispatcher)
         .apply { defer(::cancel) }
 
-    private lateinit var core: EglCore
-    private lateinit var program: GlTextureProgram
-    private lateinit var surfaceTexture: SurfaceTexture
-    private lateinit var entireViewport: GlRect
-    lateinit var surface: Surface
+    private var core = EglCore(flags = EglCore.FLAG_TRY_GLES3)
+        .apply { defer(::release) }
 
-    private val windows = mutableSetOf<EglWindowSurface>()
+    private var windows = surfaces
+        .map { EglWindowSurface(core, it) }
+        .onEach { defer(it::release) }
+        .apply { first().makeCurrent() }
 
-    suspend fun addSurface(surface: Surface) = withContext(dispatcher) {
-        if (windows.isEmpty()) {
-            core = EglCore(flags = EglCore.FLAG_TRY_GLES3)
-                .apply { defer(::release) }
-        }
+    private var texture = GlTexture()
 
-        val windowSurface = EglWindowSurface(core, surface)
-            .apply { defer(::release) }
+    private var program = GlTextureProgram()
+        .apply { defer(::release) }
+        .also { it.texture = texture }
 
-        if (windows.isEmpty()) {
-            windowSurface.makeCurrent()
-        }
+    private var surfaceTexture = SurfaceTexture(texture.id).apply {
+        defer(::release)
+        setDefaultBufferSize(bufferSize.width, bufferSize.height)
 
-        windows.add(windowSurface)
+        updates(handler)
+            .callOnEach(::onFrameAvailable)
+            .launchIn(scope)
     }
 
-    suspend fun start() = withContext(dispatcher) {
-        val texture = GlTexture()
+    private var entireViewport = GlRect()
+        .apply { defer(::release) }
 
-        program = GlTextureProgram().apply {
-            this.texture = texture
-            defer(::release)
-        }
-
-        surfaceTexture = SurfaceTexture(texture.id).apply {
-            defer(::release)
-
-            updates(handler)
-                .onEach { onFrameAvailable() }
-                .launchIn(scope)
-        }
-
-        entireViewport = GlRect()
-            .apply { defer(::release) }
-
-        @SuppressLint("Recycle")
-        surface = Surface(surfaceTexture)
-    }
-
-    fun setBufferSize(bufferSize: Size) {
-        surfaceTexture.setDefaultBufferSize(bufferSize.width, bufferSize.height)
-    }
+    var surface = Surface(surfaceTexture)
 
     private fun onFrameAvailable() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
