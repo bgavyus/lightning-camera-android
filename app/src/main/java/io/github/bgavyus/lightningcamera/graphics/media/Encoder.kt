@@ -42,8 +42,8 @@ class Encoder(format: MediaFormat) : DeferScope() {
                     is EncoderEvent.OutputFormatChanged ->
                         onOutputFormatChanged(it.format)
 
-                    is EncoderEvent.OutputBufferAvailable -> onOutputBufferAvailable(it.index,
-                        it.info)
+                    is EncoderEvent.OutputBufferAvailable ->
+                        onOutputBufferAvailable(it.index, it.info)
                 }
             }
                 .launchIn(scope)
@@ -66,12 +66,12 @@ class Encoder(format: MediaFormat) : DeferScope() {
 
     private fun onOutputBufferAvailable(index: Int, info: MediaCodec.BufferInfo) {
         try {
-            if (info.isCodecConfig) {
+            if (MediaCodec.BUFFER_FLAG_CODEC_CONFIG in info.flags) {
                 Logger.debug("Got codec config")
                 return
             }
 
-            if (info.isEndOfStream) {
+            if (MediaCodec.BUFFER_FLAG_END_OF_STREAM in info.flags) {
                 Logger.warn("Got end of stream")
                 return
             }
@@ -130,7 +130,4 @@ private fun MediaCodec.encoderEvents(handler: Handler) = callbackFlow<EncoderEve
     awaitClose { setCallback(null) }
 }
 
-val MediaCodec.BufferInfo.isCodecConfig get() = flags.isSet(MediaCodec.BUFFER_FLAG_CODEC_CONFIG)
-val MediaCodec.BufferInfo.isEndOfStream get() = flags.isSet(MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-
-private fun Int.isSet(flag: Int) = and(flag) != 0
+private operator fun Int.contains(flag: Int) = and(flag) != 0
