@@ -23,7 +23,7 @@ import kotlin.math.ceil
 class Recorder(
     private val storage: Storage,
     videoSize: Size,
-    framesPerSecond: Int
+    framesPerSecond: Int,
 ) : DeferScope(), EncoderListener {
     companion object {
         private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
@@ -119,7 +119,7 @@ class Recorder(
 
     override fun onBufferAvailable(
         buffer: ByteBuffer,
-        info: MediaCodec.BufferInfo
+        info: MediaCodec.BufferInfo,
     ) = synchronized(this) {
         if (recording) {
             write(buffer, info)
