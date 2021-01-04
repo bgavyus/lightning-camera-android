@@ -130,4 +130,4 @@ private fun MediaCodec.encoderEvents(handler: Handler) = callbackFlow<EncoderEve
     awaitClose { setCallback(null) }
 }
 
-private operator fun Int.contains(flag: Int) = and(flag) != 0
+private operator fun Int.contains(mask: Int) = and(mask) == mask
