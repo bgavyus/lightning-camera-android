@@ -1,3 +1,5 @@
+import com.android.builder.core.BuilderConstants
+
 plugins {
     id("com.android.application")
     kotlin("android")
