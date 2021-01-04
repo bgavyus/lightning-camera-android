@@ -26,7 +26,7 @@ android {
     }
 
     buildTypes {
-        getByName("release") {
+        getByName(BuilderConstants.RELEASE) {
             isMinifyEnabled = false
 
             proguardFiles(
