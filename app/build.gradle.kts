@@ -35,6 +35,20 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            resValue("bool", "firebase_crashlytics_collection_enabled", "true")
+            resValue("bool", "firebase_analytics_collection_deactivated", "false")
+        }
+
+        getByName(BuilderConstants.DEBUG) {
+            withGroovyBuilder {
+                "FirebasePerformance" {
+                    invokeMethod("setInstrumentationEnabled", false)
+                }
+            }
+
+            resValue("bool", "firebase_crashlytics_collection_enabled", "false")
+            resValue("bool", "firebase_analytics_collection_deactivated", "true")
         }
     }
 
