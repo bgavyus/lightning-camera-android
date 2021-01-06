@@ -13,9 +13,13 @@ import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import java.nio.ByteBuffer
+
+typealias BufferAvailableHandler = (ByteBuffer, MediaCodec.BufferInfo) -> Unit
 
 class Encoder(format: MediaFormat) : DeferScope() {
     private val handler = SingleThreadHandler(javaClass.simpleName)
@@ -28,7 +32,8 @@ class Encoder(format: MediaFormat) : DeferScope() {
 
     private val codec: MediaCodec
     val surface: Surface
-    var listener: EncoderListener? = null
+    val format = MutableStateFlow(null as MediaFormat?)
+    var bufferAvailableHandler: BufferAvailableHandler? = null
 
     init {
         val mimeType = format.getString(MediaFormat.KEY_MIME)
@@ -61,7 +66,7 @@ class Encoder(format: MediaFormat) : DeferScope() {
 
     private fun onOutputFormatChanged(format: MediaFormat) {
         Logger.debug("Format available")
-        listener?.onFormatAvailable(format)
+        this.format.value = format
     }
 
     private fun onOutputBufferAvailable(index: Int, info: MediaCodec.BufferInfo) {
@@ -89,7 +94,7 @@ class Encoder(format: MediaFormat) : DeferScope() {
                     return
                 }
 
-                listener?.onBufferAvailable(buffer, info)
+                bufferAvailableHandler?.invoke(buffer, info)
             } catch (_: IllegalStateException) {
                 Logger.debug("Ignoring buffer after release")
             }

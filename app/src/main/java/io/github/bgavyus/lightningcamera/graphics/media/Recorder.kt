@@ -24,7 +24,7 @@ class Recorder(
     private val storage: Storage,
     videoSize: Size,
     framesPerSecond: Int,
-) : DeferScope(), EncoderListener {
+) : DeferScope() {
     companion object {
         private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
         private const val microsInUnit = 1_000_000
@@ -37,7 +37,6 @@ class Recorder(
 
     private var format: MediaFormat? = null
     val rotation = MutableStateFlow(Rotation.Natural)
-    val lastException = MutableStateFlow(null as Exception?)
     private val encoder: Encoder
 
     init {
@@ -66,21 +65,23 @@ class Recorder(
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 0)
         }
 
-        encoder = Encoder(format).also {
-            defer(it::close)
-            it.listener = this
-        }
+        encoder = Encoder(format)
+            .also { defer(it::close) }
+
+        encoder.format
+            .onEach {
+                this.format = it
+                bind()
+            }
+            .launchIn(scope)
+
+        encoder.bufferAvailableHandler = ::onBufferAvailable
     }
 
     val surface get() = encoder.surface
 
     private var file: StorageFile? = null
     private var writer: Writer? = null
-
-    override fun onFormatAvailable(format: MediaFormat) {
-        this.format = format
-        bind()
-    }
 
     private fun bind() {
         rotation
@@ -117,7 +118,7 @@ class Recorder(
         samplesCount = ceil(framesPerSecond * minBufferSeconds).toInt()
     )
 
-    override fun onBufferAvailable(
+    private fun onBufferAvailable(
         buffer: ByteBuffer,
         info: MediaCodec.BufferInfo,
     ) = synchronized(this) {
@@ -145,9 +146,5 @@ class Recorder(
     fun lose() = synchronized(this) {
         Logger.info("Losing")
         recording = false
-    }
-
-    override fun onEncoderError(error: MediaCodec.CodecException) {
-        lastException.value = error
     }
 }

@@ -114,7 +114,6 @@ class ViewfinderViewModel @ViewModelInject constructor(
         launchAll(
             active.onToggle(on = ::activate, off = ::deactivate),
             detector.detectingStates().reflectTo(detecting),
-            recorder.lastException.reflectTo(lastException),
 
             displayRotation
                 .map { metadata.orientation - it }
