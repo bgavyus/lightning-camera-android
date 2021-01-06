@@ -14,7 +14,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.*
-import java.nio.ByteBuffer
 
 class Encoder(format: MediaFormat) : DeferScope() {
     private val handler = SingleThreadHandler(javaClass.simpleName)
@@ -39,11 +38,8 @@ class Encoder(format: MediaFormat) : DeferScope() {
 
             encoderEvents(handler).onEach {
                 when (it) {
-                    is EncoderEvent.OutputFormatChanged ->
-                        onOutputFormatChanged(it.format)
-
-                    is EncoderEvent.OutputBufferAvailable ->
-                        onOutputBufferAvailable(it.index, it.info)
+                    is EncoderEvent.FormatChanged -> onFormatChanged(it.format)
+                    is EncoderEvent.BufferAvailable -> onBufferAvailable(it.index, it.info)
                 }
             }
                 .launchIn(scope)
@@ -59,12 +55,12 @@ class Encoder(format: MediaFormat) : DeferScope() {
         }
     }
 
-    private fun onOutputFormatChanged(format: MediaFormat) {
+    private fun onFormatChanged(format: MediaFormat) {
         Logger.debug("Format available")
         this.format.value = format
     }
 
-    private suspend fun onOutputBufferAvailable(index: Int, info: MediaCodec.BufferInfo) {
+    private suspend fun onBufferAvailable(index: Int, info: MediaCodec.BufferInfo) {
         try {
             if (MediaCodec.BUFFER_FLAG_CODEC_CONFIG in info.flags) {
                 Logger.debug("Got codec config")
@@ -103,23 +99,20 @@ class Encoder(format: MediaFormat) : DeferScope() {
 }
 
 private sealed class EncoderEvent {
-    data class OutputFormatChanged(val format: MediaFormat) :
-        EncoderEvent()
-
-    data class OutputBufferAvailable(val index: Int, val info: MediaCodec.BufferInfo) :
-        EncoderEvent()
+    data class FormatChanged(val format: MediaFormat) : EncoderEvent()
+    data class BufferAvailable(val index: Int, val info: MediaCodec.BufferInfo) : EncoderEvent()
 }
 
 private fun MediaCodec.encoderEvents(handler: Handler) = callbackFlow<EncoderEvent> {
     val callback = object : MediaCodec.Callback() {
         override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) =
-            sendBlocking(EncoderEvent.OutputFormatChanged(format))
+            sendBlocking(EncoderEvent.FormatChanged(format))
 
         override fun onOutputBufferAvailable(
             codec: MediaCodec,
             index: Int,
             info: MediaCodec.BufferInfo,
-        ) = sendBlocking(EncoderEvent.OutputBufferAvailable(index, info))
+        ) = sendBlocking(EncoderEvent.BufferAvailable(index, info))
 
         override fun onError(codec: MediaCodec, error: MediaCodec.CodecException) = cancel(error)
         override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {}
