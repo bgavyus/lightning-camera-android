@@ -5,6 +5,7 @@ import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.os.Build
 import io.github.bgavyus.lightningcamera.common.DeferScope
+import io.github.bgavyus.lightningcamera.common.Logger
 import io.github.bgavyus.lightningcamera.common.Rotation
 import io.github.bgavyus.lightningcamera.storage.StorageFile
 import kotlinx.coroutines.CoroutineScope
@@ -16,7 +17,7 @@ import java.nio.ByteBuffer
 class Writer(
     private val file: StorageFile,
     format: MediaFormat,
-    rotation: Rotation
+    rotation: Rotation,
 ) : DeferScope() {
     companion object {
         private const val outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
@@ -45,6 +46,10 @@ class Writer(
             active = true
         }
 
-        muxer.writeSampleData(track, buffer, info)
+        try {
+            muxer.writeSampleData(track, buffer, info)
+        } catch (exception: IllegalStateException) {
+            Logger.error("Write failed", exception)
+        }
     }
 }
