@@ -13,13 +13,8 @@ import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import java.nio.ByteBuffer
-
-typealias BufferAvailableHandler = (ByteBuffer, MediaCodec.BufferInfo) -> Unit
 
 class Encoder(format: MediaFormat) : DeferScope() {
     private val handler = SingleThreadHandler(javaClass.simpleName)
@@ -33,7 +28,7 @@ class Encoder(format: MediaFormat) : DeferScope() {
     private val codec: MediaCodec
     val surface: Surface
     val format = MutableStateFlow(null as MediaFormat?)
-    var bufferAvailableHandler: BufferAvailableHandler? = null
+    val samples = MutableSharedFlow<Sample>()
 
     init {
         val mimeType = format.getString(MediaFormat.KEY_MIME)
@@ -69,7 +64,7 @@ class Encoder(format: MediaFormat) : DeferScope() {
         this.format.value = format
     }
 
-    private fun onOutputBufferAvailable(index: Int, info: MediaCodec.BufferInfo) {
+    private suspend fun onOutputBufferAvailable(index: Int, info: MediaCodec.BufferInfo) {
         try {
             if (MediaCodec.BUFFER_FLAG_CODEC_CONFIG in info.flags) {
                 Logger.debug("Got codec config")
@@ -96,7 +91,7 @@ class Encoder(format: MediaFormat) : DeferScope() {
                 return
             }
 
-            bufferAvailableHandler?.invoke(buffer, info)
+            samples.emit(Sample(buffer, info))
         } finally {
             try {
                 codec.releaseOutputBuffer(index, false)

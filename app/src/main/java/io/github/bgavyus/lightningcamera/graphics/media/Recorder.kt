@@ -77,7 +77,9 @@ class Recorder(
             }
             .launchIn(scope)
 
-        encoder.bufferAvailableHandler = ::onBufferAvailable
+        encoder.samples
+            .onEach { onBufferAvailable(it.buffer, it.info) }
+            .launchIn(scope)
     }
 
     val surface get() = encoder.surface
