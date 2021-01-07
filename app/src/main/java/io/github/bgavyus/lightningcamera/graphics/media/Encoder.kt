@@ -24,10 +24,14 @@ class Encoder(format: MediaFormat) : DeferScope() {
     private val scope = CoroutineScope(dispatcher)
         .apply { defer(::cancel) }
 
+    private val _format = MutableSharedFlow<MediaFormat>()
+    val format = _format.asSharedFlow()
+
+    private val _samples = MutableSharedFlow<Sample>()
+    val samples = _samples.asSharedFlow()
+
     private val codec: MediaCodec
     val surface: Surface
-    val format = MutableStateFlow(null as MediaFormat?)
-    val samples = MutableSharedFlow<Sample>()
 
     init {
         val mimeType = format.getString(MediaFormat.KEY_MIME)
@@ -55,9 +59,9 @@ class Encoder(format: MediaFormat) : DeferScope() {
         }
     }
 
-    private fun onFormatChanged(format: MediaFormat) {
+    private suspend fun onFormatChanged(format: MediaFormat) {
         Logger.debug("Format available")
-        this.format.value = format
+        this._format.emit(format)
     }
 
     private suspend fun onBufferAvailable(index: Int, info: MediaCodec.BufferInfo) {
@@ -87,7 +91,7 @@ class Encoder(format: MediaFormat) : DeferScope() {
                 return
             }
 
-            samples.emit(Sample(buffer, info))
+            _samples.emit(Sample(buffer, info))
         } finally {
             try {
                 codec.releaseOutputBuffer(index, false)
