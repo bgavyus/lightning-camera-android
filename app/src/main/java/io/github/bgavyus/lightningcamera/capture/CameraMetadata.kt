@@ -7,5 +7,5 @@ data class CameraMetadata(
     val id: String,
     val orientation: Rotation,
     val framesPerSecond: Int,
-    val frameSize: Size
+    val frameSize: Size,
 )
