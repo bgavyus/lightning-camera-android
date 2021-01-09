@@ -11,7 +11,6 @@ import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
 import io.github.bgavyus.lightningcamera.common.extensions.cancel
 import io.github.bgavyus.lightningcamera.common.extensions.systemService
-import io.github.bgavyus.lightningcamera.permissions.PermissionMissingException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
@@ -28,14 +27,7 @@ class CameraConnectionFactory(private val context: Context) : DeferScope() {
         .apply { defer(::close) }
 
     suspend fun open(cameraId: String) = withContext(Dispatchers.IO) {
-        try {
-            context.systemService<CameraManager>().openCamera(cameraId, handler)
-                .first()
-        } catch (exception: CameraAccessException) {
-            throw CameraException.fromAccessException(exception)
-        } catch (_: SecurityException) {
-            throw PermissionMissingException()
-        }
+        context.systemService<CameraManager>().openCamera(cameraId, handler).first()
     }
 }
 
@@ -45,10 +37,17 @@ private fun CameraManager.openCamera(id: String, handler: Handler) = callbackFlo
         override fun onOpened(camera: CameraDevice) = sendBlocking(camera)
 
         override fun onDisconnected(camera: CameraDevice) =
-            cancel(CameraException(CameraExceptionType.Disconnected))
+            cancel(CameraAccessException(CameraAccessException.CAMERA_DISCONNECTED))
 
         override fun onError(camera: CameraDevice, error: Int) =
-            cancel(CameraException.fromStateError(error))
+            cancel(CameraAccessException(errorCodeToAccessError(error), "Error code: $error"))
+
+        private fun errorCodeToAccessError(error: Int) = when (error) {
+            ERROR_CAMERA_IN_USE -> CameraAccessException.CAMERA_IN_USE
+            ERROR_MAX_CAMERAS_IN_USE -> CameraAccessException.MAX_CAMERAS_IN_USE
+            ERROR_CAMERA_DISABLED -> CameraAccessException.CAMERA_DISABLED
+            else -> CameraAccessException.CAMERA_ERROR
+        }
     }
 
     openCamera(id, callback, handler)

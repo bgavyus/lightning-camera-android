@@ -1,15 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ספלאש</string>
-
     <string name="error_permission_not_granted">לא ניתנה הרשאה</string>
-    <string name="error_high_speed_camera_not_available">הילוך איטי לא זמין</string>
-    <string name="error_camera_device">שגיאה במצלמה</string>
-    <string name="error_camera_disabled">המצלמה הושבתה</string>
-    <string name="error_camera_disconnected">המצלמה התנתקה</string>
-    <string name="error_camera_generic">בעיה במצלמה</string>
-    <string name="error_camera_in_use">המצלמה בשימוש אפליקציה אחרת</string>
-    <string name="error_max_cameras_in_use">יותר מדי מצלמות בשימוש</string>
-    <string name="error_io">לא ניתן לגשת לקבצים</string>
-    <string name="error_uncaught">באג</string>
 </resources>

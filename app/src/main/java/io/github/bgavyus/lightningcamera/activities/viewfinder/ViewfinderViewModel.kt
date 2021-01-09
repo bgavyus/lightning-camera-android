@@ -16,7 +16,6 @@ import io.github.bgavyus.lightningcamera.capture.CameraMetadataProvider
 import io.github.bgavyus.lightningcamera.capture.CameraSessionFactory
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Display
-import io.github.bgavyus.lightningcamera.common.Logger
 import io.github.bgavyus.lightningcamera.common.Rotation
 import io.github.bgavyus.lightningcamera.common.extensions.and
 import io.github.bgavyus.lightningcamera.common.extensions.launchAll
@@ -26,10 +25,8 @@ import io.github.bgavyus.lightningcamera.graphics.SurfaceDuplicatorFactory
 import io.github.bgavyus.lightningcamera.graphics.TransformMatrixFactory
 import io.github.bgavyus.lightningcamera.graphics.detection.MotionDetector
 import io.github.bgavyus.lightningcamera.graphics.media.Recorder
-import io.github.bgavyus.lightningcamera.permissions.PermissionMissingException
 import io.github.bgavyus.lightningcamera.permissions.PermissionsManager
 import io.github.bgavyus.lightningcamera.storage.Storage
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
@@ -68,7 +65,6 @@ class ViewfinderViewModel @ViewModelInject constructor(
     val watching = MutableStateFlow(false)
     val transformMatrix = MutableStateFlow(Matrix())
     val surfaceTexture = MutableStateFlow(null as SurfaceTexture?)
-    val lastException = MutableStateFlow(null as Throwable?)
 
     private val deferredMetadata = viewModelScope.async {
         cameraMetadataProvider.collect()
@@ -129,43 +125,29 @@ class ViewfinderViewModel @ViewModelInject constructor(
         )
     }
 
-    suspend fun grantPermissions() {
-        val permissions = CameraConnectionFactory.permissions + Storage.permissions
-        val hasGranted = permissionsManager.requestMissing(permissions)
-
-        if (!hasGranted) {
-            lastException.value = PermissionMissingException()
-        }
-    }
+    suspend fun grantPermissions() =
+        permissionsManager.requestMissing(CameraConnectionFactory.permissions + Storage.permissions)
 
     private fun activate() = viewModelScope.launch {
-        try {
-            display.rotations()
-                .reflectTo(displayRotation)
-                .launchIn(this)
+        display.rotations()
+            .reflectTo(displayRotation)
+            .launchIn(this)
 
-            val recorder = deferredRecorder.await().apply {
-                activeDeferScope.defer(::stop)
-                start()
-            }
-
-            val metadata = deferredMetadata.await()
-
-            val device = cameraConnectionFactory.open(metadata.id)
-                .apply { activeDeferScope.defer(::close) }
-
-            val duplicator = deferredDuplicator.await()
-            val surfaces = listOf(recorder.surface, duplicator.surface)
-
-            cameraSessionFactory.create(device, surfaces, metadata.framesPerSecond)
-                .apply { activeDeferScope.defer(::close) }
-        } catch (exception: CancellationException) {
-            Logger.error("Cancellation exception while activating", exception)
-            lastException.value = exception.cause ?: exception
-        } catch (exception: Exception) {
-            Logger.error("Failed to activate", exception)
-            lastException.value = exception
+        val recorder = deferredRecorder.await().apply {
+            activeDeferScope.defer(::stop)
+            start()
         }
+
+        val metadata = deferredMetadata.await()
+
+        val device = cameraConnectionFactory.open(metadata.id)
+            .apply { activeDeferScope.defer(::close) }
+
+        val duplicator = deferredDuplicator.await()
+        val surfaces = listOf(recorder.surface, duplicator.surface)
+
+        cameraSessionFactory.create(device, surfaces, metadata.framesPerSecond)
+            .apply { activeDeferScope.defer(::close) }
     }
         .apply { activeDeferScope.defer(::cancel) }
 

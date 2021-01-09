@@ -13,12 +13,7 @@ open class DeferScope : AutoCloseable {
         while (!stack.isEmpty()) {
             val block = stack.pop()
             Logger.debug("Closing: $block")
-
-            try {
-                block.invoke()
-            } catch (exception: Exception) {
-                Logger.error("Exception while closing", exception)
-            }
+            block.invoke()
         }
     }
 }

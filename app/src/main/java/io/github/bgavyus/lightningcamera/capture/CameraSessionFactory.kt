@@ -1,6 +1,9 @@
 package io.github.bgavyus.lightningcamera.capture
 
-import android.hardware.camera2.*
+import android.hardware.camera2.CameraCaptureSession
+import android.hardware.camera2.CameraConstrainedHighSpeedCaptureSession
+import android.hardware.camera2.CameraDevice
+import android.hardware.camera2.CaptureRequest
 import android.hardware.camera2.params.OutputConfiguration
 import android.hardware.camera2.params.SessionConfiguration
 import android.os.Build
@@ -40,30 +43,26 @@ private suspend fun CameraDevice.createConstrainedHighSpeedCaptureSession(
         }
 
         override fun onConfigureFailed(session: CameraCaptureSession) {
-            continuation.resumeWithException(CameraException(CameraExceptionType.ConfigureFailed))
+            continuation.resumeWithException(RuntimeException())
         }
     }
 
-    try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val sessionConfig = SessionConfiguration(
-                SessionConfiguration.SESSION_HIGH_SPEED,
-                surfaces.map { OutputConfiguration(it) },
-                handler::post,
-                callback,
-            )
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        val sessionConfig = SessionConfiguration(
+            SessionConfiguration.SESSION_HIGH_SPEED,
+            surfaces.map { OutputConfiguration(it) },
+            handler::post,
+            callback,
+        )
 
-            createCaptureSession(sessionConfig)
-        } else {
-            @Suppress("DEPRECATION")
-            createConstrainedHighSpeedCaptureSession(
-                surfaces,
-                callback,
-                handler,
-            )
-        }
-    } catch (error: CameraAccessException) {
-        throw CameraException.fromAccessException(error)
+        createCaptureSession(sessionConfig)
+    } else {
+        @Suppress("DEPRECATION")
+        createConstrainedHighSpeedCaptureSession(
+            surfaces,
+            callback,
+            handler,
+        )
     }
 }
 

@@ -81,23 +81,14 @@ class Encoder(format: MediaFormat) : DeferScope() {
                 return
             }
 
-            val buffer = try {
-                codec.getOutputBuffer(index)
-            } catch (_: IllegalStateException) {
-                Logger.debug("Ignoring buffer after release")
-                return
-            } ?: run {
+            val buffer = codec.getOutputBuffer(index) ?: run {
                 Logger.warn("Got null buffer")
                 return
             }
 
             _samples.emit(Sample(buffer, info))
         } finally {
-            try {
-                codec.releaseOutputBuffer(index, false)
-            } catch (_: IllegalStateException) {
-                Logger.debug("Ignoring buffer after release")
-            }
+            codec.releaseOutputBuffer(index, false)
         }
     }
 }

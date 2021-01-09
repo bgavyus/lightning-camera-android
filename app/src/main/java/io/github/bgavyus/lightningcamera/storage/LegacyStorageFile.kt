@@ -5,7 +5,6 @@ import android.content.ContentResolver
 import android.content.ContentValues
 import android.os.Environment
 import android.provider.MediaStore
-import io.github.bgavyus.lightningcamera.permissions.PermissionMissingException
 import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException
@@ -37,11 +36,7 @@ class LegacyStorageFile(
     private val file = File(parentDirectory, name)
         .apply { delete() }
 
-    private val outputStream = try {
-        file.outputStream()
-    } catch (_: SecurityException) {
-        throw PermissionMissingException()
-    }
+    private val outputStream = file.outputStream()
 
     override val descriptor: FileDescriptor get() = outputStream.fd
     override val path: String get() = file.path
