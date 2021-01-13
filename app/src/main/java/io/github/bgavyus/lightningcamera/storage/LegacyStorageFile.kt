@@ -8,6 +8,7 @@ import android.provider.MediaStore
 import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicBoolean
 
 @Suppress("DEPRECATION")
 class LegacyStorageFile(
@@ -40,12 +41,11 @@ class LegacyStorageFile(
 
     override val descriptor: FileDescriptor get() = outputStream.fd
     override val path: String get() = file.path
-    private var pending = true
+    private val pending = AtomicBoolean(true)
 
     override fun keep() {
-        if (pending) {
+        if (pending.compareAndSet(true, false)) {
             save()
-            pending = false
         }
     }
 

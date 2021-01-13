@@ -13,6 +13,7 @@ import java.io.File.separator
 import java.io.IOException
 import java.time.Clock
 import java.time.Period
+import java.util.concurrent.atomic.AtomicBoolean
 
 @TargetApi(Build.VERSION_CODES.Q)
 class ScopedStorageFile(
@@ -54,19 +55,18 @@ class ScopedStorageFile(
             ?: throw IOException("Failed to get file descriptor")
 
     override val path get() = throw NotImplementedError()
-    private var pending = true
+    private val pending = AtomicBoolean(true)
 
     override fun keep() {
-        if (pending) {
+        if (pending.compareAndSet(true, false)) {
             save()
-            pending = false
         }
     }
 
     override fun close() {
         file.close()
 
-        if (pending) {
+        if (pending.get()) {
             discard()
         }
     }

@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicBoolean
 
 class Writer(
     private val file: StorageFile,
@@ -27,7 +28,7 @@ class Writer(
         .apply { defer(::cancel) }
 
     private val track: Int
-    private var active = false
+    private val active = AtomicBoolean()
 
     private val muxer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         MediaMuxer(file.descriptor, outputFormat)
@@ -41,9 +42,8 @@ class Writer(
     }
 
     fun write(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-        if (!active) {
+        if (active.compareAndSet(false, true)) {
             scope.launch { file.keep() }
-            active = true
         }
 
         try {
