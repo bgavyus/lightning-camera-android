@@ -23,7 +23,7 @@ private suspend fun <Input, Output> ComponentActivity.call(
     input: Input,
 ): Output {
     val deferred = CompletableDeferred<Output>()
-    val launcher = registerForActivityResult(contract) { deferred.complete(it) }
+    val launcher = registerForActivityResult(contract, deferred::complete)
     launcher.launch(input)
     val output = deferred.await()
     launcher.unregister()
