@@ -13,6 +13,7 @@ import com.otaliastudios.opengl.texture.GlTexture
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Logger
 import io.github.bgavyus.lightningcamera.common.extensions.callOnEach
+import io.github.bgavyus.lightningcamera.common.extensions.setDefaultBufferSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -46,7 +47,7 @@ class SurfaceDuplicator(
 
     private val surfaceTexture = SurfaceTexture(texture.id).apply {
         defer(::release)
-        setDefaultBufferSize(bufferSize.width, bufferSize.height)
+        setDefaultBufferSize(bufferSize)
 
         updates(handler)
             .callOnEach(::onFrameAvailable)

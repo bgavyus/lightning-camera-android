@@ -17,10 +17,7 @@ import io.github.bgavyus.lightningcamera.capture.CameraSessionFactory
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Display
 import io.github.bgavyus.lightningcamera.common.Rotation
-import io.github.bgavyus.lightningcamera.common.extensions.and
-import io.github.bgavyus.lightningcamera.common.extensions.launchAll
-import io.github.bgavyus.lightningcamera.common.extensions.onToggle
-import io.github.bgavyus.lightningcamera.common.extensions.reflectTo
+import io.github.bgavyus.lightningcamera.common.extensions.*
 import io.github.bgavyus.lightningcamera.graphics.SurfaceDuplicatorFactory
 import io.github.bgavyus.lightningcamera.graphics.TransformMatrixFactory
 import io.github.bgavyus.lightningcamera.graphics.detection.MotionDetector
@@ -155,7 +152,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
 
     fun adjustBufferSize() {
         val size = cameraMetadata?.frameSize ?: return
-        surfaceTexture.value?.setDefaultBufferSize(size.width, size.height)
+        surfaceTexture.value?.setDefaultBufferSize(metadata.frameSize)
     }
 
     override fun onCleared() = deferScope.close()
