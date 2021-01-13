@@ -11,7 +11,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.lightningcamera.capture.CameraConnectionFactory
-import io.github.bgavyus.lightningcamera.capture.CameraMetadata
 import io.github.bgavyus.lightningcamera.capture.CameraMetadataProvider
 import io.github.bgavyus.lightningcamera.capture.CameraSessionFactory
 import io.github.bgavyus.lightningcamera.common.DeferScope
@@ -53,8 +52,6 @@ class ViewfinderViewModel @ViewModelInject constructor(
     private val cameraSessionFactory = CameraSessionFactory()
         .apply { deferScope.defer(::close) }
 
-    private var cameraMetadata: CameraMetadata? = null
-
     private val displayRotation = MutableStateFlow(Rotation.Natural)
     val active = MutableStateFlow(false)
     val detecting = MutableStateFlow(false)
@@ -65,7 +62,6 @@ class ViewfinderViewModel @ViewModelInject constructor(
 
     private val deferredMetadata = viewModelScope.async {
         cameraMetadataProvider.collect()
-            .also { cameraMetadata = it }
     }
 
     private val deferredDetector = viewModelScope.async(Dispatchers.IO) {
@@ -150,8 +146,8 @@ class ViewfinderViewModel @ViewModelInject constructor(
 
     private fun deactivate() = activeDeferScope.close()
 
-    fun adjustBufferSize() {
-        val size = cameraMetadata?.frameSize ?: return
+    suspend fun adjustBufferSize() {
+        val metadata = deferredMetadata.await()
         surfaceTexture.value?.setDefaultBufferSize(metadata.frameSize)
     }
 
