@@ -6,8 +6,6 @@ import android.media.MediaFormat
 import android.os.Build
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.lightningcamera.R
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.time.Clock
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -24,7 +22,7 @@ class Storage @Inject constructor(
         val permissions = if (isScoped) emptyList() else LegacyStorageFile.permissions
     }
 
-    suspend fun generateFile(): StorageFile {
+    fun generateFile(): StorageFile {
         val timeString = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")
             .withZone(clock.zone)
             .format(clock.instant())
@@ -37,29 +35,27 @@ class Storage @Inject constructor(
         )
     }
 
-    private suspend fun file(
+    private fun file(
         mimeType: String,
         standardDirectory: StandardDirectory,
         appDirectoryName: String,
         name: String,
-    ) = withContext(Dispatchers.IO) {
-        if (isScoped) {
-            ScopedStorageFile(
-                contentResolver,
-                clock,
-                mimeType,
-                standardDirectory,
-                appDirectoryName,
-                name,
-            )
-        } else {
-            LegacyStorageFile(
-                contentResolver,
-                mimeType,
-                standardDirectory,
-                appDirectoryName,
-                name,
-            )
-        }
+    ) = if (isScoped) {
+        ScopedStorageFile(
+            contentResolver,
+            clock,
+            mimeType,
+            standardDirectory,
+            appDirectoryName,
+            name,
+        )
+    } else {
+        LegacyStorageFile(
+            contentResolver,
+            mimeType,
+            standardDirectory,
+            appDirectoryName,
+            name,
+        )
     }
 }

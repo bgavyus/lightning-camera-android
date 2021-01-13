@@ -10,13 +10,13 @@ import io.github.bgavyus.lightningcamera.common.Logger
 import io.github.bgavyus.lightningcamera.common.Rotation
 import io.github.bgavyus.lightningcamera.common.extensions.area
 import io.github.bgavyus.lightningcamera.storage.Storage
-import io.github.bgavyus.lightningcamera.storage.StorageFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
 import kotlin.math.ceil
 
@@ -82,7 +82,6 @@ class Recorder(
 
     val surface get() = encoder.surface
 
-    private var file: StorageFile? = null
     private var writer: Writer? = null
 
     private fun bind() {
@@ -95,22 +94,19 @@ class Recorder(
         Logger.info("Starting")
         stop()
 
-        val file = storage.generateFile()
-            .also { file = it }
-
         val format = format ?: run {
             Logger.debug("Format unavailable")
             return
         }
 
-        writer = Writer(file, format, rotation.value)
+        withContext(Dispatchers.IO) {
+            writer = Writer(storage, format, rotation.value)
+        }
     }
 
     fun stop() {
         writer?.close()
         writer = null
-        file?.close()
-        file = null
     }
 
     private var recording = false
