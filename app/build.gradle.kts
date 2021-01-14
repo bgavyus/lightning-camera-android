@@ -83,7 +83,7 @@ dependencies {
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:$jetpackHiltVersion")
     kapt("androidx.hilt:hilt-compiler:$jetpackHiltVersion")
 
-    implementation("androidx.core:core-ktx:1.5.0-alpha05")
+    implementation("androidx.core:core-ktx:1.5.0-beta01")
     implementation("androidx.fragment:fragment-ktx:1.3.0-rc01")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
 
