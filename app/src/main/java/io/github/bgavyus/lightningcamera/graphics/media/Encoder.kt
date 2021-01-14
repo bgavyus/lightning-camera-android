@@ -61,7 +61,7 @@ class Encoder(format: MediaFormat) : DeferScope() {
 
     private suspend fun onFormatChanged(format: MediaFormat) {
         Logger.debug("Format available")
-        this._format.emit(format)
+        _format.emit(format)
     }
 
     private suspend fun onBufferAvailable(index: Int, info: MediaCodec.BufferInfo) {
