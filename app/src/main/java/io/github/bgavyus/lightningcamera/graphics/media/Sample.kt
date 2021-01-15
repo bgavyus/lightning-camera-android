@@ -6,9 +6,9 @@ import java.nio.ByteBuffer
 data class Sample(val buffer: ByteBuffer, val info: MediaCodec.BufferInfo) {
     constructor(maxSize: Int) : this(ByteBuffer.allocateDirect(maxSize), MediaCodec.BufferInfo())
 
-    fun copyFrom(otherBuffer: ByteBuffer, otherInfo: MediaCodec.BufferInfo) {
-        buffer.copyFrom(otherBuffer)
-        info.copyFrom(otherInfo)
+    fun copyFrom(other: Sample) {
+        buffer.copyFrom(other.buffer)
+        info.copyFrom(other.info)
     }
 }
 

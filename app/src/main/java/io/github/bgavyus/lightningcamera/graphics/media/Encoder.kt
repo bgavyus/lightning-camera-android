@@ -1,8 +1,11 @@
 package io.github.bgavyus.lightningcamera.graphics.media
 
 import android.media.MediaCodec
+import android.media.MediaCodecInfo
+import android.media.MediaCodecList
 import android.media.MediaFormat
 import android.os.Handler
+import android.util.Size
 import android.view.Surface
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Logger
@@ -15,7 +18,36 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.*
 
-class Encoder(format: MediaFormat) : DeferScope() {
+class Encoder(size: Size, framesPerSecond: Int) : DeferScope() {
+    companion object {
+        private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
+
+        private fun createFormat(size: Size, framesPerSecond: Int) =
+            MediaFormat.createVideoFormat(
+                mimeType,
+                size.width,
+                size.height
+            ).apply {
+                setInteger(
+                    MediaFormat.KEY_COLOR_FORMAT,
+                    MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
+                )
+
+                val codecInfo = MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos
+                    .find { it.supportedTypes.contains(mimeType) }
+                    ?: throw RuntimeException()
+
+                setInteger(
+                    MediaFormat.KEY_BIT_RATE,
+                    codecInfo.getCapabilitiesForType(mimeType).videoCapabilities.bitrateRange.upper
+                        .also { Logger.info("Bit rate: $it") }
+                )
+
+                setInteger(MediaFormat.KEY_FRAME_RATE, framesPerSecond)
+                setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 0)
+            }
+    }
+
     private val handler = SingleThreadHandler(javaClass.simpleName)
         .apply { defer(::close) }
 
@@ -34,9 +66,6 @@ class Encoder(format: MediaFormat) : DeferScope() {
     val surface: Surface
 
     init {
-        val mimeType = format.getString(MediaFormat.KEY_MIME)
-            ?: throw IllegalArgumentException()
-
         codec = MediaCodec.createEncoderByType(mimeType).apply {
             defer(::release)
 
@@ -48,7 +77,11 @@ class Encoder(format: MediaFormat) : DeferScope() {
             }
                 .launchIn(scope)
 
-            configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+            configure(createFormat(size, framesPerSecond),
+                null,
+                null,
+                MediaCodec.CONFIGURE_FLAG_ENCODE
+            )
 
             surface = createInputSurface()
                 .apply { defer(::release) }

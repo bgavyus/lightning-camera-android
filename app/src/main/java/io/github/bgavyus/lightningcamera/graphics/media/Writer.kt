@@ -1,6 +1,5 @@
 package io.github.bgavyus.lightningcamera.graphics.media
 
-import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.os.Build
@@ -8,10 +7,9 @@ import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Logger
 import io.github.bgavyus.lightningcamera.common.Rotation
 import io.github.bgavyus.lightningcamera.storage.Storage
-import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 
-class Writer(storage: Storage, format: MediaFormat, rotation: Rotation) : DeferScope() {
+open class Writer(storage: Storage, format: MediaFormat, rotation: Rotation) : DeferScope() {
     companion object {
         private const val outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
     }
@@ -33,15 +31,18 @@ class Writer(storage: Storage, format: MediaFormat, rotation: Rotation) : DeferS
         start()
     }
 
-    fun write(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    open fun write(sample: Sample) {
         if (active.compareAndSet(false, true)) {
             file.keep()
         }
 
         try {
-            muxer.writeSampleData(track, buffer, info)
+            muxer.writeSampleData(track, sample)
         } catch (exception: IllegalStateException) {
             Logger.error("Write failed", exception)
         }
     }
 }
+
+private fun MediaMuxer.writeSampleData(track: Int, sample: Sample) =
+    writeSampleData(track, sample.buffer, sample.info)

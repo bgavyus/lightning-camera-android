@@ -20,6 +20,7 @@ import io.github.bgavyus.lightningcamera.common.extensions.*
 import io.github.bgavyus.lightningcamera.graphics.SurfaceDuplicatorFactory
 import io.github.bgavyus.lightningcamera.graphics.TransformMatrixFactory
 import io.github.bgavyus.lightningcamera.graphics.detection.MotionDetector
+import io.github.bgavyus.lightningcamera.graphics.media.Encoder
 import io.github.bgavyus.lightningcamera.graphics.media.Recorder
 import io.github.bgavyus.lightningcamera.permissions.PermissionsManager
 import io.github.bgavyus.lightningcamera.storage.Storage
@@ -84,10 +85,10 @@ class ViewfinderViewModel @ViewModelInject constructor(
             .apply { defer(::close) }
     }
 
-    private val deferredRecorder = viewModelScope.async(Dispatchers.IO) {
+    private val deferredEncoder = viewModelScope.async(Dispatchers.IO) {
         val metadata = deferredMetadata.await()
 
-        Recorder(storage, metadata.frameSize, metadata.framesPerSecond)
+        Encoder(metadata.frameSize, metadata.framesPerSecond)
             .apply { deferScope.defer(::close) }
     }
 
@@ -97,19 +98,11 @@ class ViewfinderViewModel @ViewModelInject constructor(
 
     private fun bind() = viewModelScope.launch {
         val metadata = deferredMetadata.await()
-        val recorder = deferredRecorder.await()
         val detector = deferredDetector.await()
 
         launchAll(
             active.onToggle(on = ::activate, off = ::deactivate),
             detector.detectingStates().reflectTo(detecting),
-
-            displayRotation
-                .map { metadata.orientation - it }
-                .reflectTo(recorder.rotation),
-
-            (active and detecting and watching)
-                .onToggle(on = recorder::record, off = recorder::lose),
 
             combine(viewSize, displayRotation) { viewSize, displayRotation ->
                 TransformMatrixFactory.create(viewSize, metadata.frameSize, displayRotation)
@@ -122,22 +115,30 @@ class ViewfinderViewModel @ViewModelInject constructor(
         permissionsManager.requestMissing(CameraConnectionFactory.permissions + Storage.permissions)
 
     private fun activate() = viewModelScope.launch {
+        val encoder = deferredEncoder.await()
+        val metadata = deferredMetadata.await()
+        val recorderRotation = displayRotation.map { metadata.orientation - it }
+        val recording = watching and detecting
+
+        Recorder(
+            storage,
+            encoder,
+            metadata.frameSize,
+            metadata.framesPerSecond,
+            recorderRotation,
+            recording,
+        )
+            .apply { activeDeferScope.defer(::close) }
+
         display.rotations()
             .reflectTo(displayRotation)
             .launchIn(this)
-
-        val recorder = deferredRecorder.await().apply {
-            activeDeferScope.defer(::stop)
-            start()
-        }
-
-        val metadata = deferredMetadata.await()
 
         val device = cameraConnectionFactory.open(metadata.id)
             .apply { activeDeferScope.defer(::close) }
 
         val duplicator = deferredDuplicator.await()
-        val surfaces = listOf(recorder.surface, duplicator.surface)
+        val surfaces = listOf(encoder.surface, duplicator.surface)
 
         cameraSessionFactory.create(device, surfaces, metadata.framesPerSecond)
             .apply { activeDeferScope.defer(::close) }
