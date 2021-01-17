@@ -57,13 +57,11 @@ private suspend fun CameraDevice.createCaptureSession(
     handler: Handler,
 ): CameraCaptureSession = suspendCoroutine { continuation ->
     val callback = object : CameraCaptureSession.StateCallback() {
-        override fun onConfigured(session: CameraCaptureSession) {
+        override fun onConfigured(session: CameraCaptureSession) =
             continuation.resume(session)
-        }
 
-        override fun onConfigureFailed(session: CameraCaptureSession) {
+        override fun onConfigureFailed(session: CameraCaptureSession) =
             continuation.resumeWithException(RuntimeException())
-        }
     }
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
