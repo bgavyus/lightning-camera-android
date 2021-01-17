@@ -8,7 +8,7 @@ import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
 import io.github.bgavyus.lightningcamera.common.Logger
-import io.github.bgavyus.lightningcamera.common.extensions.toInt
+import io.github.bgavyus.lightningcamera.extensions.toInt
 import java.io.File.separator
 import java.io.IOException
 import java.time.Clock

@@ -1,9 +1,9 @@
 package io.github.bgavyus.lightningcamera.permissions
 
 import android.content.Context
-import android.content.pm.PackageManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.lightningcamera.common.Logger
+import io.github.bgavyus.lightningcamera.extensions.hasGranted
 import javax.inject.Inject
 
 class PermissionsManager @Inject constructor(
@@ -25,6 +25,3 @@ class PermissionsManager @Inject constructor(
         return result.all(Map.Entry<String, Boolean>::value)
     }
 }
-
-private fun Context.hasGranted(permission: String) =
-    checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED

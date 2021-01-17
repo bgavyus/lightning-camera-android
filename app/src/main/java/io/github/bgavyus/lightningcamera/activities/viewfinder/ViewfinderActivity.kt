@@ -1,11 +1,7 @@
 package io.github.bgavyus.lightningcamera.activities.viewfinder
 
-import android.graphics.SurfaceTexture
-import android.util.Size
 import android.view.KeyEvent
-import android.view.TextureView
 import android.widget.Toast
-import android.widget.ToggleButton
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.core.view.WindowCompat
@@ -15,13 +11,8 @@ import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.R
 import io.github.bgavyus.lightningcamera.common.Logger
-import io.github.bgavyus.lightningcamera.common.extensions.callOnEach
-import io.github.bgavyus.lightningcamera.common.extensions.launchAll
-import io.github.bgavyus.lightningcamera.common.extensions.reflectTo
 import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
-import kotlinx.coroutines.flow.callbackFlow
+import io.github.bgavyus.lightningcamera.extensions.*
 import kotlinx.coroutines.flow.onEach
 
 @AndroidEntryPoint
@@ -106,36 +97,4 @@ class ViewfinderActivity : FragmentActivity() {
     private fun showMessage(@StringRes message: Int) {
         Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
     }
-}
-
-private fun ToggleButton.checked() = callbackFlow {
-    setOnCheckedChangeListener { _, checked -> sendBlocking(checked) }
-    awaitClose { setOnCheckedChangeListener(null) }
-}
-
-private sealed class SurfaceTextureEvent {
-    data class Available(val surface: SurfaceTexture) : SurfaceTextureEvent()
-    data class SizeChanged(val size: Size) : SurfaceTextureEvent()
-    object Updated : SurfaceTextureEvent()
-}
-
-private fun TextureView.surfaceTextureEvents() = callbackFlow<SurfaceTextureEvent> {
-    val listener = object : TextureView.SurfaceTextureListener {
-        override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-            sendBlocking(SurfaceTextureEvent.Available(surface))
-            onSurfaceTextureSizeChanged(surface, width, height)
-        }
-
-        override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) =
-            sendBlocking(SurfaceTextureEvent.SizeChanged(Size(width, height)))
-
-        override fun onSurfaceTextureUpdated(surface: SurfaceTexture) =
-            sendBlocking(SurfaceTextureEvent.Updated)
-
-        override fun onSurfaceTextureDestroyed(surface: SurfaceTexture) = /* shouldRelease */ false
-    }
-
-    surfaceTexture?.let { listener.onSurfaceTextureAvailable(it, width, height) }
-    surfaceTextureListener = listener
-    awaitClose()
 }

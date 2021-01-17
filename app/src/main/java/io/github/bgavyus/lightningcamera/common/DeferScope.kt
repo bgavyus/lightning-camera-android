@@ -3,9 +3,9 @@ package io.github.bgavyus.lightningcamera.common
 import java.util.*
 
 open class DeferScope : AutoCloseable {
-    private val stack = ArrayDeque<Block>()
+    private val stack = ArrayDeque<() -> Unit>()
 
-    fun defer(block: Block) = synchronized(this) {
+    fun defer(block: () -> Unit) = synchronized(this) {
         stack.push(block)
     }
 
@@ -17,5 +17,3 @@ open class DeferScope : AutoCloseable {
         }
     }
 }
-
-private typealias Block = () -> Unit

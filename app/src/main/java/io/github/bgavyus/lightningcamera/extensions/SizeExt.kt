@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.common.extensions
+package io.github.bgavyus.lightningcamera.extensions
 
 import android.graphics.Point
 import android.util.Size

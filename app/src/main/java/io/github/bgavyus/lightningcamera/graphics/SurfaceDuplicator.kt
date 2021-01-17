@@ -12,14 +12,12 @@ import com.otaliastudios.opengl.surface.EglWindowSurface
 import com.otaliastudios.opengl.texture.GlTexture
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Logger
-import io.github.bgavyus.lightningcamera.common.extensions.callOnEach
-import io.github.bgavyus.lightningcamera.common.extensions.setDefaultBufferSize
+import io.github.bgavyus.lightningcamera.extensions.callOnEach
+import io.github.bgavyus.lightningcamera.extensions.setDefaultBufferSize
+import io.github.bgavyus.lightningcamera.extensions.updates
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.launchIn
 
 class SurfaceDuplicator(
@@ -76,9 +74,4 @@ class SurfaceDuplicator(
             window.swapBuffers()
         }
     }
-}
-
-private fun SurfaceTexture.updates(handler: Handler) = callbackFlow {
-    setOnFrameAvailableListener({ sendBlocking(Unit) }, handler)
-    awaitClose { setOnFrameAvailableListener(null) }
 }

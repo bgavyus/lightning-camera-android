@@ -6,6 +6,7 @@ import android.os.Build
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Logger
 import io.github.bgavyus.lightningcamera.common.Rotation
+import io.github.bgavyus.lightningcamera.extensions.writeSampleData
 import io.github.bgavyus.lightningcamera.storage.Storage
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -43,6 +44,3 @@ open class Writer(storage: Storage, format: MediaFormat, rotation: Rotation) : D
         }
     }
 }
-
-private fun MediaMuxer.writeSampleData(track: Int, sample: Sample) =
-    writeSampleData(track, sample.buffer, sample.info)

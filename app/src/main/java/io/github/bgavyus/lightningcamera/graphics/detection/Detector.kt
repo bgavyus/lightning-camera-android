@@ -8,10 +8,8 @@ import android.util.Size
 import android.view.Surface
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
+import io.github.bgavyus.lightningcamera.extensions.buffers
 import kotlinx.coroutines.android.asCoroutineDispatcher
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -48,9 +46,4 @@ abstract class Detector(
         .map { detecting() }
         .distinctUntilChanged()
         .flowOn(handler.asCoroutineDispatcher(javaClass.simpleName))
-}
-
-private fun Allocation.buffers() = callbackFlow {
-    setOnBufferAvailableListener { sendBlocking(ioReceive()) }
-    awaitClose { setOnBufferAvailableListener(null) }
 }

@@ -4,14 +4,11 @@ import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
-import android.hardware.camera2.CameraMetadata.REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO
 import android.util.Range
 import android.util.Size
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.lightningcamera.common.Logger
-import io.github.bgavyus.lightningcamera.common.Rotation
-import io.github.bgavyus.lightningcamera.common.extensions.area
-import io.github.bgavyus.lightningcamera.common.extensions.systemService
+import io.github.bgavyus.lightningcamera.extensions.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -46,7 +43,7 @@ class CameraMetadataProvider @Inject constructor(
             }
             .requireMaxBy { (framesPerSecond, frameSize) -> framesPerSecond * frameSize.area }
 
-        return CameraMetadata(id, characteristics.orientation, framesPerSecond, frameSize)
+        return CameraMetadata(id, characteristics.sensorOrientation, framesPerSecond, frameSize)
     }
 
     private fun collectRegularSpeed(cameras: Iterable<Pair<String, CameraCharacteristics>>): CameraMetadata {
@@ -67,29 +64,6 @@ class CameraMetadataProvider @Inject constructor(
             .asSequence()
             .requireMaxBy(Size::area)
 
-        return CameraMetadata(id, characteristics.orientation, framesPerSecond, frameSize)
+        return CameraMetadata(id, characteristics.sensorOrientation, framesPerSecond, frameSize)
     }
 }
-
-private val CameraCharacteristics.supportsHighSpeed
-    get() = REQUEST_AVAILABLE_CAPABILITIES_CONSTRAINED_HIGH_SPEED_VIDEO in capabilities
-
-private val CameraCharacteristics.capabilities
-    get() = requireGet(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES)
-
-private val CameraCharacteristics.streamConfigurationMap
-    get() = requireGet(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-
-private val CameraCharacteristics.orientation
-    get() = Rotation.fromDegrees(requireGet(CameraCharacteristics.SENSOR_ORIENTATION))
-
-private val CameraCharacteristics.fpsRanges
-    get() = requireGet(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES)
-
-private fun <T> CameraCharacteristics.requireGet(key: CameraCharacteristics.Key<T>) =
-    get(key) ?: throw RuntimeException()
-
-private fun <T, R : Comparable<R>> Sequence<T>.requireMaxBy(selector: (T) -> R) =
-    maxByOrNull(selector) ?: throw RuntimeException()
-
-private val <T : Comparable<T>> Range<T>.isSingular get() = lower == upper

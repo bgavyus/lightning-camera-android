@@ -4,7 +4,7 @@ import android.renderscript.Allocation
 import android.renderscript.RenderScript
 import android.util.Size
 import io.github.bgavyus.lightningcamera.common.PeakDetector
-import io.github.bgavyus.lightningcamera.common.extensions.area
+import io.github.bgavyus.lightningcamera.extensions.area
 
 class MotionDetector(
     renderScript: RenderScript,

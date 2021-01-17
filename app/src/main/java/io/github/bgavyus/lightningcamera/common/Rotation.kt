@@ -27,8 +27,7 @@ enum class Rotation {
     }
 
     val degrees: Int get() = ordinal * fullCycleDegrees / rotations.size
+    val isLandscape get() = equals(Right) || equals(Left)
 
-    operator fun unaryMinus() = fromIndex(-ordinal)
-    operator fun plus(other: Rotation) = fromIndex(ordinal + other.ordinal)
     operator fun minus(other: Rotation) = fromIndex(ordinal - other.ordinal)
 }

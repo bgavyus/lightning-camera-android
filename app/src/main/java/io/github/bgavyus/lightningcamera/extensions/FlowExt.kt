@@ -1,6 +1,5 @@
-package io.github.bgavyus.lightningcamera.common.extensions
+package io.github.bgavyus.lightningcamera.extensions
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 
 fun Flow<Unit>.callOnEach(action: () -> Unit) = onEach { action() }
@@ -13,5 +12,3 @@ fun Flow<Boolean>.onToggle(on: () -> Unit, off: () -> Unit) =
 
 infix fun Flow<Boolean>.and(flow: Flow<Boolean>) =
     combine(flow) { a, b -> a && b }.distinctUntilChanged()
-
-fun CoroutineScope.launchAll(vararg flows: Flow<*>) = flows.forEach { it.launchIn(this) }

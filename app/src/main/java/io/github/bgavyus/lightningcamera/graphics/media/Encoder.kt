@@ -4,30 +4,28 @@ import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaCodecList
 import android.media.MediaFormat
-import android.os.Handler
 import android.util.Size
 import android.view.Surface
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Logger
 import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
-import io.github.bgavyus.lightningcamera.common.extensions.cancel
+import io.github.bgavyus.lightningcamera.extensions.EncoderEvent
+import io.github.bgavyus.lightningcamera.extensions.contains
+import io.github.bgavyus.lightningcamera.extensions.encoderEvents
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 class Encoder(size: Size, framesPerSecond: Int) : DeferScope() {
     companion object {
         private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
 
         private fun createFormat(size: Size, framesPerSecond: Int) =
-            MediaFormat.createVideoFormat(
-                mimeType,
-                size.width,
-                size.height
-            ).apply {
+            MediaFormat.createVideoFormat(mimeType, size.width, size.height).apply {
                 setInteger(
                     MediaFormat.KEY_COLOR_FORMAT,
                     MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
@@ -125,29 +123,3 @@ class Encoder(size: Size, framesPerSecond: Int) : DeferScope() {
         }
     }
 }
-
-private sealed class EncoderEvent {
-    data class FormatChanged(val format: MediaFormat) : EncoderEvent()
-    data class BufferAvailable(val index: Int, val info: MediaCodec.BufferInfo) : EncoderEvent()
-}
-
-private fun MediaCodec.encoderEvents(handler: Handler) = callbackFlow<EncoderEvent> {
-    val callback = object : MediaCodec.Callback() {
-        override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) =
-            sendBlocking(EncoderEvent.FormatChanged(format))
-
-        override fun onOutputBufferAvailable(
-            codec: MediaCodec,
-            index: Int,
-            info: MediaCodec.BufferInfo,
-        ) = sendBlocking(EncoderEvent.BufferAvailable(index, info))
-
-        override fun onError(codec: MediaCodec, error: MediaCodec.CodecException) = cancel(error)
-        override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {}
-    }
-
-    setCallback(callback, handler)
-    awaitClose { setCallback(null) }
-}
-
-private operator fun Int.contains(mask: Int) = and(mask) == mask

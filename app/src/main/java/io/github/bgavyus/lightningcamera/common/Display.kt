@@ -2,15 +2,14 @@ package io.github.bgavyus.lightningcamera.common
 
 import android.content.Context
 import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.hardware.display.DisplayManager
-import android.os.Handler
-import io.github.bgavyus.lightningcamera.common.extensions.systemService
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
-import kotlinx.coroutines.flow.*
+import io.github.bgavyus.lightningcamera.extensions.samples
+import io.github.bgavyus.lightningcamera.extensions.systemService
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
 class Display(private val context: Context) : DeferScope() {
     private val handler = SingleThreadHandler(javaClass.simpleName)
@@ -33,19 +32,4 @@ class Display(private val context: Context) : DeferScope() {
             .map { Rotation.fromSurfaceRotation(it) }
             .onEach { Logger.debug("Rotation changed: $it") }
     }
-}
-
-private fun SensorManager.samples(
-    sensor: Sensor,
-    samplingPeriodUs: Int,
-    maxReportLatencyUs: Int,
-    handler: Handler,
-) = callbackFlow<SensorEvent> {
-    val listener = object : SensorEventListener {
-        override fun onSensorChanged(event: SensorEvent) = sendBlocking(event)
-        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-    }
-
-    registerListener(listener, sensor, samplingPeriodUs, maxReportLatencyUs, handler)
-    awaitClose { unregisterListener(listener) }
 }

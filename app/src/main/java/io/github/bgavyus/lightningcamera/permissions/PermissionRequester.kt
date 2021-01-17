@@ -2,10 +2,9 @@ package io.github.bgavyus.lightningcamera.permissions
 
 import android.content.Context
 import androidx.activity.ComponentActivity
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import dagger.hilt.android.qualifiers.ActivityContext
-import kotlinx.coroutines.CompletableDeferred
+import io.github.bgavyus.lightningcamera.extensions.call
 import javax.inject.Inject
 
 class PermissionRequester @Inject constructor(
@@ -15,20 +14,5 @@ class PermissionRequester @Inject constructor(
         val activity = context as ComponentActivity
         val contract = ActivityResultContracts.RequestMultiplePermissions()
         return activity.call(contract, permissions.toTypedArray())
-    }
-}
-
-private suspend fun <Input, Output> ComponentActivity.call(
-    contract: ActivityResultContract<Input, Output>,
-    input: Input,
-): Output {
-    val deferred = CompletableDeferred<Output>()
-    val launcher = registerForActivityResult(contract, deferred::complete)
-
-    try {
-        launcher.launch(input)
-        return deferred.await()
-    } finally {
-        launcher.unregister()
     }
 }

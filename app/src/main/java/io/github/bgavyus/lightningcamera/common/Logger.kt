@@ -3,6 +3,7 @@ package io.github.bgavyus.lightningcamera.common
 import android.util.Log
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.github.bgavyus.lightningcamera.BuildConfig
+import io.github.bgavyus.lightningcamera.extensions.logSymbol
 
 object Logger {
     private val tagRegex = Regex("""(\w+)(?:$|\$)""")
@@ -23,8 +24,7 @@ object Logger {
             Log.println(priority, "${BuildConfig.APPLICATION_ID}.$tag", message)
         }
 
-        val prioritySymbol = prioritySymbol(priority)
-        FirebaseCrashlytics.getInstance().log("$prioritySymbol/$tag: $message")
+        FirebaseCrashlytics.getInstance().log("${priority.logSymbol}/$tag: $message")
     }
 
     private fun tag(): String {
@@ -35,14 +35,4 @@ object Logger {
 
     private fun concat(message: String, throwable: Throwable) =
         "$message\n${Log.getStackTraceString(throwable)}"
-
-    private fun prioritySymbol(priority: Int) = when (priority) {
-        Log.VERBOSE -> 'V'
-        Log.DEBUG -> 'D'
-        Log.INFO -> 'I'
-        Log.WARN -> 'W'
-        Log.ERROR -> 'E'
-        Log.ASSERT -> 'A'
-        else -> '?'
-    }
 }

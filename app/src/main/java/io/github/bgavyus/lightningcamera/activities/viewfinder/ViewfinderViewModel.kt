@@ -16,7 +16,7 @@ import io.github.bgavyus.lightningcamera.capture.CameraSessionFactory
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Display
 import io.github.bgavyus.lightningcamera.common.Rotation
-import io.github.bgavyus.lightningcamera.common.extensions.*
+import io.github.bgavyus.lightningcamera.extensions.*
 import io.github.bgavyus.lightningcamera.graphics.SurfaceDuplicatorFactory
 import io.github.bgavyus.lightningcamera.graphics.TransformMatrixFactory
 import io.github.bgavyus.lightningcamera.graphics.detection.MotionDetector
