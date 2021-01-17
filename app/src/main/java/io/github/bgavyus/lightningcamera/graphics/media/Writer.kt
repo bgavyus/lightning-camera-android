@@ -20,10 +20,10 @@ open class Writer(storage: Storage, format: MediaFormat, rotation: Rotation) : D
     private val track: Int
     private val active = AtomicBoolean()
 
-    private val muxer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        MediaMuxer(file.descriptor, outputFormat)
-    } else {
+    private val muxer = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
         MediaMuxer(file.path, outputFormat)
+    } else {
+        MediaMuxer(file.descriptor, outputFormat)
     }.apply {
         defer(::release)
         setOrientationHint(rotation.degrees)
