@@ -19,10 +19,10 @@ class CameraMetadataProvider @Inject constructor(
     suspend fun collect() = withContext(Dispatchers.IO) {
         val manager = context.systemService<CameraManager>()
 
-        val pairs = manager.cameraIdList
+        val cameras = manager.cameraIdList
             .map { id -> Pair(id, manager.getCameraCharacteristics(id)) }
 
-        (collectHighSpeed(pairs) ?: collectRegularSpeed(pairs))
+        (collectHighSpeed(cameras) ?: collectRegularSpeed(cameras))
             .also { Logger.info("Metadata collected: $it") }
     }
 
