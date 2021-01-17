@@ -40,11 +40,13 @@ class CameraSessionFactory : DeferScope() {
         val isHighSpeed = framesPerSecond >= highSpeedMinimalFps
 
         return device.createCaptureSession(isHighSpeed, surfaces, handler).apply {
-            val requests = (this as? CameraConstrainedHighSpeedCaptureSession)
-                ?.createHighSpeedRequestList(captureRequest)
-                ?: listOf(captureRequest)
-
-            setRepeatingBurst(requests, null, handler)
+            if (isHighSpeed) {
+                val highSpeedCaptureSession = this as CameraConstrainedHighSpeedCaptureSession
+                val requests = highSpeedCaptureSession.createHighSpeedRequestList(captureRequest)
+                setRepeatingBurst(requests, null, handler)
+            } else {
+                setRepeatingRequest(captureRequest, null, handler)
+            }
         }
     }
 }
@@ -64,10 +66,18 @@ private suspend fun CameraDevice.createCaptureSession(
         }
     }
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        val sessionType = when (isHighSpeed) {
-            true -> SessionConfiguration.SESSION_HIGH_SPEED
-            false -> SessionConfiguration.SESSION_REGULAR
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+        @Suppress("DEPRECATION")
+        if (isHighSpeed) {
+            createConstrainedHighSpeedCaptureSession(surfaces, callback, handler)
+        } else {
+            createCaptureSession(surfaces, callback, handler)
+        }
+    } else {
+        val sessionType = if (isHighSpeed) {
+            SessionConfiguration.SESSION_HIGH_SPEED
+        } else {
+            SessionConfiguration.SESSION_REGULAR
         }
 
         val sessionConfig = SessionConfiguration(
@@ -78,12 +88,6 @@ private suspend fun CameraDevice.createCaptureSession(
         )
 
         createCaptureSession(sessionConfig)
-    } else {
-        @Suppress("DEPRECATION")
-        when (isHighSpeed) {
-            true -> createConstrainedHighSpeedCaptureSession(surfaces, callback, handler)
-            false -> createCaptureSession(surfaces, callback, handler)
-        }
     }
 }
 
