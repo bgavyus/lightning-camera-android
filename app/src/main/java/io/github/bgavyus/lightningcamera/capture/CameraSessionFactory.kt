@@ -78,14 +78,14 @@ private suspend fun CameraDevice.createCaptureSession(
             SessionConfiguration.SESSION_REGULAR
         }
 
-        val sessionConfig = SessionConfiguration(
+        val configuration = SessionConfiguration(
             mode,
             surfaces.map(::OutputConfiguration),
             handler::post,
             callback,
         )
 
-        createCaptureSession(sessionConfig)
+        createCaptureSession(configuration)
     }
 }
 
