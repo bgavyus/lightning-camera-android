@@ -2,7 +2,7 @@ package io.github.bgavyus.lightningcamera.extensions
 
 import android.util.Log
 
-operator fun Int.contains(mask: Int) = and(mask) == mask
+operator fun Int.contains(mask: Int) = this and mask == mask
 
 val Int.logSymbol
     get() = when (this) {
