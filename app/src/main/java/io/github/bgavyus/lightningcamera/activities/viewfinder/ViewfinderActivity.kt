@@ -15,7 +15,6 @@ import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
 import io.github.bgavyus.lightningcamera.extensions.android.view.SurfaceTextureEvent
 import io.github.bgavyus.lightningcamera.extensions.android.view.surfaceTextureEvents
 import io.github.bgavyus.lightningcamera.extensions.android.widget.checked
-import io.github.bgavyus.lightningcamera.extensions.kotlinx.callOnEach
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.launchAll
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.reflectTo
 import kotlinx.coroutines.flow.onEach
@@ -71,8 +70,8 @@ class ViewfinderActivity : FragmentActivity() {
                 }
             },
 
-            viewModel.transformMatrix.callOnEach(binding.textureView::setTransform),
-            viewModel.detecting.callOnEach(::setDetectionIndicatorActive),
+            viewModel.transformMatrix.onEach(binding.textureView::setTransform),
+            viewModel.detecting.onEach(::setDetectionIndicatorActive),
 
             binding.watchToggle.checked()
                 .onEach { Logger.info("Watching? $it") }

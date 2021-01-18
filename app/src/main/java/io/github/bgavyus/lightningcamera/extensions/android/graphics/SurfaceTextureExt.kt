@@ -10,6 +10,6 @@ import kotlinx.coroutines.flow.callbackFlow
 fun SurfaceTexture.setDefaultBufferSize(size: Size) = setDefaultBufferSize(size.width, size.height)
 
 fun SurfaceTexture.updates(handler: Handler) = callbackFlow {
-    setOnFrameAvailableListener({ sendBlocking(Unit) }, handler)
+    setOnFrameAvailableListener(::sendBlocking, handler)
     awaitClose { setOnFrameAvailableListener(null) }
 }

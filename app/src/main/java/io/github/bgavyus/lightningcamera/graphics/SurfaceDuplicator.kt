@@ -12,13 +12,13 @@ import com.otaliastudios.opengl.surface.EglWindowSurface
 import com.otaliastudios.opengl.texture.GlTexture
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Logger
-import io.github.bgavyus.lightningcamera.extensions.kotlinx.callOnEach
 import io.github.bgavyus.lightningcamera.extensions.android.graphics.setDefaultBufferSize
 import io.github.bgavyus.lightningcamera.extensions.android.graphics.updates
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 class SurfaceDuplicator(
     private val handler: Handler,
@@ -48,7 +48,7 @@ class SurfaceDuplicator(
         setDefaultBufferSize(bufferSize)
 
         updates(handler)
-            .callOnEach(::onFrameAvailable)
+            .onEach(::onFrameAvailable)
             .launchIn(scope)
     }
 
@@ -57,7 +57,7 @@ class SurfaceDuplicator(
 
     val surface = Surface(surfaceTexture)
 
-    private fun onFrameAvailable() {
+    private fun onFrameAvailable(surfaceTexture: SurfaceTexture) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (surfaceTexture.isReleased) {
                 Logger.debug("Ignoring frame after release")
