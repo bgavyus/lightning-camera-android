@@ -4,6 +4,8 @@ import android.util.Log
 
 operator fun Int.contains(mask: Int) = this and mask == mask
 
+val Int.isHighSpeed get() = this >= 120
+
 val Int.logSymbol
     get() = when (this) {
         Log.VERBOSE -> 'V'

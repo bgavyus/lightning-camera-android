@@ -8,12 +8,12 @@ import android.view.Surface
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
 import io.github.bgavyus.lightningcamera.extensions.createCaptureSession
+import io.github.bgavyus.lightningcamera.extensions.isHighSpeed
 import io.github.bgavyus.lightningcamera.extensions.toRange
 
 class CameraSessionFactory : DeferScope() {
     companion object {
         const val infinityFocus = 0f
-        const val highSpeedMinimalFps = 120
     }
 
     private val handler = SingleThreadHandler(javaClass.simpleName)
@@ -31,10 +31,8 @@ class CameraSessionFactory : DeferScope() {
             surfaces.forEach(::addTarget)
         }.build()
 
-        val isHighSpeed = framesPerSecond >= highSpeedMinimalFps
-
-        return device.createCaptureSession(isHighSpeed, surfaces, handler).apply {
-            if (isHighSpeed) {
+        return device.createCaptureSession(framesPerSecond.isHighSpeed, surfaces, handler).apply {
+            if (framesPerSecond.isHighSpeed) {
                 val highSpeedCaptureSession = this as CameraConstrainedHighSpeedCaptureSession
                 val requests = highSpeedCaptureSession.createHighSpeedRequestList(captureRequest)
                 setRepeatingBurst(requests, null, handler)
