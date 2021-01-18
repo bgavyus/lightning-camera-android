@@ -10,7 +10,7 @@ class PermissionsManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val permissionRequester: PermissionRequester,
 ) {
-    suspend fun requestMissing(permissions: Collection<String>): Boolean {
+    suspend fun requestMissing(permissions: Iterable<String>): Boolean {
         val missingPermissions = permissions.filterNot(context::hasGranted)
 
         if (missingPermissions.isEmpty()) {
