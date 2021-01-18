@@ -22,7 +22,7 @@ class ScopedStorageFile(
     mimeType: String,
     standardDirectory: StandardDirectory,
     appDirectoryName: String,
-    name: String
+    name: String,
 ) : StorageFile {
     private val uri: Uri
     private val file: ParcelFileDescriptor

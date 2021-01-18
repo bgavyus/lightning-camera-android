@@ -5,8 +5,8 @@ import android.content.Context
 import android.hardware.camera2.CameraManager
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
-import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.openCamera
 import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
+import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.openCamera
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext

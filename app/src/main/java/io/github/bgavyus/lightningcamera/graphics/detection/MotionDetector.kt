@@ -8,7 +8,7 @@ import io.github.bgavyus.lightningcamera.extensions.android.util.area
 
 class MotionDetector(
     renderScript: RenderScript,
-    bufferSize: Size
+    bufferSize: Size,
 ) : Detector(renderScript, bufferSize) {
     private val maxRate = channels * maxIntensity * bufferSize.area.toDouble()
 
