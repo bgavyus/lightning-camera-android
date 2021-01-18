@@ -70,6 +70,7 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.1")
 
     val kotlinVersion: String by rootProject.extra
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
 
     // https://github.com/Kotlin/kotlinx.coroutines/releases
