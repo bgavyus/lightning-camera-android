@@ -3,7 +3,7 @@ package io.github.bgavyus.lightningcamera.extensions.android.media
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.os.Handler
-import io.github.bgavyus.lightningcamera.extensions.kotlinx.cancel
+import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.callbackFlow
@@ -31,3 +31,6 @@ sealed class EncoderEvent {
     data class FormatChanged(val format: MediaFormat) : EncoderEvent()
     data class BufferAvailable(val index: Int, val info: MediaCodec.BufferInfo) : EncoderEvent()
 }
+
+fun MediaCodec.BufferInfo.copyFrom(other: MediaCodec.BufferInfo) =
+    set(other.offset, other.size, other.presentationTimeUs, other.flags)

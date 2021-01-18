@@ -15,8 +15,8 @@ import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
 import io.github.bgavyus.lightningcamera.extensions.android.view.SurfaceTextureEvent
 import io.github.bgavyus.lightningcamera.extensions.android.view.surfaceTextureEvents
 import io.github.bgavyus.lightningcamera.extensions.android.widget.checked
-import io.github.bgavyus.lightningcamera.extensions.kotlinx.launchAll
-import io.github.bgavyus.lightningcamera.extensions.kotlinx.reflectTo
+import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.launchAll
+import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.reflectTo
 import kotlinx.coroutines.flow.onEach
 
 @AndroidEntryPoint
