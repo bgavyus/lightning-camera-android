@@ -2,7 +2,6 @@ package io.github.bgavyus.lightningcamera.graphics
 
 import android.annotation.SuppressLint
 import android.graphics.SurfaceTexture
-import android.os.Build
 import android.os.Handler
 import android.util.Size
 import android.view.Surface
@@ -12,7 +11,6 @@ import com.otaliastudios.opengl.program.GlTextureProgram
 import com.otaliastudios.opengl.surface.EglWindowSurface
 import com.otaliastudios.opengl.texture.GlTexture
 import io.github.bgavyus.lightningcamera.common.DeferScope
-import io.github.bgavyus.lightningcamera.common.Logger
 import io.github.bgavyus.lightningcamera.extensions.android.graphics.setDefaultBufferSize
 import io.github.bgavyus.lightningcamera.extensions.android.graphics.updates
 import kotlinx.coroutines.CoroutineScope
@@ -65,13 +63,6 @@ class SurfaceDuplicator(
     }
 
     private fun onFrameAvailable(surfaceTexture: SurfaceTexture) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (surfaceTexture.isReleased) {
-                Logger.debug("Ignoring frame after release")
-                return
-            }
-        }
-
         surfaceTexture.updateTexImage()
         surfaceTexture.getTransformMatrix(program.textureTransform)
 
