@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.extensions
+package io.github.bgavyus.lightningcamera.extensions.android.content
 
 import android.content.Context
 import android.content.pm.PackageManager

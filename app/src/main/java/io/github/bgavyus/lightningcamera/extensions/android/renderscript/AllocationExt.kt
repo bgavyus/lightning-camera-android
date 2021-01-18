@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.extensions
+package io.github.bgavyus.lightningcamera.extensions.android.renderscript
 
 import android.renderscript.Allocation
 import kotlinx.coroutines.channels.awaitClose

@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.extensions
+package io.github.bgavyus.lightningcamera.extensions.android.util
 
 import android.util.Range
 

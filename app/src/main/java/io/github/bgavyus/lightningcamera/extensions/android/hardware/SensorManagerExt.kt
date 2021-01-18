@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.extensions
+package io.github.bgavyus.lightningcamera.extensions.android.hardware
 
 import android.hardware.Sensor
 import android.hardware.SensorEvent

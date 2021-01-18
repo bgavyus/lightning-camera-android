@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.extensions
+package io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2
 
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraDevice

@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.extensions
+package io.github.bgavyus.lightningcamera.extensions.android.graphics
 
 import android.graphics.SurfaceTexture
 import android.os.Handler

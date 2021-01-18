@@ -4,8 +4,8 @@ import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.hardware.display.DisplayManager
-import io.github.bgavyus.lightningcamera.extensions.samples
-import io.github.bgavyus.lightningcamera.extensions.systemService
+import io.github.bgavyus.lightningcamera.extensions.android.hardware.samples
+import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map

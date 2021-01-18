@@ -5,8 +5,8 @@ import android.graphics.PointF
 import android.util.Size
 import androidx.core.graphics.toPointF
 import io.github.bgavyus.lightningcamera.common.Rotation
-import io.github.bgavyus.lightningcamera.extensions.aspectRatio
-import io.github.bgavyus.lightningcamera.extensions.center
+import io.github.bgavyus.lightningcamera.extensions.android.util.aspectRatio
+import io.github.bgavyus.lightningcamera.extensions.android.util.center
 
 object TransformMatrixFactory {
     fun create(frameSize: Size, bufferSize: Size, rotation: Rotation) = Matrix().apply {

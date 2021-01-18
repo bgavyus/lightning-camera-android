@@ -8,7 +8,7 @@ import android.util.Size
 import android.view.Surface
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
-import io.github.bgavyus.lightningcamera.extensions.buffers
+import io.github.bgavyus.lightningcamera.extensions.android.renderscript.buffers
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn

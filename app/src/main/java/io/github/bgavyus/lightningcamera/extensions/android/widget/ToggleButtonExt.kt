@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.extensions
+package io.github.bgavyus.lightningcamera.extensions.android.widget
 
 import android.widget.ToggleButton
 import kotlinx.coroutines.channels.awaitClose

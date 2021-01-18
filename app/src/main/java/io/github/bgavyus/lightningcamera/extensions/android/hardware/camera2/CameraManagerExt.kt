@@ -1,10 +1,11 @@
-package io.github.bgavyus.lightningcamera.extensions
+package io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2
 
 import android.annotation.SuppressLint
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.os.Handler
+import io.github.bgavyus.lightningcamera.extensions.kotlinx.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.callbackFlow

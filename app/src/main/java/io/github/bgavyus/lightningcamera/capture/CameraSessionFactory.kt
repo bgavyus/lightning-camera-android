@@ -7,7 +7,7 @@ import android.hardware.camera2.CaptureRequest
 import android.view.Surface
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
-import io.github.bgavyus.lightningcamera.extensions.createCaptureSession
+import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.createCaptureSession
 import io.github.bgavyus.lightningcamera.extensions.isHighSpeed
 import io.github.bgavyus.lightningcamera.extensions.toRange
 

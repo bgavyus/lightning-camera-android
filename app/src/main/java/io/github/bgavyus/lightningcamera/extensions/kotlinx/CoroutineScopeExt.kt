@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.extensions
+package io.github.bgavyus.lightningcamera.extensions.kotlinx
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel

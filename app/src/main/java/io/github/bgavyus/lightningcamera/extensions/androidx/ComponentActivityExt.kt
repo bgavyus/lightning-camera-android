@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.extensions
+package io.github.bgavyus.lightningcamera.extensions.androidx
 
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContract

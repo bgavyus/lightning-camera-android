@@ -9,9 +9,9 @@ import android.view.Surface
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Logger
 import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
-import io.github.bgavyus.lightningcamera.extensions.EncoderEvent
+import io.github.bgavyus.lightningcamera.extensions.android.media.EncoderEvent
+import io.github.bgavyus.lightningcamera.extensions.android.media.encoderEvents
 import io.github.bgavyus.lightningcamera.extensions.contains
-import io.github.bgavyus.lightningcamera.extensions.encoderEvents
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.cancel

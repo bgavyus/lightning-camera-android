@@ -12,7 +12,12 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.R
 import io.github.bgavyus.lightningcamera.common.Logger
 import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
-import io.github.bgavyus.lightningcamera.extensions.*
+import io.github.bgavyus.lightningcamera.extensions.android.view.SurfaceTextureEvent
+import io.github.bgavyus.lightningcamera.extensions.android.view.surfaceTextureEvents
+import io.github.bgavyus.lightningcamera.extensions.android.widget.checked
+import io.github.bgavyus.lightningcamera.extensions.kotlinx.callOnEach
+import io.github.bgavyus.lightningcamera.extensions.kotlinx.launchAll
+import io.github.bgavyus.lightningcamera.extensions.kotlinx.reflectTo
 import kotlinx.coroutines.flow.onEach
 
 @AndroidEntryPoint
