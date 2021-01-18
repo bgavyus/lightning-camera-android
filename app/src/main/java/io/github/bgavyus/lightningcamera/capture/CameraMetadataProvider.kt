@@ -1,13 +1,13 @@
 package io.github.bgavyus.lightningcamera.capture
 
 import android.content.Context
-import android.graphics.SurfaceTexture
-import android.hardware.camera2.CameraCharacteristics
+import android.graphics.ImageFormat
 import android.hardware.camera2.CameraManager
 import android.util.Range
 import android.util.Size
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.lightningcamera.common.Logger
+import io.github.bgavyus.lightningcamera.common.Rotation
 import io.github.bgavyus.lightningcamera.extensions.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,51 +19,35 @@ class CameraMetadataProvider @Inject constructor(
     suspend fun collect() = withContext(Dispatchers.IO) {
         val manager = context.systemService<CameraManager>()
 
-        val cameras = manager.cameraIdList
-            .map { id -> Pair(id, manager.getCameraCharacteristics(id)) }
-
-        (collectHighSpeed(cameras) ?: collectRegularSpeed(cameras))
-            .also { Logger.info("Metadata collected: $it") }
-    }
-
-    private fun collectHighSpeed(cameras: Iterable<Pair<String, CameraCharacteristics>>): CameraMetadata? {
-        val (id, characteristics) = cameras
-            .find { (_, characteristics) -> characteristics.supportsHighSpeed }
-            ?: return null
-
-        val streamConfigurationMap = characteristics.streamConfigurationMap
-
-        val (framesPerSecond, frameSize) = streamConfigurationMap.highSpeedVideoFpsRanges
+        val (id, characteristics, framesPerSecond) = manager.cameraIdList
             .asSequence()
-            .filter(Range<Int>::isSingular)
-            .flatMap { fpsRange ->
-                streamConfigurationMap.getHighSpeedVideoSizesFor(fpsRange)
-                    .asSequence()
-                    .map { frameSize -> Pair(fpsRange.upper, frameSize) }
-            }
-            .requireMaxBy { (framesPerSecond, frameSize) -> framesPerSecond * frameSize.area }
+            .map { id ->
+                val characteristics = manager.getCameraCharacteristics(id)
 
-        return CameraMetadata(id, characteristics.sensorOrientation, framesPerSecond, frameSize)
-    }
-
-    private fun collectRegularSpeed(cameras: Iterable<Pair<String, CameraCharacteristics>>): CameraMetadata {
-        val (id, characteristics, framesPerSecond) = cameras
-            .asSequence()
-            .map { (id, characteristics) ->
-                val framesPerSecond = characteristics.fpsRanges
+                val framesPerSecond = characteristics.streamConfigurationMap
+                    .highSpeedVideoFpsRanges
+                    .ifEmpty { characteristics.fpsRanges }
                     .asSequence()
                     .filter(Range<Int>::isSingular)
                     .maxOf(Range<Int>::getUpper)
 
                 Triple(id, characteristics, framesPerSecond)
             }
-            .requireMaxBy { (_, _, framesPerSecond) -> framesPerSecond }
+            .getMaxBy { (_, _, framesPerSecond) -> framesPerSecond }
 
-        val frameSize = characteristics.streamConfigurationMap
-            .getOutputSizes(SurfaceTexture::class.java)
+        val orientation = Rotation.fromDegrees(characteristics.sensorOrientation)
+        val streamConfigurationMap = characteristics.streamConfigurationMap
+
+        val frameSize = if (framesPerSecond.isHighSpeed) {
+            streamConfigurationMap.getHighSpeedVideoSizesFor(framesPerSecond.toRange())
+        } else {
+            streamConfigurationMap.getOutputSizes(ImageFormat.PRIVATE)
+        }
             .asSequence()
-            .requireMaxBy(Size::area)
+            .filter(Size::isWide)
+            .getMaxBy(Size::area)
 
-        return CameraMetadata(id, characteristics.sensorOrientation, framesPerSecond, frameSize)
+        CameraMetadata(id, orientation, framesPerSecond, frameSize)
+            .also { Logger.info("Metadata collected: $it") }
     }
 }
