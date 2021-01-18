@@ -1,5 +1,6 @@
 package io.github.bgavyus.lightningcamera.graphics
 
+import android.annotation.SuppressLint
 import android.graphics.SurfaceTexture
 import android.os.Build
 import android.os.Handler
@@ -26,6 +27,7 @@ class SurfaceDuplicator(
     surfaces: Iterable<Surface>,
 ) : DeferScope() {
     private val dispatcher = handler.asCoroutineDispatcher(javaClass.simpleName)
+
     private val scope = CoroutineScope(dispatcher)
         .apply { defer(::cancel) }
 
@@ -43,19 +45,24 @@ class SurfaceDuplicator(
         .apply { defer(::release) }
         .also { it.texture = texture }
 
-    private val surfaceTexture = SurfaceTexture(texture.id).apply {
-        defer(::release)
-        setDefaultBufferSize(bufferSize)
-
-        updates(handler)
-            .onEach(::onFrameAvailable)
-            .launchIn(scope)
-    }
-
     private val entireViewport = GlRect()
         .apply { defer(::release) }
 
-    val surface = Surface(surfaceTexture)
+    val surface: Surface
+
+    init {
+        @SuppressLint("Recycle")
+        val surfaceTexture = SurfaceTexture(texture.id).apply {
+            defer(::release)
+            setDefaultBufferSize(bufferSize)
+
+            updates(handler)
+                .onEach(::onFrameAvailable)
+                .launchIn(scope)
+        }
+
+        surface = Surface(surfaceTexture)
+    }
 
     private fun onFrameAvailable(surfaceTexture: SurfaceTexture) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
