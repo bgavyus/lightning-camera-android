@@ -15,10 +15,7 @@ import io.github.bgavyus.lightningcamera.extensions.contains
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 
 class Encoder(size: Size, framesPerSecond: Int) : DeferScope() {
     companion object {
@@ -54,8 +51,8 @@ class Encoder(size: Size, framesPerSecond: Int) : DeferScope() {
     private val scope = CoroutineScope(dispatcher)
         .apply { defer(::cancel) }
 
-    private val _format = MutableSharedFlow<MediaFormat>()
-    val format = _format.asSharedFlow()
+    private val _format = MutableStateFlow(null as MediaFormat?)
+    val format = _format.asStateFlow()
 
     private val _samples = MutableSharedFlow<Sample>()
     val samples = _samples.asSharedFlow()
@@ -90,9 +87,9 @@ class Encoder(size: Size, framesPerSecond: Int) : DeferScope() {
         }
     }
 
-    private suspend fun onFormatChanged(format: MediaFormat) {
+    private fun onFormatChanged(format: MediaFormat) {
         Logger.debug("Format available")
-        _format.emit(format)
+        _format.value = format
     }
 
     private suspend fun onBufferAvailable(index: Int, info: MediaCodec.BufferInfo) {

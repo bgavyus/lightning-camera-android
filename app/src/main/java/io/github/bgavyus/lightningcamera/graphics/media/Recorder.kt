@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 
 class Recorder(
@@ -31,7 +32,7 @@ class Recorder(
     }
 
     private fun bind() {
-        combine(encoder.format, rotation, ::restartSession)
+        combine(encoder.format.filterNotNull(), rotation, ::restartSession)
             .launchIn(scope)
     }
 

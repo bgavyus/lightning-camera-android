@@ -19,7 +19,6 @@ import io.github.bgavyus.lightningcamera.common.Rotation
 import io.github.bgavyus.lightningcamera.extensions.android.graphics.setDefaultBufferSize
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.and
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.launchAll
-import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.onToggle
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.reflectTo
 import io.github.bgavyus.lightningcamera.graphics.SurfaceDuplicatorFactory
 import io.github.bgavyus.lightningcamera.graphics.TransformMatrixFactory
@@ -28,10 +27,8 @@ import io.github.bgavyus.lightningcamera.graphics.media.Encoder
 import io.github.bgavyus.lightningcamera.graphics.media.Recorder
 import io.github.bgavyus.lightningcamera.permissions.PermissionsManager
 import io.github.bgavyus.lightningcamera.storage.Storage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 
 class ViewfinderViewModel @ViewModelInject constructor(
     @ApplicationContext private val context: Context,
@@ -64,6 +61,8 @@ class ViewfinderViewModel @ViewModelInject constructor(
     val watching = MutableStateFlow(false)
     val transformMatrix = MutableStateFlow(Matrix())
     val surfaceTexture = MutableStateFlow(null as SurfaceTexture?)
+    private val recording = (active and watching and detecting).distinctUntilChanged()
+    private val recorderRotation = displayRotation.map { deferredMetadata.await().orientation - it }
 
     private val deferredMetadata = viewModelScope.async {
         cameraMetadataProvider.collect()
@@ -105,7 +104,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
         val detector = deferredDetector.await()
 
         launchAll(
-            active.onToggle(on = ::activate, off = ::deactivate),
+            active.onEach(::activeChanged),
             detector.detectingStates().reflectTo(detecting),
 
             combine(viewSize, displayRotation) { viewSize, displayRotation ->
@@ -118,11 +117,17 @@ class ViewfinderViewModel @ViewModelInject constructor(
     suspend fun grantPermissions() =
         permissionsManager.requestMissing(CameraConnectionFactory.permissions + Storage.permissions)
 
-    private fun activate() = viewModelScope.launch {
+    private suspend fun activeChanged(active: Boolean) {
+        activeDeferScope.close()
+
+        if (active) {
+            activate()
+        }
+    }
+
+    private suspend fun activate() {
         val encoder = deferredEncoder.await()
         val metadata = deferredMetadata.await()
-        val recorderRotation = displayRotation.map { metadata.orientation - it }
-        val recording = watching and detecting
 
         Recorder(
             storage,
@@ -134,22 +139,22 @@ class ViewfinderViewModel @ViewModelInject constructor(
         )
             .apply { activeDeferScope.defer(::close) }
 
-        display.rotations()
-            .reflectTo(displayRotation)
-            .launchIn(this)
-
-        val device = cameraConnectionFactory.open(metadata.id)
+        val cameraDevice = cameraConnectionFactory.open(metadata.id)
             .apply { activeDeferScope.defer(::close) }
 
         val duplicator = deferredDuplicator.await()
         val surfaces = listOf(encoder.surface, duplicator.surface)
 
-        cameraSessionFactory.create(device, surfaces, metadata.framesPerSecond)
+        cameraSessionFactory.create(cameraDevice, surfaces, metadata.framesPerSecond)
             .apply { activeDeferScope.defer(::close) }
-    }
-        .apply { activeDeferScope.defer(::cancel) }
 
-    private fun deactivate() = activeDeferScope.close()
+        val coroutineScope = CoroutineScope(Dispatchers.IO)
+            .apply { activeDeferScope.defer(::cancel) }
+
+        display.rotations()
+            .reflectTo(displayRotation)
+            .launchIn(coroutineScope)
+    }
 
     suspend fun adjustBufferSize() {
         val metadata = deferredMetadata.await()

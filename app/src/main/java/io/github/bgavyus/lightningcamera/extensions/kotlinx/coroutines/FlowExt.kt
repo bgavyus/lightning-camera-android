@@ -8,4 +8,4 @@ fun Flow<Boolean>.onToggle(on: () -> Unit, off: () -> Unit) =
     distinctUntilChanged().onEach { if (it) on() else off() }
 
 infix fun Flow<Boolean>.and(flow: Flow<Boolean>) =
-    combine(flow) { a, b -> a && b }.distinctUntilChanged()
+    combine(flow) { a, b -> a && b }
