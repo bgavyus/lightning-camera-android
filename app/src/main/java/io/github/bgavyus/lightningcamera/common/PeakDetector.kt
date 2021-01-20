@@ -1,6 +1,6 @@
 package io.github.bgavyus.lightningcamera.common
 
-import kotlin.math.absoluteValue
+import io.github.bgavyus.lightningcamera.extensions.distance
 
 class PeakDetector(
     private val windowSize: Int,
@@ -25,7 +25,7 @@ class PeakDetector(
 
     private fun detecting(sample: Double): Boolean {
 //        Logger.debug("${100 * mean}")
-        val deviation = (sample - mean).absoluteValue
+        val deviation = sample.distance(mean)
 //        Logger.debug("${100 * deviation}")
         return deviation > deviationThreshold
     }
