@@ -1,8 +1,6 @@
 package io.github.bgavyus.lightningcamera.graphics.media
 
 import android.media.MediaCodec
-import android.media.MediaCodecInfo
-import android.media.MediaCodecList
 import android.media.MediaFormat
 import android.util.Size
 import android.view.Surface
@@ -20,27 +18,6 @@ import kotlinx.coroutines.flow.*
 class Encoder(size: Size, framesPerSecond: Int) : DeferScope() {
     companion object {
         private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
-
-        private fun createFormat(size: Size, framesPerSecond: Int) =
-            MediaFormat.createVideoFormat(mimeType, size.width, size.height).apply {
-                setInteger(
-                    MediaFormat.KEY_COLOR_FORMAT,
-                    MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
-                )
-
-                val codecInfo = MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos
-                    .find { it.supportedTypes.contains(mimeType) }
-                    ?: throw RuntimeException()
-
-                setInteger(
-                    MediaFormat.KEY_BIT_RATE,
-                    codecInfo.getCapabilitiesForType(mimeType).videoCapabilities.bitrateRange.upper
-                        .also { Logger.info("Bit rate: $it") }
-                )
-
-                setInteger(MediaFormat.KEY_FRAME_RATE, framesPerSecond)
-                setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 0)
-            }
     }
 
     private val handler = SingleThreadHandler(javaClass.simpleName)
@@ -72,11 +49,8 @@ class Encoder(size: Size, framesPerSecond: Int) : DeferScope() {
             }
                 .launchIn(scope)
 
-            configure(createFormat(size, framesPerSecond),
-                null,
-                null,
-                MediaCodec.CONFIGURE_FLAG_ENCODE
-            )
+            val format = FormatFactory.create(size, framesPerSecond, mimeType)
+            configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
 
             surface = createInputSurface()
                 .apply { defer(::release) }
