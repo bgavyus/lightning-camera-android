@@ -8,6 +8,7 @@ import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Logger
 import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
 import io.github.bgavyus.lightningcamera.extensions.android.media.EncoderEvent
+import io.github.bgavyus.lightningcamera.extensions.android.media.configureEncoder
 import io.github.bgavyus.lightningcamera.extensions.android.media.encoderEvents
 import io.github.bgavyus.lightningcamera.extensions.contains
 import kotlinx.coroutines.CoroutineScope
@@ -50,7 +51,7 @@ class Encoder(size: Size, framesPerSecond: Int) : DeferScope() {
                 .launchIn(scope)
 
             val format = FormatFactory.create(size, framesPerSecond, mimeType)
-            configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+            configureEncoder(format)
 
             surface = createInputSurface()
                 .apply { defer(::release) }
