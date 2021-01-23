@@ -44,7 +44,7 @@ class ScopedStorageFile(
         uri = contentResolver.insert(standardDirectory.externalStorageContentUri, contentValues)
             ?: throw IOException("Failed to create")
 
-        Logger.debug("Inserted URI: $uri")
+        Logger.log("Inserted URI: $uri")
 
         file = contentResolver.openFileDescriptor(uri, "w")
             ?: throw IOException("Failed to open")

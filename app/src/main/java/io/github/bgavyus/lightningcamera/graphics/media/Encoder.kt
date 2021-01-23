@@ -62,31 +62,23 @@ class Encoder(size: Size, framesPerSecond: Int) : DeferScope() {
     }
 
     private fun onFormatChanged(format: MediaFormat) {
-        Logger.debug("Format available")
+        Logger.log("Format available")
         _format.value = format
     }
 
     private suspend fun onBufferAvailable(index: Int, info: MediaCodec.BufferInfo) {
         try {
             if (MediaCodec.BUFFER_FLAG_CODEC_CONFIG in info.flags) {
-                Logger.debug("Got codec config")
+                Logger.log("Got codec config")
                 return
             }
 
             if (MediaCodec.BUFFER_FLAG_END_OF_STREAM in info.flags) {
-                Logger.warn("Got end of stream")
-                return
+                throw RuntimeException()
             }
 
-            if (info.size == 0) {
-                Logger.warn("Got empty buffer")
-                return
-            }
-
-            val buffer = codec.getOutputBuffer(index) ?: run {
-                Logger.warn("Got null buffer")
-                return
-            }
+            val buffer = codec.getOutputBuffer(index)
+                ?: throw RuntimeException()
 
             _samples.emit(Sample(buffer, info))
         } finally {

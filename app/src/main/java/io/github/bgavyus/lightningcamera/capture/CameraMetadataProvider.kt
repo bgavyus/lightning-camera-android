@@ -55,6 +55,6 @@ class CameraMetadataProvider @Inject constructor(
             .getMaxBy(Size::area)
 
         CameraMetadata(id, orientation, framesPerSecond, frameSize)
-            .also { Logger.info("Metadata collected: $it") }
+            .also { Logger.log("Metadata collected: $it") }
     }
 }

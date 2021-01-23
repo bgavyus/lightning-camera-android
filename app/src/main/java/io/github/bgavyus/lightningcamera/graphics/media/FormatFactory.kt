@@ -24,7 +24,7 @@ object FormatFactory {
         setInteger(
             MediaFormat.KEY_BIT_RATE,
             codecInfo.getCapabilitiesForType(mimeType).videoCapabilities.bitrateRange.upper
-                .also { Logger.info("Bit rate: $it") }
+                .also { Logger.log("Bit rate: $it") }
         )
 
         setInteger(MediaFormat.KEY_FRAME_RATE, framesPerSecond)

@@ -3,36 +3,36 @@ package io.github.bgavyus.lightningcamera.common
 import android.util.Log
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.github.bgavyus.lightningcamera.BuildConfig
-import io.github.bgavyus.lightningcamera.extensions.logSymbol
 
 object Logger {
     private val tagRegex = Regex("""(\w+)(?:$|\$)""")
+    private val crashlytics = FirebaseCrashlytics.getInstance()
 
-    fun debug(message: String) = log(Log.DEBUG, message)
-    fun info(message: String) = log(Log.INFO, message)
-    fun warn(message: String) = log(Log.WARN, message)
-
-    fun error(message: String, throwable: Throwable) {
-        log(Log.ERROR, concat(message, throwable))
-        FirebaseCrashlytics.getInstance().recordException(throwable)
+    fun log(message: String) {
+        val callerStackTraceElement = Throwable().stackTrace[1]
+        val tag = extractTag(callerStackTraceElement)
+        log(tag, message)
     }
 
-    private fun log(priority: Int, message: String) {
-        val tag = tag()
+    private fun extractTag(stackTraceElement: StackTraceElement): String {
+        val result = tagRegex.find(stackTraceElement.className)
+            ?: throw RuntimeException()
 
-        if (BuildConfig.DEBUG) {
-            Log.println(priority, "${BuildConfig.APPLICATION_ID}.$tag", message)
-        }
-
-        FirebaseCrashlytics.getInstance().log("${priority.logSymbol}/$tag: $message")
-    }
-
-    private fun tag(): String {
-        val element = Throwable().stackTrace[3]
-        val result = tagRegex.find(element.className) ?: throw RuntimeException()
         return result.groupValues[1]
     }
 
-    private fun concat(message: String, throwable: Throwable) =
-        "$message\n${Log.getStackTraceString(throwable)}"
+    private fun log(tag: String, message: String) =
+        if (BuildConfig.DEBUG) {
+            localLog(tag, message)
+        } else {
+            remoteLog(tag, message)
+        }
+
+    private fun localLog(tag: String, message: String) {
+        Log.println(Log.DEBUG, "${BuildConfig.APPLICATION_ID}.$tag", message)
+    }
+
+    private fun remoteLog(tag: String, message: String) {
+        crashlytics.log("$tag: $message")
+    }
 }

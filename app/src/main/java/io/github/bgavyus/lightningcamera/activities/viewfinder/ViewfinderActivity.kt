@@ -54,7 +54,7 @@ class ViewfinderActivity : FragmentActivity() {
     private suspend fun grantPermissions() = viewModel.grantPermissions()
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
-        Logger.info("Screen in focus? $hasFocus")
+        Logger.log("Screen in focus? $hasFocus")
         viewModel.active.value = hasFocus
     }
 
@@ -74,7 +74,7 @@ class ViewfinderActivity : FragmentActivity() {
             viewModel.detecting.onEach(::setDetectionIndicatorActive),
 
             binding.watchToggle.checked()
-                .onEach { Logger.info("Watching? $it") }
+                .onEach { Logger.log("Watching? $it") }
                 .reflectTo(viewModel.watching),
         )
     }

@@ -12,7 +12,7 @@ open class DeferScope : AutoCloseable {
     override fun close() = synchronized(this) {
         while (!stack.isEmpty()) {
             val block = stack.pop()
-            Logger.debug("Invoking: $block")
+            Logger.log("Invoking: $block")
             block.invoke()
         }
     }

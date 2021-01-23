@@ -14,14 +14,14 @@ class PermissionsManager @Inject constructor(
         val missingPermissions = permissions.filterNot(context::hasGranted)
 
         if (missingPermissions.isEmpty()) {
-            Logger.info("Permissions already granted")
+            Logger.log("Permissions already granted")
             return true
         }
 
-        Logger.info("Requesting: ${missingPermissions.joinToString()}")
+        Logger.log("Requesting: ${missingPermissions.joinToString()}")
         val result = permissionRequester.request(missingPermissions)
 
-        Logger.info("Result: $result")
+        Logger.log("Result: $result")
         return result.all(Map.Entry<String, Boolean>::value)
     }
 }

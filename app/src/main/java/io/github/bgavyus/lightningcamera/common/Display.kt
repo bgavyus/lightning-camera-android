@@ -30,6 +30,6 @@ class Display(private val context: Context) : DeferScope() {
             .map { display.rotation }
             .distinctUntilChanged()
             .map(Rotation::fromSurfaceRotation)
-            .onEach { Logger.debug("Rotation changed: $it") }
+            .onEach { Logger.log("Rotation changed: $it") }
     }
 }
