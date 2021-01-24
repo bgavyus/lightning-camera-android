@@ -23,9 +23,7 @@ class Encoder(size: Size, framesPerSecond: Int) : DeferScope() {
     private val handler = SingleThreadHandler(javaClass.simpleName)
         .apply { defer(::close) }
 
-    private val dispatcher = handler.asCoroutineDispatcher(javaClass.simpleName)
-
-    private val scope = CoroutineScope(dispatcher)
+    private val scope = CoroutineScope(handler.asCoroutineDispatcher(javaClass.simpleName))
         .apply { defer(::cancel) }
 
     private val _format = MutableStateFlow(null as MediaFormat?)
