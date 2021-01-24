@@ -3,7 +3,6 @@ package io.github.bgavyus.lightningcamera.graphics.media
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.util.Size
-import android.view.Surface
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Logger
 import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
@@ -35,27 +34,26 @@ class Encoder(size: Size, framesPerSecond: Int) : DeferScope() {
     private val _samples = MutableSharedFlow<Sample>()
     val samples = _samples.asSharedFlow()
 
-    private val codec: MediaCodec
-    val surface: Surface
+    private val codec = MediaCodec.createEncoderByType(mimeType).apply {
+        defer(::release)
+
+        encoderEvents(handler).onEach {
+            when (it) {
+                is EncoderEvent.FormatChanged -> onFormatChanged(it.format)
+                is EncoderEvent.BufferAvailable -> onBufferAvailable(it.index, it.info)
+            }
+        }
+            .launchIn(scope)
+
+        val format = FormatFactory.create(size, framesPerSecond, mimeType)
+        configureEncoder(format)
+    }
+
+    val surface = codec.createInputSurface()
+        .apply { defer(::release) }
 
     init {
-        codec = MediaCodec.createEncoderByType(mimeType).apply {
-            defer(::release)
-
-            encoderEvents(handler).onEach {
-                when (it) {
-                    is EncoderEvent.FormatChanged -> onFormatChanged(it.format)
-                    is EncoderEvent.BufferAvailable -> onBufferAvailable(it.index, it.info)
-                }
-            }
-                .launchIn(scope)
-
-            val format = FormatFactory.create(size, framesPerSecond, mimeType)
-            configureEncoder(format)
-
-            surface = createInputSurface()
-                .apply { defer(::release) }
-
+        codec.apply {
             start()
             defer(::stop)
             defer(::flush)
