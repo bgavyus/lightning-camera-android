@@ -2,9 +2,9 @@ package io.github.bgavyus.lightningcamera.storage
 
 import android.Manifest
 import android.content.ContentResolver
-import android.content.ContentValues
 import android.os.Environment
 import android.provider.MediaStore
+import io.github.bgavyus.lightningcamera.extensions.android.content.requireInsert
 import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException
@@ -35,7 +35,7 @@ class LegacyStorageFile(
         }
 
     private val file = File(parentDirectory, name)
-        .apply { delete() }
+        .apply(File::delete)
 
     private val outputStream = file.outputStream()
 
@@ -56,13 +56,10 @@ class LegacyStorageFile(
             throw IOException("Failed to rename ${file.absolutePath}")
         }
 
-        val contentValues = ContentValues().apply {
+        contentResolver.requireInsert(standardDirectory.externalStorageContentUri) {
             put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
             put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
             put(MediaStore.MediaColumns.DATA, file.absolutePath)
         }
-
-        contentResolver.insert(standardDirectory.externalStorageContentUri, contentValues)
-            ?: throw IOException("Failed to add file to media store: $file")
     }
 }
