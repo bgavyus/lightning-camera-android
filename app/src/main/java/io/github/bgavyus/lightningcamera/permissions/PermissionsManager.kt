@@ -2,8 +2,8 @@ package io.github.bgavyus.lightningcamera.permissions
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.github.bgavyus.lightningcamera.logging.Logger
 import io.github.bgavyus.lightningcamera.extensions.android.content.hasGranted
+import io.github.bgavyus.lightningcamera.logging.Logger
 import javax.inject.Inject
 
 class PermissionsManager @Inject constructor(
