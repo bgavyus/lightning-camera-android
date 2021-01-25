@@ -1,5 +1,7 @@
 package io.github.bgavyus.lightningcamera.common
 
+import io.github.bgavyus.lightningcamera.extensions.floorMod
+
 class Snake<Element>(private val nodes: Array<Element>) {
     private var head = 0
     private var size = 0
@@ -32,7 +34,7 @@ class Snake<Element>(private val nodes: Array<Element>) {
 
     private val empty get() = size == 0
     private val tail get() = headBased(-size)
-    private fun headBased(n: Int) = Math.floorMod(head + n, nodes.size)
+    private fun headBased(n: Int) = head + n floorMod nodes.size
 
     private fun shrink() {
         size--

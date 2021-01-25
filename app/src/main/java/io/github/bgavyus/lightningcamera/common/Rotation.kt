@@ -1,6 +1,7 @@
 package io.github.bgavyus.lightningcamera.common
 
 import android.view.Surface
+import io.github.bgavyus.lightningcamera.extensions.floorMod
 
 enum class Rotation {
     Natural,
@@ -13,7 +14,7 @@ enum class Rotation {
         private const val fullCycleDegrees = 360
         private val rotations = values()
 
-        private fun fromIndex(index: Int) = rotations[Math.floorMod(index, rotations.size)]
+        private fun fromIndex(index: Int) = rotations[index floorMod rotations.size]
 
         fun fromSurfaceRotation(surfaceRotation: Int) = when (surfaceRotation) {
             Surface.ROTATION_0 -> Natural

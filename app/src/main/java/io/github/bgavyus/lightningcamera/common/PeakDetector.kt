@@ -25,7 +25,7 @@ class PeakDetector(
 
     private fun detecting(sample: Double): Boolean {
 //        Logger.log("${100 * mean}")
-        val deviation = sample.distance(mean)
+        val deviation = sample distance mean
 //        Logger.log("${100 * deviation}")
         return deviation > deviationThreshold
     }
