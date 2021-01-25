@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.content.ContentValues
 import android.net.Uri
 import android.os.CancellationSignal
+import io.github.bgavyus.lightningcamera.common.validatePositive
 
 enum class FileMode {
     Read,
@@ -60,8 +61,3 @@ fun ContentResolver.requireDelete(
     where: String? = null,
     selectionArgs: Array<String>? = null,
 ) = validatePositive(delete(uri, where, selectionArgs))
-
-private fun validatePositive(count: Int) {
-    if (count > 0) return
-    throw RuntimeException()
-}
