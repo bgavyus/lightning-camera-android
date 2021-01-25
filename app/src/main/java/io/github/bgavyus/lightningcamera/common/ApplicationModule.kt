@@ -8,7 +8,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import io.github.bgavyus.lightningcamera.storage.LegacyStorageFileFactory
+import io.github.bgavyus.lightningcamera.storage.ScopedStorageFileFactory
+import io.github.bgavyus.lightningcamera.storage.StorageConfiguration
+import io.github.bgavyus.lightningcamera.storage.StorageFileFactory
 import java.time.Clock
+import javax.inject.Provider
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -23,4 +28,14 @@ object ApplicationModule {
     @Provides
     fun provideContentResolver(@ApplicationContext context: Context): ContentResolver =
         context.contentResolver
+
+    @Provides
+    fun provideStorageFileFactory(
+        scopedStorageFileFactoryProvider: Provider<ScopedStorageFileFactory>,
+        legacyStorageFileFactoryProvider: Provider<LegacyStorageFileFactory>,
+    ): StorageFileFactory = if (StorageConfiguration.isScoped) {
+        scopedStorageFileFactoryProvider.get()
+    } else {
+        legacyStorageFileFactoryProvider.get()
+    }
 }
