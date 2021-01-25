@@ -10,6 +10,6 @@ object Logger {
         val threadName = Thread.currentThread().name
         val callerStackTraceElement = Throwable().stackTrace[1]
         val tag = tagExtractor.extract(callerStackTraceElement)
-        messageLogger.log("[$threadName] $tag: $message")
+        messageLogger.log("$tag: [$threadName] $message")
     }
 }
