@@ -1,6 +1,5 @@
 package io.github.bgavyus.lightningcamera.storage
 
-import android.Manifest
 import android.content.ContentResolver
 import android.os.Environment
 import android.provider.MediaStore
@@ -18,10 +17,6 @@ class LegacyStorageFile(
     appDirectoryName: String,
     name: String,
 ) : StorageFile {
-    companion object {
-        val permissions = listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    }
-
     private val parentDirectory =
         File(
             Environment.getExternalStoragePublicDirectory(standardDirectory.value),

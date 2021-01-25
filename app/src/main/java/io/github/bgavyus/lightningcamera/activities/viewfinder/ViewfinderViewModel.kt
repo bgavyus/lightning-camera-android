@@ -27,6 +27,7 @@ import io.github.bgavyus.lightningcamera.graphics.media.Encoder
 import io.github.bgavyus.lightningcamera.graphics.media.Recorder
 import io.github.bgavyus.lightningcamera.permissions.PermissionsManager
 import io.github.bgavyus.lightningcamera.storage.Storage
+import io.github.bgavyus.lightningcamera.storage.StorageCharacteristics
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
@@ -114,8 +115,10 @@ class ViewfinderViewModel @ViewModelInject constructor(
         )
     }
 
-    suspend fun grantPermissions() =
-        permissionsManager.requestMissing(CameraConnectionFactory.permissions + Storage.permissions)
+    suspend fun grantPermissions(): Boolean {
+        val permissions = CameraConnectionFactory.permissions + StorageCharacteristics.permissions
+        return permissionsManager.requestMissing(permissions)
+    }
 
     private suspend fun activeChanged(active: Boolean) {
         activeDeferScope.close()

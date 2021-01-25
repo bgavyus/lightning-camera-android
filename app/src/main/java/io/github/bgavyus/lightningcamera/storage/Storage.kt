@@ -16,9 +16,6 @@ class Storage @Inject constructor(
     companion object {
         private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
         private const val fileExtension = "mp4"
-
-        val permissions =
-            if (StorageConfiguration.isScoped) emptyList() else LegacyStorageFile.permissions
     }
 
     fun generateFile(): StorageFile {
