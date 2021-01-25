@@ -1,9 +1,7 @@
 package io.github.bgavyus.lightningcamera.activities.viewfinder
 
 import android.view.KeyEvent
-import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.annotation.StringRes
 import androidx.core.view.WindowCompat
 import androidx.core.view.isInvisible
 import androidx.fragment.app.FragmentActivity
@@ -21,62 +19,49 @@ import kotlinx.coroutines.flow.onEach
 
 @AndroidEntryPoint
 class ViewfinderActivity : FragmentActivity() {
-    private val viewModel: ViewfinderViewModel by viewModels()
-    private lateinit var binding: ActivityViewfinderBinding
+    private val model: ViewfinderViewModel by viewModels()
+    private val binding by lazy { ActivityViewfinderBinding.inflate(layoutInflater) }
 
     init {
         lifecycleScope.launchWhenCreated { onCreated() }
     }
 
     private suspend fun onCreated() {
-        enterFullScreen()
-        inflateView()
-
-        val permissionsGranted = grantPermissions()
-
-        if (!permissionsGranted) {
-            finishWithMessage(R.string.error_permission_not_granted)
+        if (!model.grantPermissions()) {
+            model.showMessage(R.string.error_permission_not_granted)
+            finish()
             return
         }
 
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        setContentView(binding.root)
         bind()
     }
 
-    private fun enterFullScreen() {
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-    }
-
-    private fun inflateView() {
-        binding = ActivityViewfinderBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-    }
-
-    private suspend fun grantPermissions() = viewModel.grantPermissions()
-
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        Logger.log("Screen in focus? $hasFocus")
-        viewModel.active.value = hasFocus
-    }
-
     private fun bind() {
-        viewModel.surfaceTexture.value?.let(binding.textureView::setSurfaceTexture)
+        model.surfaceTexture.value?.let(binding.textureView::setSurfaceTexture)
 
         lifecycleScope.launchAll(
             binding.textureView.surfaceTextureEvents().onEach {
                 when (it) {
-                    is SurfaceTextureEvent.Available -> viewModel.surfaceTexture.value = it.surface
-                    is SurfaceTextureEvent.SizeChanged -> viewModel.viewSize.value = it.size
-                    SurfaceTextureEvent.Updated -> viewModel.adjustBufferSize()
+                    is SurfaceTextureEvent.Available -> model.surfaceTexture.value = it.surface
+                    is SurfaceTextureEvent.SizeChanged -> model.viewSize.value = it.size
+                    SurfaceTextureEvent.Updated -> model.adjustBufferSize()
                 }
             },
 
-            viewModel.transformMatrix.onEach(binding.textureView::setTransform),
-            viewModel.detecting.onEach(::setDetectionIndicatorActive),
+            model.transformMatrix.onEach(binding.textureView::setTransform),
+            model.detecting.onEach(::setDetectionIndicatorActive),
 
             binding.watchToggle.checked()
                 .onEach { Logger.log("Watching? $it") }
-                .reflectTo(viewModel.watching),
+                .reflectTo(model.watching),
         )
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        Logger.log("Screen in focus? $hasFocus")
+        model.active.value = hasFocus
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?) = when (keyCode) {
@@ -91,14 +76,5 @@ class ViewfinderActivity : FragmentActivity() {
 
     private fun setDetectionIndicatorActive(active: Boolean) {
         binding.detectionIndicator.isInvisible = !active
-    }
-
-    private fun finishWithMessage(@StringRes message: Int) {
-        showMessage(message)
-        finish()
-    }
-
-    private fun showMessage(@StringRes message: Int) {
-        Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
     }
 }
