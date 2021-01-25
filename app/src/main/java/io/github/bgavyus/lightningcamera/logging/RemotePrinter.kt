@@ -1,8 +1,9 @@
 package io.github.bgavyus.lightningcamera.logging
 
+import android.util.Printer
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 
-class RemoteLogger : MessageLogger {
+class RemotePrinter : Printer {
     private val crashlytics = FirebaseCrashlytics.getInstance()
-    override fun log(message: String) = crashlytics.log(message)
+    override fun println(line: String) = crashlytics.log(line)
 }

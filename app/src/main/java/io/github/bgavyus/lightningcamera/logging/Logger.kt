@@ -1,15 +1,13 @@
 package io.github.bgavyus.lightningcamera.logging
 
-import io.github.bgavyus.lightningcamera.BuildConfig
-
 object Logger {
-    private val messageLogger = if (BuildConfig.DEBUG) LocalLogger() else RemoteLogger()
     private val tagExtractor = LoggerTagExtractor()
+    private val printer = PrinterProvider.get()
 
     fun log(message: String) {
         val threadName = Thread.currentThread().name
         val callerStackTraceElement = Throwable().stackTrace[1]
         val tag = tagExtractor.extract(callerStackTraceElement)
-        messageLogger.log("$tag: [$threadName] $message")
+        printer.println("$tag: [$threadName] $message")
     }
 }
