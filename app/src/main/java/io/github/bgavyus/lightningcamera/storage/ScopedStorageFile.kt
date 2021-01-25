@@ -30,7 +30,7 @@ class ScopedStorageFile(
 
         put(MediaStore.MediaColumns.IS_PENDING, true.toInt())
 
-        val expirationTime = clock.instant().plus(Period.ofDays(1))
+        val expirationTime = clock.instant() + Period.ofDays(1)
         put(MediaStore.MediaColumns.DATE_EXPIRES, expirationTime.epochSecond)
     }
         .also { Logger.log("Inserted URI: $it") }
