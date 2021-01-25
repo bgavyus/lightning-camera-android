@@ -33,7 +33,7 @@ class CameraMetadataProvider @Inject constructor(
 
                 val framesPerSecond = characteristics.streamConfigurationMap
                     .highSpeedVideoFpsRanges
-                    .ifEmpty { characteristics.fpsRanges }
+                    .ifEmpty(characteristics::fpsRanges)
                     .asSequence()
                     .filter(Range<Int>::isSingular)
                     .maxOf(Range<Int>::getUpper)
