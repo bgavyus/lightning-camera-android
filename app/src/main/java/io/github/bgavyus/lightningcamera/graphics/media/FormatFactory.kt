@@ -4,7 +4,7 @@ import android.media.MediaCodecInfo
 import android.media.MediaCodecList
 import android.media.MediaFormat
 import android.util.Size
-import io.github.bgavyus.lightningcamera.common.Logger
+import io.github.bgavyus.lightningcamera.logging.Logger
 
 object FormatFactory {
     fun create(

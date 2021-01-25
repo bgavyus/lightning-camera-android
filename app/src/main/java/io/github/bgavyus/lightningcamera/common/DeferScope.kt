@@ -1,5 +1,6 @@
 package io.github.bgavyus.lightningcamera.common
 
+import io.github.bgavyus.lightningcamera.logging.Logger
 import java.util.*
 
 open class DeferScope : AutoCloseable {

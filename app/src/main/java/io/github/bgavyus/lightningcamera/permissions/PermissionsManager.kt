@@ -2,7 +2,7 @@ package io.github.bgavyus.lightningcamera.permissions
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.github.bgavyus.lightningcamera.common.Logger
+import io.github.bgavyus.lightningcamera.logging.Logger
 import io.github.bgavyus.lightningcamera.extensions.android.content.hasGranted
 import javax.inject.Inject
 

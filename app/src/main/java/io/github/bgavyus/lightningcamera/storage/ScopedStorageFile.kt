@@ -4,7 +4,7 @@ import android.annotation.TargetApi
 import android.content.ContentResolver
 import android.os.Build
 import android.provider.MediaStore
-import io.github.bgavyus.lightningcamera.common.Logger
+import io.github.bgavyus.lightningcamera.logging.Logger
 import io.github.bgavyus.lightningcamera.extensions.android.content.*
 import io.github.bgavyus.lightningcamera.extensions.toInt
 import java.io.File.separator
