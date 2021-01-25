@@ -4,9 +4,9 @@ import android.annotation.TargetApi
 import android.content.ContentResolver
 import android.os.Build
 import android.provider.MediaStore
-import io.github.bgavyus.lightningcamera.logging.Logger
 import io.github.bgavyus.lightningcamera.extensions.android.content.*
 import io.github.bgavyus.lightningcamera.extensions.toInt
+import io.github.bgavyus.lightningcamera.logging.Logger
 import java.io.File.separator
 import java.time.Clock
 import java.time.Period
@@ -24,11 +24,10 @@ class ScopedStorageFile(
     private val uri = contentResolver.requireInsert(standardDirectory.externalStorageContentUri) {
         put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
         put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+        put(MediaStore.MediaColumns.IS_PENDING, true.toInt())
 
         val segments = listOf(standardDirectory.value, appDirectoryName)
         put(MediaStore.MediaColumns.RELATIVE_PATH, segments.joinToString(separator))
-
-        put(MediaStore.MediaColumns.IS_PENDING, true.toInt())
 
         val expirationTime = clock.instant() + Period.ofDays(1)
         put(MediaStore.MediaColumns.DATE_EXPIRES, expirationTime.epochSecond)
