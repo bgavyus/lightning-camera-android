@@ -90,7 +90,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
 
     // https://github.com/natario1/Egloo/releases
-    implementation("com.otaliastudios.opengl:egloo:0.5.3")
+    implementation("com.otaliastudios.opengl:egloo:0.5.4")
 
     // https://firebase.google.com/support/release-notes/android
     implementation(platform("com.google.firebase:firebase-bom:26.3.0"))
