@@ -6,6 +6,6 @@ import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.callbackFlow
 
 fun Allocation.buffers() = callbackFlow {
-    setOnBufferAvailableListener { sendBlocking(ioReceive()) }
+    setOnBufferAvailableListener(::sendBlocking)
     awaitClose { setOnBufferAvailableListener(null) }
 }

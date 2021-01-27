@@ -1,5 +1,6 @@
 package io.github.bgavyus.lightningcamera.graphics.detection
 
+import android.content.Context
 import android.renderscript.Allocation
 import android.renderscript.Element
 import android.renderscript.RenderScript
@@ -13,9 +14,10 @@ import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
-abstract class Detector(
-    renderScript: RenderScript,
+abstract class RenderScriptDetector(
+    context: Context,
     bufferSize: Size,
 ) : DeferScope() {
     companion object {
@@ -27,23 +29,30 @@ abstract class Detector(
     private val handler = SingleThreadHandler(javaClass.simpleName)
         .apply { defer(::close) }
 
-    protected val inputAllocation: Allocation = Allocation.createTyped(
+    protected val renderScript: RenderScript = RenderScript.create(context)
+        .apply { defer(::destroy) }
+
+    protected val type: Type = Type.createXY(
         renderScript,
-        Type.createXY(
-            renderScript,
-            Element.U8_4(renderScript),
-            bufferSize.width,
-            bufferSize.height,
-        ),
+        Element.U8_4(renderScript),
+        bufferSize.width,
+        bufferSize.height,
+    )
+
+    private val input = Allocation.createTyped(
+        renderScript,
+        type,
         Allocation.USAGE_IO_INPUT or Allocation.USAGE_SCRIPT,
     )
         .apply { defer(::destroy) }
 
-    val surface: Surface = inputAllocation.surface
-    abstract fun detecting(): Boolean
+    val surface: Surface = input.surface
 
-    fun detectingStates() = inputAllocation.buffers()
-        .map { detecting() }
+    protected abstract fun getDetecting(frame: Allocation): Boolean
+
+    fun detectingStates() = input.buffers()
+        .onEach { it.ioReceive() }
+        .map(::getDetecting)
         .distinctUntilChanged()
         .flowOn(handler.asCoroutineDispatcher(javaClass.simpleName))
 }

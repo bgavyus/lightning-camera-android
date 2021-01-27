@@ -3,7 +3,6 @@ package io.github.bgavyus.lightningcamera.activities.viewfinder
 import android.content.Context
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
-import android.renderscript.RenderScript
 import android.util.Size
 import android.view.Surface
 import androidx.annotation.StringRes
@@ -37,7 +36,6 @@ class ViewfinderViewModel @ViewModelInject constructor(
     @ApplicationContext private val context: Context,
     private val permissionsManager: PermissionsManager,
     private val cameraMetadataProvider: CameraMetadataProvider,
-    private val renderScript: RenderScript,
     private val storage: Storage,
     private val messageShower: MessageShower,
 ) : ViewModel() {
@@ -75,7 +73,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
     private val deferredDetector = viewModelScope.async(Dispatchers.IO) {
         val metadata = deferredMetadata.await()
 
-        MotionDetector(renderScript, metadata.frameSize)
+        MotionDetector(context, metadata.frameSize)
             .apply { deferScope.defer(::close) }
     }
 
