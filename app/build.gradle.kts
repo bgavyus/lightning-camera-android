@@ -81,7 +81,7 @@ dependencies {
     implementation("com.google.dagger:hilt-android:$hiltVersion")
     kapt("com.google.dagger:hilt-android-compiler:$hiltVersion")
 
-    val jetpackHiltVersion = "1.0.0-alpha02"
+    val jetpackHiltVersion = "1.0.0-alpha03"
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:$jetpackHiltVersion")
     kapt("androidx.hilt:hilt-compiler:$jetpackHiltVersion")
 
