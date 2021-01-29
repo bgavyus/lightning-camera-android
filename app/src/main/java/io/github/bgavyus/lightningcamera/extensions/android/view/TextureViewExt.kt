@@ -23,7 +23,7 @@ fun TextureView.surfaceTextureEvents() = callbackFlow<SurfaceTextureEvent> {
         override fun onSurfaceTextureDestroyed(surface: SurfaceTexture) = /* shouldRelease */ false
     }
 
-    surfaceTexture?.let { listener.onSurfaceTextureAvailable(it, width, height) }
+    surfaceTexture?.let { sendBlocking(SurfaceTextureEvent.Available(it)) }
     surfaceTextureListener = listener
     awaitClose()
 }
