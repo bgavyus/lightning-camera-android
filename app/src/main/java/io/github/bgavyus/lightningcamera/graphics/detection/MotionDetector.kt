@@ -19,7 +19,7 @@ class MotionDetector(
         .apply { defer(::destroy) }
 
     private val peakDetector = PeakDetector(
-        windowSize = framesPerSeconds * 10,
+        windowSize = framesPerSecond * 10,
         deviationThreshold = 0.01,
         detectionWeight = 0.01
     )

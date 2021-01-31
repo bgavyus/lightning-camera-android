@@ -23,7 +23,7 @@ abstract class RenderScriptDetector(
     companion object {
         const val channels = 3
         const val maxIntensity = 255
-        const val framesPerSeconds = 30
+        const val framesPerSecond = 30
     }
 
     private val handler = SingleThreadHandler(javaClass.simpleName)
