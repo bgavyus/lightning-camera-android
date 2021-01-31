@@ -3,7 +3,7 @@ package io.github.bgavyus.lightningcamera.graphics.media
 import android.media.MediaFormat
 import android.util.Size
 import io.github.bgavyus.lightningcamera.common.DeferScope
-import io.github.bgavyus.lightningcamera.common.Rotation
+import io.github.bgavyus.lightningcamera.common.Degrees
 import io.github.bgavyus.lightningcamera.storage.Storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +18,7 @@ class Recorder(
     private val encoder: Encoder,
     private val videoSize: Size,
     private val framesPerSecond: Int,
-    private val rotation: Flow<Rotation>,
+    private val orientation: Flow<Degrees>,
     private val recording: Flow<Boolean>,
 ) : DeferScope() {
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -32,19 +32,19 @@ class Recorder(
     }
 
     private fun bind() {
-        combine(encoder.format.filterNotNull(), rotation, ::restartSession)
+        combine(encoder.format.filterNotNull(), orientation, ::restartSession)
             .launchIn(scope)
     }
 
-    private fun restartSession(format: MediaFormat, rotation: Rotation) {
+    private fun restartSession(format: MediaFormat, orientation: Degrees) {
         stopSession()
-        startSession(format, rotation)
+        startSession(format, orientation)
     }
 
     private fun stopSession() = sessionDeferScope.close()
 
-    private fun startSession(format: MediaFormat, rotation: Rotation) {
-        val writer = NormalizedWriter(storage, format, rotation)
+    private fun startSession(format: MediaFormat, orientation: Degrees) {
+        val writer = NormalizedWriter(storage, format, orientation)
             .also { sessionDeferScope.defer(it::close) }
 
         RecorderSession(

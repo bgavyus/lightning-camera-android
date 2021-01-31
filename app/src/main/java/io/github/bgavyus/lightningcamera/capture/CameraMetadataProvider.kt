@@ -6,15 +6,15 @@ import android.hardware.camera2.CameraManager
 import android.util.Range
 import android.util.Size
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.github.bgavyus.lightningcamera.common.Rotation
+import io.github.bgavyus.lightningcamera.common.Degrees
 import io.github.bgavyus.lightningcamera.extensions.*
 import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.fpsRanges
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.sensorOrientation
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.streamConfigurationMap
 import io.github.bgavyus.lightningcamera.extensions.android.util.area
+import io.github.bgavyus.lightningcamera.extensions.android.util.has16To9AspectRatio
 import io.github.bgavyus.lightningcamera.extensions.android.util.isSingular
-import io.github.bgavyus.lightningcamera.extensions.android.util.isWide
 import io.github.bgavyus.lightningcamera.logging.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -42,7 +42,7 @@ class CameraMetadataProvider @Inject constructor(
             }
             .getMaxBy { (_, _, framesPerSecond) -> framesPerSecond }
 
-        val orientation = Rotation.fromDegrees(characteristics.sensorOrientation)
+        val orientation = Degrees(characteristics.sensorOrientation)
         val streamConfigurationMap = characteristics.streamConfigurationMap
 
         val frameSize = if (framesPerSecond.isHighSpeed) {
@@ -51,7 +51,7 @@ class CameraMetadataProvider @Inject constructor(
             streamConfigurationMap.getOutputSizes(ImageFormat.PRIVATE)
         }
             .asSequence()
-            .filter(Size::isWide)
+            .filter(Size::has16To9AspectRatio)
             .getMaxBy(Size::area)
 
         CameraMetadata(id, orientation, framesPerSecond, frameSize)

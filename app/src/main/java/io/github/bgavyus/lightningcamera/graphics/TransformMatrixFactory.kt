@@ -2,30 +2,53 @@ package io.github.bgavyus.lightningcamera.graphics
 
 import android.graphics.Matrix
 import android.graphics.PointF
+import android.util.Rational
 import android.util.Size
+import android.util.SizeF
 import androidx.core.graphics.toPointF
-import io.github.bgavyus.lightningcamera.common.Rotation
+import io.github.bgavyus.lightningcamera.common.Degrees
 import io.github.bgavyus.lightningcamera.extensions.android.util.aspectRatio
 import io.github.bgavyus.lightningcamera.extensions.android.util.center
+import io.github.bgavyus.lightningcamera.logging.Logger
 
 object TransformMatrixFactory {
-    fun create(frameSize: Size, bufferSize: Size, rotation: Rotation) = Matrix().apply {
-        val scale = if (rotation.isLandscape) {
-            if (frameSize.aspectRatio > 1) {
-                PointF(bufferSize.aspectRatio, 1 / frameSize.aspectRatio)
+    fun create(rotation: Degrees, inputSize: Size, outputSize: Size) = Matrix().apply {
+        val frameCenter = outputSize.center.toPointF()
+        postRotate(-rotation.value.toFloat(), frameCenter)
+
+        val inputRatio = inputSize.aspectRatio
+        val outputRatio = outputSize.aspectRatio
+
+        val (widthScale, heightScale) = if (rotation.isLandscape) {
+            if (inputRatio > outputRatio) {
+                Logger.log("Adding horizontal bars")
+                outputRatio to inputRatio.reciprocal
             } else {
-                PointF(frameSize.aspectRatio, 1 / bufferSize.aspectRatio)
+                Logger.log("Adding vertical bars")
+                inputRatio to outputRatio.reciprocal
             }
         } else {
-            if (frameSize.aspectRatio > 1) {
-                PointF(1 / bufferSize.aspectRatio / frameSize.aspectRatio, 1f)
+            if (inputRatio.reciprocal > outputRatio) {
+                Logger.log("Adding horizontal bars")
+                1 to inputRatio * outputRatio
             } else {
-                PointF(1f, bufferSize.aspectRatio * frameSize.aspectRatio)
+                Logger.log("Adding vertical bars")
+                inputRatio.reciprocal * outputRatio.reciprocal to 1
             }
         }
 
-        val frameCenter = frameSize.center.toPointF()
-        postRotate(-rotation.degrees.toFloat(), frameCenter.x, frameCenter.y)
-        postScale(scale.x, scale.y, frameCenter.x, frameCenter.y)
+        val scale = SizeF(widthScale.toFloat(), heightScale.toFloat())
+        postScale(scale, frameCenter)
+        Logger.log("Matrix Created: $outputSize, $inputSize, $rotation -> $this")
     }
 }
+
+operator fun Rational.times(other: Rational) =
+    Rational(numerator * other.numerator, denominator * other.denominator)
+
+fun Matrix.postRotate(degrees: Float, pivot: PointF) = postRotate(degrees, pivot.x, pivot.y)
+
+fun Matrix.postScale(scale: SizeF, pivot: PointF) =
+    postScale(scale.width, scale.height, pivot.x, pivot.y)
+
+val Rational.reciprocal get() = Rational(denominator, numerator)

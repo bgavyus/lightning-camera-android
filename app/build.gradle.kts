@@ -60,8 +60,11 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
-        freeCompilerArgs =
-            freeCompilerArgs + "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
+
+        freeCompilerArgs = listOf(
+            "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+            "-Xinline-classes"
+        )
     }
 }
 

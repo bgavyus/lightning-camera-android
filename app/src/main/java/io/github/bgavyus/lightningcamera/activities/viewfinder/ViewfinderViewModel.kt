@@ -14,9 +14,9 @@ import io.github.bgavyus.lightningcamera.capture.CameraConnectionFactory
 import io.github.bgavyus.lightningcamera.capture.CameraMetadataProvider
 import io.github.bgavyus.lightningcamera.capture.CameraSessionFactory
 import io.github.bgavyus.lightningcamera.common.DeferScope
+import io.github.bgavyus.lightningcamera.common.Degrees
 import io.github.bgavyus.lightningcamera.common.Display
 import io.github.bgavyus.lightningcamera.common.MessageShower
-import io.github.bgavyus.lightningcamera.common.Rotation
 import io.github.bgavyus.lightningcamera.extensions.android.graphics.setDefaultBufferSize
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.and
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.launchAll
@@ -41,7 +41,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
 ) : ViewModel() {
     private val deferScope = DeferScope()
 
-    private val surfaceDuplicatorManager = SurfaceDuplicatorFactory()
+    private val surfaceDuplicatorFactory = SurfaceDuplicatorFactory()
         .apply { deferScope.defer(::close) }
 
     private val activeDeferScope = DeferScope()
@@ -56,7 +56,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
     private val cameraSessionFactory = CameraSessionFactory()
         .apply { deferScope.defer(::close) }
 
-    private val displayRotation = MutableStateFlow(Rotation.Natural)
+    private val displayRotation = MutableStateFlow(Degrees(0))
     val active = MutableStateFlow(false)
     val detecting = MutableStateFlow(false)
     val viewSize = MutableStateFlow(Size(1, 1))
@@ -64,7 +64,9 @@ class ViewfinderViewModel @ViewModelInject constructor(
     val transformMatrix = MutableStateFlow(Matrix())
     val surfaceTexture = MutableStateFlow(null as SurfaceTexture?)
     private val recording = (active and watching and detecting).distinctUntilChanged()
-    private val recorderRotation = displayRotation.map { deferredMetadata.await().orientation - it }
+
+    private val recorderOrientation = displayRotation
+        .map { deferredMetadata.await().orientation - it }
 
     private val deferredMetadata = viewModelScope.async {
         cameraMetadataProvider.collect()
@@ -86,7 +88,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
 
         val surfaces = listOf(detector.surface, Surface(surfaceTexture))
 
-        surfaceDuplicatorManager.create(metadata.frameSize, surfaces)
+        surfaceDuplicatorFactory.create(metadata.frameSize, surfaces)
             .apply { defer(::close) }
     }
 
@@ -110,7 +112,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
             detector.detectingStates().reflectTo(detecting),
 
             combine(viewSize, displayRotation) { viewSize, displayRotation ->
-                TransformMatrixFactory.create(viewSize, metadata.frameSize, displayRotation)
+                TransformMatrixFactory.create(displayRotation, metadata.frameSize, viewSize)
             }
                 .reflectTo(transformMatrix),
         )
@@ -140,7 +142,7 @@ class ViewfinderViewModel @ViewModelInject constructor(
             encoder,
             metadata.frameSize,
             metadata.framesPerSecond,
-            recorderRotation,
+            recorderOrientation,
             recording,
         )
             .apply { activeDeferScope.defer(::close) }

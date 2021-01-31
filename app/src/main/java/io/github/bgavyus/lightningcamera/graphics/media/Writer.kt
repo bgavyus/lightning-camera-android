@@ -4,11 +4,11 @@ import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.os.Build
 import io.github.bgavyus.lightningcamera.common.DeferScope
-import io.github.bgavyus.lightningcamera.common.Rotation
+import io.github.bgavyus.lightningcamera.common.Degrees
 import io.github.bgavyus.lightningcamera.storage.Storage
 import java.util.concurrent.atomic.AtomicBoolean
 
-open class Writer(storage: Storage, format: MediaFormat, rotation: Rotation) : DeferScope() {
+open class Writer(storage: Storage, format: MediaFormat, orientation: Degrees) : DeferScope() {
     companion object {
         private const val outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
     }
@@ -24,7 +24,7 @@ open class Writer(storage: Storage, format: MediaFormat, rotation: Rotation) : D
         MediaMuxer(file.descriptor, outputFormat)
     }.apply {
         defer(::release)
-        setOrientationHint(rotation.degrees)
+        setOrientationHint(orientation.normalized.value)
         track = addTrack(format)
         start()
     }

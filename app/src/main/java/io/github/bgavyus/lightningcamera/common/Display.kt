@@ -16,7 +16,7 @@ class Display(private val context: Context) : DeferScope() {
     private val handler = SingleThreadHandler(javaClass.simpleName)
         .also { defer(it::close) }
 
-    fun rotations(): Flow<Rotation> {
+    fun rotations(): Flow<Degrees> {
         val sensorManager = context.systemService<SensorManager>()
 
         val display = context.systemService<DisplayManager>().displays.first()
@@ -30,7 +30,7 @@ class Display(private val context: Context) : DeferScope() {
         )
             .map { display.rotation }
             .distinctUntilChanged()
-            .map(Rotation::fromSurfaceRotation)
+            .map(Degrees::fromSurfaceRotation)
             .onEach { Logger.log("Rotation changed: $it") }
     }
 }
