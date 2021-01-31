@@ -7,6 +7,7 @@ import android.util.Range
 import android.util.Size
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.lightningcamera.common.Degrees
+import io.github.bgavyus.lightningcamera.common.Hertz
 import io.github.bgavyus.lightningcamera.extensions.*
 import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.fpsRanges
@@ -43,9 +44,10 @@ class CameraMetadataProvider @Inject constructor(
             .getMaxBy { (_, _, framesPerSecond) -> framesPerSecond }
 
         val orientation = Degrees(characteristics.sensorOrientation)
+        val frameRate = Hertz(framesPerSecond)
         val streamConfigurationMap = characteristics.streamConfigurationMap
 
-        val frameSize = if (framesPerSecond.isHighSpeed) {
+        val frameSize = if (frameRate.isHighSpeed) {
             streamConfigurationMap.getHighSpeedVideoSizesFor(framesPerSecond.toRange())
         } else {
             streamConfigurationMap.getOutputSizes(ImageFormat.PRIVATE)
@@ -54,7 +56,7 @@ class CameraMetadataProvider @Inject constructor(
             .filter(Size::has16To9AspectRatio)
             .getMaxBy(Size::area)
 
-        CameraMetadata(id, orientation, framesPerSecond, frameSize)
+        CameraMetadata(id, orientation, frameRate, frameSize)
             .also { Logger.log("Metadata collected: $it") }
     }
 }

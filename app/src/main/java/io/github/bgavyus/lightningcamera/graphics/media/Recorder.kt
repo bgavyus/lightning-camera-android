@@ -4,6 +4,7 @@ import android.media.MediaFormat
 import android.util.Size
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Degrees
+import io.github.bgavyus.lightningcamera.common.Hertz
 import io.github.bgavyus.lightningcamera.storage.Storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +18,7 @@ class Recorder(
     private val storage: Storage,
     private val encoder: Encoder,
     private val videoSize: Size,
-    private val framesPerSecond: Int,
+    private val frameRate: Hertz,
     private val orientation: Flow<Degrees>,
     private val recording: Flow<Boolean>,
 ) : DeferScope() {
@@ -50,7 +51,7 @@ class Recorder(
         RecorderSession(
             writer,
             videoSize,
-            framesPerSecond,
+            frameRate,
             encoder.samples,
             recording
         )

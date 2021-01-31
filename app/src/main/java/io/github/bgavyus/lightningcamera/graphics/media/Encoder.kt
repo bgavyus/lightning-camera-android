@@ -4,6 +4,7 @@ import android.media.MediaCodec
 import android.media.MediaFormat
 import android.util.Size
 import io.github.bgavyus.lightningcamera.common.DeferScope
+import io.github.bgavyus.lightningcamera.common.Hertz
 import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
 import io.github.bgavyus.lightningcamera.extensions.android.media.EncoderEvent
 import io.github.bgavyus.lightningcamera.extensions.android.media.configureEncoder
@@ -15,7 +16,7 @@ import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 
-class Encoder(size: Size, framesPerSecond: Int) : DeferScope() {
+class Encoder(size: Size, frameRate: Hertz) : DeferScope() {
     companion object {
         private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
     }
@@ -43,7 +44,7 @@ class Encoder(size: Size, framesPerSecond: Int) : DeferScope() {
         }
             .launchIn(scope)
 
-        val format = FormatFactory.create(size, framesPerSecond, mimeType)
+        val format = FormatFactory.create(size, frameRate, mimeType)
         configureEncoder(format)
     }
 

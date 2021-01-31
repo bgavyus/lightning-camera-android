@@ -2,6 +2,7 @@ package io.github.bgavyus.lightningcamera.graphics.media
 
 import android.util.Size
 import io.github.bgavyus.lightningcamera.common.DeferScope
+import io.github.bgavyus.lightningcamera.common.Hertz
 import io.github.bgavyus.lightningcamera.extensions.android.util.area
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +15,7 @@ import kotlin.math.ceil
 class RecorderSession(
     private val writer: Writer,
     videoSize: Size,
-    framesPerSecond: Int,
+    frameRate: Hertz,
     samples: Flow<Sample>,
     recordingFlow: Flow<Boolean>,
 ) : DeferScope() {
@@ -27,7 +28,7 @@ class RecorderSession(
 
     private val snake = SamplesSnake(
         sampleSize = videoSize.area,
-        samplesCount = ceil(framesPerSecond * minBufferSeconds).toInt()
+        samplesCount = ceil(frameRate.value * minBufferSeconds).toInt()
     )
 
     init {
