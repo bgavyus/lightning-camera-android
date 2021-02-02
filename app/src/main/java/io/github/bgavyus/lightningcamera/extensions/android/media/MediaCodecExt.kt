@@ -4,6 +4,7 @@ import android.media.MediaCodec
 import android.media.MediaCrypto
 import android.media.MediaFormat
 import android.os.Handler
+import io.github.bgavyus.lightningcamera.common.OptionSet
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
@@ -35,6 +36,8 @@ sealed class EncoderEvent {
 
 fun MediaCodec.configureEncoder(format: MediaFormat? = null, crypto: MediaCrypto? = null) =
     configure(format, null, crypto, MediaCodec.CONFIGURE_FLAG_ENCODE)
+
+val MediaCodec.BufferInfo.flagSet get() = OptionSet(flags)
 
 fun MediaCodec.BufferInfo.copyFrom(other: MediaCodec.BufferInfo) =
     set(other.offset, other.size, other.presentationTimeUs, other.flags)

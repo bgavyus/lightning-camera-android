@@ -101,5 +101,6 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-perf-ktx")
 
+    testImplementation("junit:junit:4.12")
     androidTestImplementation("androidx.test:runner:1.3.0")
 }
