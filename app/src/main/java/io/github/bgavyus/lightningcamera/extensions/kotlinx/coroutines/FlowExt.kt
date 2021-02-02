@@ -7,5 +7,4 @@ import kotlinx.coroutines.flow.onEach
 
 fun <T> Flow<T>.reflectTo(other: MutableStateFlow<T>) = onEach { other.value = it }
 
-infix fun Flow<Boolean>.and(flow: Flow<Boolean>) =
-    combine(flow) { a, b -> a && b }
+infix fun Flow<Boolean>.and(flow: Flow<Boolean>) = combine(flow) { a, b -> a && b }
