@@ -6,9 +6,9 @@ import android.graphics.SurfaceTexture
 import android.util.Size
 import android.view.Surface
 import androidx.annotation.StringRes
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.lightningcamera.capture.CameraConnectionFactory
 import io.github.bgavyus.lightningcamera.capture.CameraMetadataProvider
@@ -26,15 +26,14 @@ import io.github.bgavyus.lightningcamera.graphics.TransformMatrixFactory
 import io.github.bgavyus.lightningcamera.graphics.detection.MotionDetector
 import io.github.bgavyus.lightningcamera.graphics.media.Encoder
 import io.github.bgavyus.lightningcamera.graphics.media.Recorder
-import io.github.bgavyus.lightningcamera.permissions.PermissionsManager
 import io.github.bgavyus.lightningcamera.storage.Storage
-import io.github.bgavyus.lightningcamera.storage.StorageCharacteristics
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import javax.inject.Inject
 
-class ViewfinderViewModel @ViewModelInject constructor(
+@HiltViewModel
+class ViewfinderViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val permissionsManager: PermissionsManager,
     private val cameraMetadataProvider: CameraMetadataProvider,
     private val storage: Storage,
     private val messageShower: MessageShower,
@@ -116,11 +115,6 @@ class ViewfinderViewModel @ViewModelInject constructor(
             }
                 .reflectTo(transformMatrix),
         )
-    }
-
-    suspend fun grantPermissions(): Boolean {
-        val permissions = CameraConnectionFactory.permissions + StorageCharacteristics.permissions
-        return permissionsManager.requestMissing(permissions)
     }
 
     fun showMessage(@StringRes message: Int) = messageShower.show(message)

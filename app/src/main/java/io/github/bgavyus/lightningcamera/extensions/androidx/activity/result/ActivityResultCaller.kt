@@ -1,10 +1,15 @@
-package io.github.bgavyus.lightningcamera.extensions.androidx.activity
+package io.github.bgavyus.lightningcamera.extensions.androidx.activity.result
 
-import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.coroutines.CompletableDeferred
 
-suspend fun <Input, Output> ComponentActivity.call(
+suspend fun ActivityResultCaller.requestMultiplePermissions(
+    permissions: Array<String>,
+): Map<String, Boolean> = call(ActivityResultContracts.RequestMultiplePermissions(), permissions)
+
+suspend fun <Input, Output> ActivityResultCaller.call(
     contract: ActivityResultContract<Input, Output>,
     input: Input,
 ): Output {

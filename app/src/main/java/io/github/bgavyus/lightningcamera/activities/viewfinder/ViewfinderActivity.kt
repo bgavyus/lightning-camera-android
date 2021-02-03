@@ -8,6 +8,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.R
+import io.github.bgavyus.lightningcamera.capture.CameraConnectionFactory
 import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
 import io.github.bgavyus.lightningcamera.extensions.android.view.SurfaceTextureEvent
 import io.github.bgavyus.lightningcamera.extensions.android.view.surfaceTextureEvents
@@ -15,10 +16,21 @@ import io.github.bgavyus.lightningcamera.extensions.android.widget.checked
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.launchAll
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.reflectTo
 import io.github.bgavyus.lightningcamera.logging.Logger
+import io.github.bgavyus.lightningcamera.permissions.PermissionsRequester
+import io.github.bgavyus.lightningcamera.storage.StorageCharacteristics
 import kotlinx.coroutines.flow.onEach
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ViewfinderActivity : FragmentActivity() {
+    companion object {
+        val requiredPermissions =
+            CameraConnectionFactory.permissions + StorageCharacteristics.permissions
+    }
+
+    @Inject
+    lateinit var permissionsRequester: PermissionsRequester
+
     private val model: ViewfinderViewModel by viewModels()
     private val binding by lazy { ActivityViewfinderBinding.inflate(layoutInflater) }
 
@@ -27,7 +39,7 @@ class ViewfinderActivity : FragmentActivity() {
     }
 
     private suspend fun onCreated() {
-        if (!model.grantPermissions()) {
+        if (!permissionsRequester.requestMissing(requiredPermissions)) {
             model.showMessage(R.string.error_permission_not_granted)
             finish()
             return
