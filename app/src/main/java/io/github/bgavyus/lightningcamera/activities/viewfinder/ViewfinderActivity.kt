@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.R
 import io.github.bgavyus.lightningcamera.capture.CameraConnectionFactory
+import io.github.bgavyus.lightningcamera.common.MessageShower
 import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
 import io.github.bgavyus.lightningcamera.extensions.android.view.SurfaceTextureEvent
 import io.github.bgavyus.lightningcamera.extensions.android.view.surfaceTextureEvents
@@ -31,6 +32,9 @@ class ViewfinderActivity : FragmentActivity() {
     @Inject
     lateinit var permissionsRequester: PermissionsRequester
 
+    @Inject
+    lateinit var messageShower: MessageShower
+
     private val model: ViewfinderViewModel by viewModels()
     private val binding by lazy { ActivityViewfinderBinding.inflate(layoutInflater) }
 
@@ -40,7 +44,7 @@ class ViewfinderActivity : FragmentActivity() {
 
     private suspend fun onCreated() {
         if (!permissionsRequester.requestMissing(requiredPermissions)) {
-            model.showMessage(R.string.error_permission_not_granted)
+            messageShower.show(R.string.error_permission_not_granted)
             finish()
             return
         }

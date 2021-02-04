@@ -5,7 +5,6 @@ import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.util.Size
 import android.view.Surface
-import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +15,6 @@ import io.github.bgavyus.lightningcamera.capture.CameraSessionFactory
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Degrees
 import io.github.bgavyus.lightningcamera.common.Display
-import io.github.bgavyus.lightningcamera.common.MessageShower
 import io.github.bgavyus.lightningcamera.extensions.android.graphics.setDefaultBufferSize
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.and
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.launchAll
@@ -36,7 +34,6 @@ class ViewfinderViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val cameraMetadataProvider: CameraMetadataProvider,
     private val storage: Storage,
-    private val messageShower: MessageShower,
 ) : ViewModel() {
     private val deferScope = DeferScope()
 
@@ -116,8 +113,6 @@ class ViewfinderViewModel @Inject constructor(
                 .reflectTo(transformMatrix),
         )
     }
-
-    fun showMessage(@StringRes message: Int) = messageShower.show(message)
 
     private suspend fun activeChanged(active: Boolean) {
         activeDeferScope.close()
