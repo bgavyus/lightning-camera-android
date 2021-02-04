@@ -66,6 +66,8 @@ android {
             "-Xinline-classes"
         )
     }
+
+    testOptions.unitTests.isReturnDefaultValues = true
 }
 
 dependencies {

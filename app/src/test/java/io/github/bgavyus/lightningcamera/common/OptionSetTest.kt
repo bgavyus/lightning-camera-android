@@ -29,14 +29,14 @@ class OptionSetTest {
     }
 
     @Test
-    fun getMask() {
+    fun mask() {
         assertEquals(0, OptionSet().mask)
         assertEquals(a, OptionSet(a).mask)
         assertEquals(a + c, OptionSet(a + c).mask)
     }
 
     @Test
-    fun getSize() {
+    fun size() {
         assertEquals(0, OptionSet().size)
         assertEquals(1, OptionSet(b).size)
         assertEquals(2, OptionSet(a + c).size)
