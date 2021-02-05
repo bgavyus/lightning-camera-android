@@ -8,7 +8,8 @@ object Logger {
 
     fun log(message: String) {
         val threadName = Thread.currentThread().name
-        val tag = tagExtractor.extract(Throwable().callerStackTraceElement.className)
+        val className = Throwable().callerStackTraceElement.className
+        val tag = tagExtractor.extract(className)
         printer.println("$tag: [$threadName] $message")
     }
 }
