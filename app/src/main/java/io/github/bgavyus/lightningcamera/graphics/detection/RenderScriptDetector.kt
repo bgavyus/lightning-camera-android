@@ -54,5 +54,5 @@ abstract class RenderScriptDetector(
         .onEach { it.ioReceive() }
         .map(::getDetecting)
         .distinctUntilChanged()
-        .flowOn(handler.asCoroutineDispatcher(javaClass.simpleName))
+        .flowOn(handler.asCoroutineDispatcher())
 }

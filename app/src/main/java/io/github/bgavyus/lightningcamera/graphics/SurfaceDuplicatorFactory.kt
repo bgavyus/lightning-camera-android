@@ -11,7 +11,7 @@ class SurfaceDuplicatorFactory : DeferScope() {
     private val handler = SingleThreadHandler(javaClass.simpleName)
         .apply { defer(::close) }
 
-    private val dispatcher = handler.asCoroutineDispatcher(javaClass.simpleName)
+    private val dispatcher = handler.asCoroutineDispatcher()
 
     suspend fun create(bufferSize: Size, surfaces: Iterable<Surface>) =
         withContext(dispatcher) { SurfaceDuplicator(handler, bufferSize, surfaces) }

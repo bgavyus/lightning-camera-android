@@ -24,7 +24,7 @@ class SurfaceDuplicator(
     bufferSize: Size,
     surfaces: Iterable<Surface>,
 ) : DeferScope() {
-    private val dispatcher = handler.asCoroutineDispatcher(javaClass.simpleName)
+    private val dispatcher = handler.asCoroutineDispatcher()
 
     private val scope = CoroutineScope(dispatcher)
         .apply { defer(::cancel) }
