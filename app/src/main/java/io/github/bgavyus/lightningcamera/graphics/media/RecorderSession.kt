@@ -3,9 +3,10 @@ package io.github.bgavyus.lightningcamera.graphics.media
 import android.util.Size
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Hertz
+import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
 import io.github.bgavyus.lightningcamera.extensions.android.util.area
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -22,8 +23,10 @@ class RecorderSession(
     companion object {
         private const val minBufferSeconds = 0.05
     }
+    private val handler = SingleThreadHandler(javaClass.simpleName)
+        .apply { defer(::close) }
 
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = CoroutineScope(handler.asCoroutineDispatcher())
         .apply { defer(::cancel) }
 
     private val snake = SamplesSnake(
