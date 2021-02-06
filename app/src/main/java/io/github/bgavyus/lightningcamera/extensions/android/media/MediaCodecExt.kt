@@ -10,7 +10,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.callbackFlow
 
-fun MediaCodec.encoderEvents(handler: Handler) = callbackFlow<EncoderEvent> {
+fun MediaCodec.encoderEvents(handler: Handler? = null) = callbackFlow<EncoderEvent> {
     val callback = object : MediaCodec.Callback() {
         override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) =
             sendBlocking(EncoderEvent.FormatChanged(format))
