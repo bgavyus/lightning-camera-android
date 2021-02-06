@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.callbackFlow
 fun SensorManager.samples(
     sensor: Sensor,
     samplingPeriodUs: Int,
-    maxReportLatencyUs: Int,
-    handler: Handler,
+    maxReportLatencyUs: Int = 0,
+    handler: Handler? = null,
 ) = callbackFlow<SensorEvent> {
     val listener = object : SensorEventListener {
         override fun onSensorChanged(event: SensorEvent) = sendBlocking(event)
