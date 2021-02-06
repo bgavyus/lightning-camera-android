@@ -20,7 +20,6 @@ class Display(private val context: Context) : DeferScope() {
         val sensorManager = context.systemService<SensorManager>()
 
         val display = context.systemService<DisplayManager>().displays.first()
-            ?: throw RuntimeException()
 
         return sensorManager.samples(
             sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
