@@ -11,7 +11,7 @@ import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.callbackFlow
 
 @SuppressLint("MissingPermission")
-fun CameraManager.openCamera(id: String, handler: Handler) = callbackFlow<CameraDevice> {
+fun CameraManager.openCamera(id: String, handler: Handler? = null) = callbackFlow<CameraDevice> {
     val callback = object : CameraDevice.StateCallback() {
         override fun onOpened(camera: CameraDevice) = sendBlocking(camera)
 
