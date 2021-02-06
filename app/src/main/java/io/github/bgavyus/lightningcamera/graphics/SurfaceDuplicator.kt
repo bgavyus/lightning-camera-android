@@ -11,8 +11,8 @@ import com.otaliastudios.opengl.program.GlTextureProgram
 import com.otaliastudios.opengl.surface.EglWindowSurface
 import com.otaliastudios.opengl.texture.GlTexture
 import io.github.bgavyus.lightningcamera.common.DeferScope
+import io.github.bgavyus.lightningcamera.extensions.android.graphics.frames
 import io.github.bgavyus.lightningcamera.extensions.android.graphics.setDefaultBufferSize
-import io.github.bgavyus.lightningcamera.extensions.android.graphics.updates
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -24,9 +24,7 @@ class SurfaceDuplicator(
     bufferSize: Size,
     surfaces: Iterable<Surface>,
 ) : DeferScope() {
-    private val dispatcher = handler.asCoroutineDispatcher()
-
-    private val scope = CoroutineScope(dispatcher)
+    private val scope = CoroutineScope(handler.asCoroutineDispatcher())
         .apply { defer(::cancel) }
 
     private val core = EglCore(flags = EglCore.FLAG_TRY_GLES3)
@@ -54,7 +52,7 @@ class SurfaceDuplicator(
             defer(::release)
             setDefaultBufferSize(bufferSize)
 
-            updates(handler)
+            frames(handler)
                 .onEach(::onFrameAvailable)
                 .launchIn(scope)
         }
