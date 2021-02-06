@@ -25,7 +25,7 @@ class Display(private val context: Context) : DeferScope() {
         return sensorManager.samples(
             sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
             samplingPeriodUs = SensorManager.SENSOR_DELAY_UI,
-            maxReportLatencyUs = 100000,
+            maxReportLatencyUs = 100_000,
             handler = handler,
         )
             .map { display.rotation }
