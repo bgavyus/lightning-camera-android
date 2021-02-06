@@ -5,6 +5,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Handler
+import io.github.bgavyus.lightningcamera.common.validate
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.callbackFlow
@@ -20,6 +21,6 @@ fun SensorManager.samples(
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
     }
 
-    registerListener(listener, sensor, samplingPeriodUs, maxReportLatencyUs, handler)
+    validate(registerListener(listener, sensor, samplingPeriodUs, maxReportLatencyUs, handler))
     awaitClose { unregisterListener(listener) }
 }
