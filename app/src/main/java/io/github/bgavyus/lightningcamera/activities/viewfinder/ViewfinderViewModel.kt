@@ -1,5 +1,6 @@
 package io.github.bgavyus.lightningcamera.activities.viewfinder
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
@@ -29,6 +30,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
+@SuppressLint("StaticFieldLeak")
 @HiltViewModel
 class ViewfinderViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
