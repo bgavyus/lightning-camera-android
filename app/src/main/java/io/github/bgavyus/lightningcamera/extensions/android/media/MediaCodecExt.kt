@@ -37,7 +37,7 @@ sealed class EncoderEvent {
 fun MediaCodec.configureEncoder(format: MediaFormat? = null, crypto: MediaCrypto? = null) =
     configure(format, null, crypto, MediaCodec.CONFIGURE_FLAG_ENCODE)
 
-val MediaCodec.BufferInfo.flagSet get() = OptionSet(flags)
+val MediaCodec.BufferInfo.flagsSet get() = OptionSet(flags)
 
 fun MediaCodec.BufferInfo.copyFrom(other: MediaCodec.BufferInfo) =
     set(other.offset, other.size, other.presentationTimeUs, other.flags)

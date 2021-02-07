@@ -9,7 +9,7 @@ import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
 import io.github.bgavyus.lightningcamera.extensions.android.media.EncoderEvent
 import io.github.bgavyus.lightningcamera.extensions.android.media.configureEncoder
 import io.github.bgavyus.lightningcamera.extensions.android.media.encoderEvents
-import io.github.bgavyus.lightningcamera.extensions.android.media.flagSet
+import io.github.bgavyus.lightningcamera.extensions.android.media.flagsSet
 import io.github.bgavyus.lightningcamera.logging.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.android.asCoroutineDispatcher
@@ -66,12 +66,12 @@ class Encoder(size: Size, frameRate: Hertz) : DeferScope() {
 
     private suspend fun onBufferAvailable(index: Int, info: MediaCodec.BufferInfo) {
         try {
-            if (MediaCodec.BUFFER_FLAG_CODEC_CONFIG in info.flagSet) {
+            if (MediaCodec.BUFFER_FLAG_CODEC_CONFIG in info.flagsSet) {
                 Logger.log("Got codec config")
                 return
             }
 
-            if (MediaCodec.BUFFER_FLAG_END_OF_STREAM in info.flagSet) {
+            if (MediaCodec.BUFFER_FLAG_END_OF_STREAM in info.flagsSet) {
                 throw RuntimeException()
             }
 
