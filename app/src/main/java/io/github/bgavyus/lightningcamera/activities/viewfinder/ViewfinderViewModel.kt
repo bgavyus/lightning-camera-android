@@ -1,7 +1,5 @@
 package io.github.bgavyus.lightningcamera.activities.viewfinder
 
-import android.annotation.SuppressLint
-import android.content.Context
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.util.Size
@@ -9,7 +7,6 @@ import android.view.Surface
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.lightningcamera.capture.CameraConnectionFactory
 import io.github.bgavyus.lightningcamera.capture.CameraMetadataProvider
 import io.github.bgavyus.lightningcamera.capture.CameraSessionFactory
@@ -22,36 +19,27 @@ import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.launchAll
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.reflectTo
 import io.github.bgavyus.lightningcamera.graphics.SurfaceDuplicatorFactory
 import io.github.bgavyus.lightningcamera.graphics.TransformMatrixFactory
-import io.github.bgavyus.lightningcamera.graphics.detection.MotionDetector
-import io.github.bgavyus.lightningcamera.graphics.media.Encoder
-import io.github.bgavyus.lightningcamera.graphics.media.Recorder
-import io.github.bgavyus.lightningcamera.storage.Storage
+import io.github.bgavyus.lightningcamera.graphics.detection.MotionDetectorFactory
+import io.github.bgavyus.lightningcamera.graphics.media.EncoderFactory
+import io.github.bgavyus.lightningcamera.graphics.media.RecorderFactory
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
-@SuppressLint("StaticFieldLeak")
 @HiltViewModel
 class ViewfinderViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+    private val motionDetectorFactory: MotionDetectorFactory,
     private val cameraMetadataProvider: CameraMetadataProvider,
-    private val storage: Storage,
+    private val surfaceDuplicatorFactory: SurfaceDuplicatorFactory,
+    private val encoderFactory: EncoderFactory,
+    private val recorderFactory: RecorderFactory,
+    private val cameraConnectionFactory: CameraConnectionFactory,
+    private val cameraSessionFactory: CameraSessionFactory,
+    private val display: Display,
 ) : ViewModel() {
     private val deferScope = DeferScope()
 
-    private val surfaceDuplicatorFactory = SurfaceDuplicatorFactory()
-        .apply { deferScope.defer(::close) }
-
     private val activeDeferScope = DeferScope()
-        .apply { deferScope.defer(::close) }
-
-    private val display = Display(context)
-        .apply { deferScope.defer(::close) }
-
-    private val cameraConnectionFactory = CameraConnectionFactory(context)
-        .apply { deferScope.defer(::close) }
-
-    private val cameraSessionFactory = CameraSessionFactory()
         .apply { deferScope.defer(::close) }
 
     private val displayRotation = MutableStateFlow(Degrees(0))
@@ -66,18 +54,18 @@ class ViewfinderViewModel @Inject constructor(
     private val recorderOrientation = displayRotation
         .map { deferredMetadata.await().orientation - it }
 
-    private val deferredMetadata = viewModelScope.async {
+    private val deferredMetadata = viewModelScope.async(Dispatchers.IO) {
         cameraMetadataProvider.collect()
     }
 
     private val deferredDetector = viewModelScope.async(Dispatchers.IO) {
         val metadata = deferredMetadata.await()
 
-        MotionDetector(context, metadata.frameSize)
+        motionDetectorFactory.create(metadata.frameSize)
             .apply { deferScope.defer(::close) }
     }
 
-    private val deferredDuplicator = viewModelScope.async {
+    private val deferredDuplicator = viewModelScope.async(Dispatchers.IO) {
         val metadata = deferredMetadata.await()
         val detector = deferredDetector.await()
 
@@ -93,7 +81,7 @@ class ViewfinderViewModel @Inject constructor(
     private val deferredEncoder = viewModelScope.async(Dispatchers.IO) {
         val metadata = deferredMetadata.await()
 
-        Encoder(metadata.frameSize, metadata.frameRate)
+        encoderFactory.create(metadata.frameSize, metadata.frameRate)
             .apply { deferScope.defer(::close) }
     }
 
@@ -128,8 +116,7 @@ class ViewfinderViewModel @Inject constructor(
         val encoder = deferredEncoder.await()
         val metadata = deferredMetadata.await()
 
-        Recorder(
-            storage,
+        recorderFactory.create(
             encoder,
             metadata.frameSize,
             metadata.frameRate,

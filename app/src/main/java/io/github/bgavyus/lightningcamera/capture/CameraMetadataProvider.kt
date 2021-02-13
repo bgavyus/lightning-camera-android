@@ -17,14 +17,12 @@ import io.github.bgavyus.lightningcamera.extensions.android.util.area
 import io.github.bgavyus.lightningcamera.extensions.android.util.has16To9AspectRatio
 import io.github.bgavyus.lightningcamera.extensions.android.util.isSingular
 import io.github.bgavyus.lightningcamera.logging.Logger
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class CameraMetadataProvider @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
-    suspend fun collect() = withContext(Dispatchers.IO) {
+    fun collect(): CameraMetadata {
         val manager = context.systemService<CameraManager>()
 
         val (id, characteristics, framesPerSecond) = manager.cameraIdList
@@ -56,7 +54,7 @@ class CameraMetadataProvider @Inject constructor(
             .filter(Size::has16To9AspectRatio)
             .getMaxBy(Size::area)
 
-        CameraMetadata(id, orientation, frameRate, frameSize)
+        return CameraMetadata(id, orientation, frameRate, frameSize)
             .also { Logger.log("Metadata collected: $it") }
     }
 }

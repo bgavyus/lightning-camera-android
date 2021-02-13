@@ -3,23 +3,21 @@ package io.github.bgavyus.lightningcamera.capture
 import android.Manifest
 import android.content.Context
 import android.hardware.camera2.CameraManager
-import io.github.bgavyus.lightningcamera.common.DeferScope
-import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
+import android.os.Handler
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.openCamera
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class CameraConnectionFactory(private val context: Context) : DeferScope() {
+class CameraConnectionFactory @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val handler: Handler,
+) {
     companion object {
         val permissions = listOf(Manifest.permission.CAMERA)
     }
 
-    private val handler = SingleThreadHandler(javaClass.simpleName)
-        .apply { defer(::close) }
-
-    suspend fun open(cameraId: String) = withContext(Dispatchers.IO) {
+    suspend fun open(cameraId: String) =
         context.systemService<CameraManager>().openCamera(cameraId, handler).first()
-    }
 }

@@ -1,16 +1,15 @@
 package io.github.bgavyus.lightningcamera.graphics
 
+import android.os.Handler
 import android.util.Size
 import android.view.Surface
-import io.github.bgavyus.lightningcamera.common.DeferScope
-import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class SurfaceDuplicatorFactory : DeferScope() {
-    private val handler = SingleThreadHandler(javaClass.simpleName)
-        .apply { defer(::close) }
-
+class SurfaceDuplicatorFactory @Inject constructor(
+    private val handler: Handler,
+) {
     suspend fun create(
         bufferSize: Size,
         surfaces: Iterable<Surface>,

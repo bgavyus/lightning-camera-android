@@ -7,6 +7,7 @@ import android.hardware.camera2.params.SessionConfiguration
 import android.os.Build
 import android.os.Handler
 import android.view.Surface
+import java.util.concurrent.Executor
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -15,6 +16,7 @@ suspend fun CameraDevice.createCaptureSession(
     isHighSpeed: Boolean,
     surfaces: List<Surface>,
     handler: Handler,
+    executor: Executor,
 ): CameraCaptureSession = suspendCoroutine { continuation ->
     val callback = object : CameraCaptureSession.StateCallback() {
         override fun onConfigured(session: CameraCaptureSession) =
@@ -40,7 +42,7 @@ suspend fun CameraDevice.createCaptureSession(
         val configuration = SessionConfiguration(
             mode,
             surfaces.map(::OutputConfiguration),
-            handler::post,
+            executor,
             callback,
         )
 

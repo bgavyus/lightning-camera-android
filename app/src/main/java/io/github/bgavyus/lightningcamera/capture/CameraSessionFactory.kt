@@ -4,20 +4,21 @@ import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraConstrainedHighSpeedCaptureSession
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CaptureRequest
+import android.os.Handler
 import android.view.Surface
-import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Hertz
-import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.createCaptureSession
 import io.github.bgavyus.lightningcamera.extensions.toRange
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asExecutor
+import javax.inject.Inject
 
-class CameraSessionFactory : DeferScope() {
+class CameraSessionFactory @Inject constructor(
+    private val handler: Handler,
+) {
     companion object {
         const val infinityFocus = 0f
     }
-
-    private val handler = SingleThreadHandler(javaClass.simpleName)
-        .apply { defer(::close) }
 
     suspend fun create(
         device: CameraDevice,
@@ -31,7 +32,12 @@ class CameraSessionFactory : DeferScope() {
             surfaces.forEach(::addTarget)
         }.build()
 
-        return device.createCaptureSession(frameRate.isHighSpeed, surfaces, handler).apply {
+        return device.createCaptureSession(
+            frameRate.isHighSpeed,
+            surfaces,
+            handler,
+            Dispatchers.IO.asExecutor()
+        ).apply {
             if (frameRate.isHighSpeed) {
                 val highSpeedCaptureSession = this as CameraConstrainedHighSpeedCaptureSession
                 val requests = highSpeedCaptureSession.createHighSpeedRequestList(captureRequest)

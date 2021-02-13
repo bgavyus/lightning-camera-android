@@ -2,29 +2,26 @@ package io.github.bgavyus.lightningcamera.graphics.media
 
 import android.media.MediaCodec
 import android.media.MediaFormat
+import android.os.Handler
 import android.util.Size
 import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.common.Hertz
-import io.github.bgavyus.lightningcamera.common.SingleThreadHandler
 import io.github.bgavyus.lightningcamera.extensions.android.media.EncoderEvent
 import io.github.bgavyus.lightningcamera.extensions.android.media.configureEncoder
 import io.github.bgavyus.lightningcamera.extensions.android.media.encoderEvents
 import io.github.bgavyus.lightningcamera.extensions.android.media.flagsSet
 import io.github.bgavyus.lightningcamera.logging.Logger
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.android.asCoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 
-class Encoder(size: Size, frameRate: Hertz) : DeferScope() {
+class Encoder(handler: Handler, size: Size, frameRate: Hertz) : DeferScope() {
     companion object {
         private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
     }
 
-    private val handler = SingleThreadHandler(javaClass.simpleName)
-        .apply { defer(::close) }
-
-    private val scope = CoroutineScope(handler.asCoroutineDispatcher())
+    private val scope = CoroutineScope(Dispatchers.IO)
         .apply { defer(::cancel) }
 
     private val _format = MutableStateFlow(null as MediaFormat?)
