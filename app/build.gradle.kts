@@ -86,12 +86,18 @@ dependencies {
     implementation("com.google.dagger:hilt-android:$hiltVersion")
     kapt("com.google.dagger:hilt-android-compiler:$hiltVersion")
 
+    // https://developer.android.com/jetpack/androidx/releases/hilt
     val jetpackHiltVersion = "1.0.0-alpha03"
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:$jetpackHiltVersion")
     kapt("androidx.hilt:hilt-compiler:$jetpackHiltVersion")
 
+    // https://developer.android.com/jetpack/androidx/releases/core
     implementation("androidx.core:core-ktx:1.5.0-beta01")
+
+    // https://developer.android.com/jetpack/androidx/releases/fragment
     implementation("androidx.fragment:fragment-ktx:1.3.0")
+
+    // https://developer.android.com/jetpack/androidx/releases/constraintlayout
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
 
     // https://github.com/natario1/Egloo/releases
@@ -104,5 +110,7 @@ dependencies {
     implementation("com.google.firebase:firebase-perf-ktx")
 
     testImplementation("junit:junit:4.13.1")
+
+    // https://developer.android.com/jetpack/androidx/releases/test
     androidTestImplementation("androidx.test:runner:1.3.0")
 }
