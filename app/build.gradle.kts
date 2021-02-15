@@ -109,7 +109,7 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-perf-ktx")
 
-    testImplementation("junit:junit:4.13.1")
+    testImplementation("junit:junit:4.13.2")
 
     // https://developer.android.com/jetpack/androidx/releases/test
     androidTestImplementation("androidx.test:runner:1.3.0")
