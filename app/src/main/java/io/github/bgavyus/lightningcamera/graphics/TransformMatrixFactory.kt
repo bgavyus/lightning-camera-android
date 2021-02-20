@@ -10,7 +10,6 @@ import io.github.bgavyus.lightningcamera.extensions.android.util.aspectRatio
 import io.github.bgavyus.lightningcamera.extensions.android.util.center
 import io.github.bgavyus.lightningcamera.extensions.android.util.reciprocal
 import io.github.bgavyus.lightningcamera.extensions.android.util.times
-import io.github.bgavyus.lightningcamera.logging.Logger
 import io.github.bgavyus.lightningcamera.utilities.Degrees
 
 object TransformMatrixFactory {
@@ -23,18 +22,14 @@ object TransformMatrixFactory {
 
         val (widthScale, heightScale) = if (rotation.isLandscape) {
             if (inputRatio > outputRatio) {
-                Logger.log("Adding horizontal bars")
                 outputRatio to inputRatio.reciprocal
             } else {
-                Logger.log("Adding vertical bars")
                 inputRatio to outputRatio.reciprocal
             }
         } else {
             if (inputRatio.reciprocal > outputRatio) {
-                Logger.log("Adding horizontal bars")
                 1 to inputRatio * outputRatio
             } else {
-                Logger.log("Adding vertical bars")
                 inputRatio.reciprocal * outputRatio.reciprocal to 1
             }
         }
