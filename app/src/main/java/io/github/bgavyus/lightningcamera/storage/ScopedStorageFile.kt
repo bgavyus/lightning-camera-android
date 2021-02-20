@@ -4,6 +4,8 @@ import android.annotation.TargetApi
 import android.content.ContentResolver
 import android.os.Build
 import android.provider.MediaStore
+import com.google.auto.factory.AutoFactory
+import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.extensions.android.content.*
 import io.github.bgavyus.lightningcamera.extensions.toInt
 import io.github.bgavyus.lightningcamera.logging.Logger
@@ -13,9 +15,10 @@ import java.time.Period
 import java.util.concurrent.atomic.AtomicBoolean
 
 @TargetApi(Build.VERSION_CODES.Q)
+@AutoFactory(implementing = [StorageFileFactory::class])
 class ScopedStorageFile(
-    private val contentResolver: ContentResolver,
-    clock: Clock,
+    @Provided private val contentResolver: ContentResolver,
+    @Provided clock: Clock,
     mimeType: String,
     standardDirectory: StandardDirectory,
     appDirectoryName: String,
