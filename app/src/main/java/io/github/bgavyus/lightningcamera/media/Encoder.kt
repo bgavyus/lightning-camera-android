@@ -4,6 +4,8 @@ import android.media.MediaCodec
 import android.media.MediaFormat
 import android.os.Handler
 import android.util.Size
+import com.google.auto.factory.AutoFactory
+import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.extensions.android.media.EncoderEvent
 import io.github.bgavyus.lightningcamera.extensions.android.media.configureEncoder
 import io.github.bgavyus.lightningcamera.extensions.android.media.encoderEvents
@@ -16,7 +18,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 
-class Encoder(handler: Handler, size: Size, frameRate: Hertz) : DeferScope() {
+@AutoFactory
+class Encoder(
+    @Provided handler: Handler,
+    size: Size,
+    frameRate: Hertz,
+) : DeferScope() {
     companion object {
         private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
     }

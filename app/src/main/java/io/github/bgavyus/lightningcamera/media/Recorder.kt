@@ -2,6 +2,8 @@ package io.github.bgavyus.lightningcamera.media
 
 import android.media.MediaFormat
 import android.util.Size
+import com.google.auto.factory.AutoFactory
+import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.storage.Storage
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import io.github.bgavyus.lightningcamera.utilities.Degrees
@@ -14,8 +16,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 
+@AutoFactory
 class Recorder(
-    private val storage: Storage,
+    @Provided private val storage: Storage,
     private val encoder: Encoder,
     private val videoSize: Size,
     private val frameRate: Hertz,
