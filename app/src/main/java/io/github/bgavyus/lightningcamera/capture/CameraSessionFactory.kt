@@ -6,9 +6,9 @@ import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CaptureRequest
 import android.os.Handler
 import android.view.Surface
-import io.github.bgavyus.lightningcamera.common.Hertz
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.createCaptureSession
 import io.github.bgavyus.lightningcamera.extensions.toRange
+import io.github.bgavyus.lightningcamera.utilities.Hertz
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import javax.inject.Inject

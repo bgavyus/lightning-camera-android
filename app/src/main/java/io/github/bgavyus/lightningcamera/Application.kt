@@ -1,9 +1,8 @@
-package io.github.bgavyus.lightningcamera.common
+package io.github.bgavyus.lightningcamera
 
 import android.app.Application
 import android.os.StrictMode
 import dagger.hilt.android.HiltAndroidApp
-import io.github.bgavyus.lightningcamera.BuildConfig
 
 @HiltAndroidApp
 class Application : Application() {

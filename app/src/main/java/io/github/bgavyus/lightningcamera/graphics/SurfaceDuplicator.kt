@@ -10,9 +10,9 @@ import com.otaliastudios.opengl.draw.GlRect
 import com.otaliastudios.opengl.program.GlTextureProgram
 import com.otaliastudios.opengl.surface.EglWindowSurface
 import com.otaliastudios.opengl.texture.GlTexture
-import io.github.bgavyus.lightningcamera.common.DeferScope
 import io.github.bgavyus.lightningcamera.extensions.android.graphics.frames
 import io.github.bgavyus.lightningcamera.extensions.android.graphics.setDefaultBufferSize
+import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.cancel

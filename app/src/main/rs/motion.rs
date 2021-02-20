@@ -1,5 +1,5 @@
 #pragma version(1)
-#pragma rs java_package_name(io.github.bgavyus.lightningcamera.graphics.detection)
+#pragma rs java_package_name(io.github.bgavyus.lightningcamera.detection)
 #pragma rs_fp_relaxed
 #pragma rs reduce(rate) accumulator(addDistance) combiner(sum)
 

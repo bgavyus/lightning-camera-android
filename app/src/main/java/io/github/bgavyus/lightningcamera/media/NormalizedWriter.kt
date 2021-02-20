@@ -1,9 +1,9 @@
-package io.github.bgavyus.lightningcamera.graphics.media
+package io.github.bgavyus.lightningcamera.media
 
 import android.media.MediaCodec
 import android.media.MediaFormat
-import io.github.bgavyus.lightningcamera.common.Degrees
 import io.github.bgavyus.lightningcamera.storage.Storage
+import io.github.bgavyus.lightningcamera.utilities.Degrees
 
 class NormalizedWriter(
     storage: Storage,

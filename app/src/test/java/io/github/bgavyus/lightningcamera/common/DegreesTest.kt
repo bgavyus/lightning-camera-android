@@ -1,5 +1,6 @@
 package io.github.bgavyus.lightningcamera.common
 
+import io.github.bgavyus.lightningcamera.utilities.Degrees
 import org.junit.Assert.*
 import org.junit.Test
 

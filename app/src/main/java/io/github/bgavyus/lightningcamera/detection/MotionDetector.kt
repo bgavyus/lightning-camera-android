@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.graphics.detection
+package io.github.bgavyus.lightningcamera.detection
 
 import android.content.Context
 import android.renderscript.Allocation
@@ -7,10 +7,10 @@ import android.renderscript.RenderScript
 import android.renderscript.Type
 import android.util.Size
 import android.view.Surface
-import io.github.bgavyus.lightningcamera.common.DeferScope
-import io.github.bgavyus.lightningcamera.common.PeakDetector
 import io.github.bgavyus.lightningcamera.extensions.android.renderscript.buffers
 import io.github.bgavyus.lightningcamera.extensions.android.util.area
+import io.github.bgavyus.lightningcamera.utilities.DeferScope
+import io.github.bgavyus.lightningcamera.utilities.PeakDetector
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn

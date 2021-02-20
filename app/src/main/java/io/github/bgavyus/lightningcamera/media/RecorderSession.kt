@@ -1,9 +1,9 @@
-package io.github.bgavyus.lightningcamera.graphics.media
+package io.github.bgavyus.lightningcamera.media
 
 import android.util.Size
-import io.github.bgavyus.lightningcamera.common.DeferScope
-import io.github.bgavyus.lightningcamera.common.Hertz
 import io.github.bgavyus.lightningcamera.extensions.android.util.area
+import io.github.bgavyus.lightningcamera.utilities.DeferScope
+import io.github.bgavyus.lightningcamera.utilities.Hertz
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel

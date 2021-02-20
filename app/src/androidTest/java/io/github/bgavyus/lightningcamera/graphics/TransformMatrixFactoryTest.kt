@@ -2,8 +2,8 @@ package io.github.bgavyus.lightningcamera.graphics
 
 import android.util.Size
 import androidx.core.graphics.values
-import io.github.bgavyus.lightningcamera.common.Degrees
 import io.github.bgavyus.lightningcamera.extensions.normalized
+import io.github.bgavyus.lightningcamera.utilities.Degrees
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

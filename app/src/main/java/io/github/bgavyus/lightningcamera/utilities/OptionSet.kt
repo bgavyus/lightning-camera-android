@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.common
+package io.github.bgavyus.lightningcamera.utilities
 
 inline class OptionSet(val mask: Int = 0) : Set<Int> {
     override val size get() = mask.countOneBits()

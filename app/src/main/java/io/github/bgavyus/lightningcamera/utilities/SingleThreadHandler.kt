@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.common
+package io.github.bgavyus.lightningcamera.utilities
 
 import android.os.Handler
 import android.os.HandlerThread

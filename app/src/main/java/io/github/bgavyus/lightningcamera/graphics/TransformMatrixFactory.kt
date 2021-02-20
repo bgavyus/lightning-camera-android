@@ -6,10 +6,10 @@ import android.util.Rational
 import android.util.Size
 import android.util.SizeF
 import androidx.core.graphics.toPointF
-import io.github.bgavyus.lightningcamera.common.Degrees
 import io.github.bgavyus.lightningcamera.extensions.android.util.aspectRatio
 import io.github.bgavyus.lightningcamera.extensions.android.util.center
 import io.github.bgavyus.lightningcamera.logging.Logger
+import io.github.bgavyus.lightningcamera.utilities.Degrees
 
 object TransformMatrixFactory {
     fun create(rotation: Degrees, inputSize: Size, outputSize: Size) = Matrix().apply {

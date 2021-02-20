@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.common
+package io.github.bgavyus.lightningcamera.hardware
 
 import android.content.Context
 import android.hardware.Sensor
@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.samples
 import io.github.bgavyus.lightningcamera.logging.Logger
+import io.github.bgavyus.lightningcamera.utilities.Degrees
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map

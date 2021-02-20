@@ -1,11 +1,11 @@
-package io.github.bgavyus.lightningcamera.graphics.media
+package io.github.bgavyus.lightningcamera.media
 
 import android.media.MediaCodecInfo
 import android.media.MediaCodecList
 import android.media.MediaFormat
 import android.util.Size
-import io.github.bgavyus.lightningcamera.common.Hertz
 import io.github.bgavyus.lightningcamera.logging.Logger
+import io.github.bgavyus.lightningcamera.utilities.Hertz
 
 object FormatFactory {
     fun create(

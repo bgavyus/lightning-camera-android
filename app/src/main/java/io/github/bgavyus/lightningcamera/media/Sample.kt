@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.graphics.media
+package io.github.bgavyus.lightningcamera.media
 
 import android.media.MediaCodec
 import io.github.bgavyus.lightningcamera.extensions.android.media.copyFrom

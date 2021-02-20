@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.common
+package io.github.bgavyus.lightningcamera.ui
 
 import android.content.Context
 import android.widget.Toast

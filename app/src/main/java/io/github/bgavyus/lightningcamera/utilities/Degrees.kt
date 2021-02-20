@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.common
+package io.github.bgavyus.lightningcamera.utilities
 
 import android.view.Surface
 import io.github.bgavyus.lightningcamera.extensions.floorMod

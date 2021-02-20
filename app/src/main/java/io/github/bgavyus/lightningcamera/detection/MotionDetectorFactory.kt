@@ -1,9 +1,9 @@
-package io.github.bgavyus.lightningcamera.graphics.detection
+package io.github.bgavyus.lightningcamera.detection
 
 import android.content.Context
 import android.util.Size
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.github.bgavyus.lightningcamera.common.DeferScope
+import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import javax.inject.Inject
 
 class MotionDetectorFactory @Inject constructor(

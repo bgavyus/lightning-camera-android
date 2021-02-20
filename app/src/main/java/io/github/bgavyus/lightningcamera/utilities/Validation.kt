@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.common
+package io.github.bgavyus.lightningcamera.utilities
 
 import io.github.bgavyus.lightningcamera.extensions.isPositive
 

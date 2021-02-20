@@ -1,6 +1,6 @@
-package io.github.bgavyus.lightningcamera.graphics.media
+package io.github.bgavyus.lightningcamera.media
 
-import io.github.bgavyus.lightningcamera.common.Snake
+import io.github.bgavyus.lightningcamera.utilities.Snake
 
 class SamplesSnake(sampleSize: Int, samplesCount: Int) {
     private val snake = Snake(Array(samplesCount) { Sample(sampleSize) })

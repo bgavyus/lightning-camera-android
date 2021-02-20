@@ -1,5 +1,6 @@
 package io.github.bgavyus.lightningcamera.common
 
+import io.github.bgavyus.lightningcamera.utilities.Hertz
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertTrue
 import org.junit.Test

@@ -4,8 +4,8 @@ import android.media.MediaCodec
 import android.media.MediaCrypto
 import android.media.MediaFormat
 import android.os.Handler
-import io.github.bgavyus.lightningcamera.common.OptionSet
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.cancel
+import io.github.bgavyus.lightningcamera.utilities.OptionSet
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.callbackFlow

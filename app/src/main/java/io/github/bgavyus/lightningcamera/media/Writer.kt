@@ -1,11 +1,11 @@
-package io.github.bgavyus.lightningcamera.graphics.media
+package io.github.bgavyus.lightningcamera.media
 
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.os.Build
-import io.github.bgavyus.lightningcamera.common.DeferScope
-import io.github.bgavyus.lightningcamera.common.Degrees
 import io.github.bgavyus.lightningcamera.storage.Storage
+import io.github.bgavyus.lightningcamera.utilities.DeferScope
+import io.github.bgavyus.lightningcamera.utilities.Degrees
 import java.util.concurrent.atomic.AtomicBoolean
 
 open class Writer(storage: Storage, format: MediaFormat, orientation: Degrees) : DeferScope() {
