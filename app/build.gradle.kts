@@ -100,7 +100,7 @@ dependencies {
     // https://developer.android.com/jetpack/androidx/releases/constraintlayout
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
 
-    // https://github.com/natario1/Egloo/releases
+    // https://natario1.github.io/Egloo/about/changelog
     implementation("com.otaliastudios.opengl:egloo:0.5.4")
 
     // https://firebase.google.com/support/release-notes/android
