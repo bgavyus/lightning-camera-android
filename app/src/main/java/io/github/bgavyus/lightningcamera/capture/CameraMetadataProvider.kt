@@ -5,7 +5,6 @@ import android.graphics.ImageFormat
 import android.hardware.camera2.CameraManager
 import android.util.Range
 import android.util.Size
-import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.lightningcamera.extensions.*
 import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.fpsRanges
@@ -20,7 +19,7 @@ import io.github.bgavyus.lightningcamera.utilities.Hertz
 import javax.inject.Inject
 
 class CameraMetadataProvider @Inject constructor(
-    @ApplicationContext private val context: Context,
+    private val context: Context,
 ) {
     fun collect(): CameraMetadata {
         val manager = context.systemService<CameraManager>()

@@ -9,7 +9,6 @@ import android.util.Size
 import android.view.Surface
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
-import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.lightningcamera.extensions.android.renderscript.buffers
 import io.github.bgavyus.lightningcamera.extensions.android.util.area
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
@@ -22,7 +21,7 @@ import kotlinx.coroutines.flow.onEach
 
 @AutoFactory
 class MotionDetector(
-    @Provided @ApplicationContext context: Context,
+    @Provided context: Context,
     bufferSize: Size,
 ) : DeferScope() {
     companion object {

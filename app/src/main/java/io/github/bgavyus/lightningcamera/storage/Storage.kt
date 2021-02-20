@@ -2,14 +2,13 @@ package io.github.bgavyus.lightningcamera.storage
 
 import android.content.Context
 import android.media.MediaFormat
-import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.bgavyus.lightningcamera.R
 import java.time.Clock
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 class Storage @Inject constructor(
-    @ApplicationContext private val context: Context,
+    private val context: Context,
     private val clock: Clock,
     private val fileFactory: StorageFileFactory,
 ) {

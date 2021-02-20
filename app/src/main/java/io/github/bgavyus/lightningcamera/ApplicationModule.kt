@@ -15,12 +15,17 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object ApplicationModule {
+    @Singleton
     @Provides
     fun provideClock(): Clock = Clock.systemDefaultZone()
 
+    @Singleton
     @Provides
-    fun provideContentResolver(@ApplicationContext context: Context): ContentResolver =
-        context.contentResolver
+    fun provideContext(@ApplicationContext context: Context) = context
+
+    @Singleton
+    @Provides
+    fun provideContentResolver(context: Context): ContentResolver = context.contentResolver
 
     @Singleton
     @Provides
