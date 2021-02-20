@@ -1,10 +1,10 @@
 package io.github.bgavyus.lightningcamera.activities.viewfinder
 
 import android.view.KeyEvent
-import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.core.view.isInvisible
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.R
@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class ViewfinderActivity : ComponentActivity() {
+class ViewfinderActivity : FragmentActivity() {
     companion object {
         val requiredPermissions =
             CameraConnectionFactory.permissions + StorageCharacteristics.permissions
