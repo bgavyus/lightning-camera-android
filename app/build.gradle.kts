@@ -10,6 +10,10 @@ plugins {
     id("com.google.firebase.firebase-perf")
 }
 
+kapt {
+    correctErrorTypes = true
+}
+
 android {
     compileSdkVersion(30)
     buildToolsVersion = "30.0.2"
@@ -108,6 +112,9 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-perf-ktx")
+
+    // https://github.com/google/auto/releases
+    implementation("com.google.auto.factory:auto-factory:1.0-beta8")
 
     testImplementation("junit:junit:4.13.2")
 
