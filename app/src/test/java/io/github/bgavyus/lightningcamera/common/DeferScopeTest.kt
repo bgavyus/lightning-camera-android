@@ -1,7 +1,7 @@
 package io.github.bgavyus.lightningcamera.common
 
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class DeferScopeTest {

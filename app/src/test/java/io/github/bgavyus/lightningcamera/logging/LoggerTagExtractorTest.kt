@@ -1,6 +1,6 @@
 package io.github.bgavyus.lightningcamera.logging
 
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class LoggerTagExtractorTest {
