@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.injection
+package io.github.bgavyus.lightningcamera
 
 import android.content.ContentResolver
 import android.content.Context
