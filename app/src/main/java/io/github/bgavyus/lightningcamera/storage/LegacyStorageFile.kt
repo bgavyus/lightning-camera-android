@@ -6,9 +6,10 @@ import android.provider.MediaStore
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.extensions.android.content.requireInsert
+import io.github.bgavyus.lightningcamera.extensions.java.io.mkdirsIfNotExists
+import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import java.io.File
 import java.io.FileDescriptor
-import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 
 @Suppress("DEPRECATION")
@@ -19,27 +20,24 @@ class LegacyStorageFile(
     private val standardDirectory: StandardDirectory,
     appDirectoryName: String,
     name: String,
-) : StorageFile {
-    private val parentDirectory =
-        File(
-            Environment.getExternalStoragePublicDirectory(standardDirectory.value),
-            appDirectoryName,
-        ).apply {
-            if (!exists()) {
-                if (!mkdirs()) {
-                    throw IOException("Failed to create directory $path")
-                }
-            }
-        }
+) : DeferScope(), StorageFile {
+    private val pending = AtomicBoolean(true)
+    private val file: PendingFile
 
-    private val file = File(parentDirectory, name)
-        .apply(File::delete)
+    init {
+        val root = Environment.getExternalStoragePublicDirectory(standardDirectory.value)
+
+        val parent = File(root, appDirectoryName)
+            .apply(File::mkdirsIfNotExists)
+
+        file = PendingFile(parent, name)
+    }
 
     private val outputStream = file.outputStream()
+        .also { defer(it::close) }
 
     override val descriptor: FileDescriptor get() = outputStream.fd
     override val path: String get() = file.path
-    private val pending = AtomicBoolean(true)
 
     override fun keep() {
         if (pending.compareAndSet(true, false)) {
@@ -47,12 +45,8 @@ class LegacyStorageFile(
         }
     }
 
-    override fun close() = outputStream.close()
-
     private fun save() {
-        if (!file.renameTo(file)) {
-            throw IOException("Failed to rename ${file.absolutePath}")
-        }
+        file.save()
 
         contentResolver.requireInsert(standardDirectory.externalStorageContentUri) {
             put(MediaStore.MediaColumns.MIME_TYPE, mimeType)

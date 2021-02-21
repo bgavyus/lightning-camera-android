@@ -9,7 +9,9 @@ import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.extensions.android.content.*
 import io.github.bgavyus.lightningcamera.extensions.toInt
 import io.github.bgavyus.lightningcamera.logging.Logger
+import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import java.io.File.separator
+import java.io.FileDescriptor
 import java.time.Clock
 import java.time.Period
 import java.util.concurrent.atomic.AtomicBoolean
@@ -23,7 +25,9 @@ class ScopedStorageFile(
     standardDirectory: StandardDirectory,
     appDirectoryName: String,
     name: String,
-) : StorageFile {
+) : DeferScope(), StorageFile {
+    private val pending = AtomicBoolean(true)
+
     private val uri = contentResolver.requireInsert(standardDirectory.externalStorageContentUri) {
         put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
         put(MediaStore.MediaColumns.DISPLAY_NAME, name)
@@ -37,14 +41,15 @@ class ScopedStorageFile(
     }
         .also { Logger.log("Inserted URI: $it") }
 
+    init {
+        defer(::discardIfPending)
+    }
+
     private val file = contentResolver.requireOpenFileDescriptor(uri, FileMode.Write)
+        .also { defer(it::close) }
 
-    override val descriptor
-        get() = file.fileDescriptor
-            ?: throw RuntimeException()
-
+    override val descriptor: FileDescriptor get() = file.fileDescriptor
     override val path get() = throw NotImplementedError()
-    private val pending = AtomicBoolean(true)
 
     override fun keep() {
         if (pending.compareAndSet(true, false)) {
@@ -52,17 +57,15 @@ class ScopedStorageFile(
         }
     }
 
-    override fun close() {
-        file.close()
-
-        if (pending.get()) {
-            discard()
-        }
-    }
-
     private fun save() = contentResolver.requireUpdate(uri) {
         putNull(MediaStore.MediaColumns.DATE_EXPIRES)
         put(MediaStore.MediaColumns.IS_PENDING, false.toInt())
+    }
+
+    private fun discardIfPending() {
+        if (pending.get()) {
+            discard()
+        }
     }
 
     private fun discard() = contentResolver.requireDelete(uri)
