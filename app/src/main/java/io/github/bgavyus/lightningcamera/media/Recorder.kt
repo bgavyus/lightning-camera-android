@@ -4,7 +4,6 @@ import android.media.MediaFormat
 import android.util.Size
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
-import io.github.bgavyus.lightningcamera.storage.Storage
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import io.github.bgavyus.lightningcamera.utilities.Degrees
 import io.github.bgavyus.lightningcamera.utilities.Hertz
@@ -18,7 +17,7 @@ import kotlinx.coroutines.flow.launchIn
 
 @AutoFactory
 class Recorder(
-    @Provided private val storage: Storage,
+    @Provided private val samplesWriterFactory: SamplesWriterFactory,
     private val encoder: Encoder,
     private val videoSize: Size,
     private val frameRate: Hertz,
@@ -48,16 +47,14 @@ class Recorder(
     private fun stopSession() = sessionDeferScope.close()
 
     private fun startSession(format: MediaFormat, orientation: Degrees) {
-        val writer = NormalizedWriter(storage, format, orientation)
+        val normalizer = PresentationTimeNormalizer()
+
+        val writer = samplesWriterFactory.create(format, orientation)
             .also { sessionDeferScope.defer(it::close) }
 
-        RecorderSession(
-            writer,
-            videoSize,
-            frameRate,
-            encoder.samples,
-            recording
-        )
+        val pipeline = SamplesPipeline(listOf(normalizer, writer))
+
+        RecorderSession(pipeline, videoSize, frameRate, encoder.samples, recording)
             .also { sessionDeferScope.defer(it::close) }
     }
 }

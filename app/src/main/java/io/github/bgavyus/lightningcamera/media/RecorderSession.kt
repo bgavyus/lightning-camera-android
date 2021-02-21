@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlin.math.ceil
 
 class RecorderSession(
-    private val writer: Writer,
+    private val processor: SamplesProcessor,
     videoSize: Size,
     frameRate: Hertz,
     samples: Flow<Sample>,
@@ -34,14 +34,12 @@ class RecorderSession(
     init {
         combine(samples, recordingFlow) { sample, recording ->
             if (recording) {
-                snake.drain(::write)
-                write(sample)
+                snake.drain(processor::process)
+                processor.process(sample)
             } else {
                 snake.feed(sample)
             }
         }
             .launchIn(scope)
     }
-
-    private fun write(sample: Sample) = writer.write(sample)
 }

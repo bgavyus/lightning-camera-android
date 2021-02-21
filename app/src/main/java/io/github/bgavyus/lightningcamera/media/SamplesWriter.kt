@@ -3,12 +3,19 @@ package io.github.bgavyus.lightningcamera.media
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.os.Build
+import com.google.auto.factory.AutoFactory
+import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.storage.Storage
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import io.github.bgavyus.lightningcamera.utilities.Degrees
 import java.util.concurrent.atomic.AtomicBoolean
 
-open class Writer(storage: Storage, format: MediaFormat, orientation: Degrees) : DeferScope() {
+@AutoFactory
+class SamplesWriter(
+    @Provided storage: Storage,
+    format: MediaFormat,
+    orientation: Degrees,
+) : DeferScope(), SamplesProcessor {
     companion object {
         private const val outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
     }
@@ -31,7 +38,7 @@ open class Writer(storage: Storage, format: MediaFormat, orientation: Degrees) :
 
     private val active = AtomicBoolean()
 
-    open fun write(sample: Sample) {
+    override fun process(sample: Sample) {
         if (active.compareAndSet(false, true)) {
             file.keep()
         }
