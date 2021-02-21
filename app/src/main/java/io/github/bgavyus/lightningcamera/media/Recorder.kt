@@ -4,6 +4,7 @@ import android.media.MediaFormat
 import android.util.Size
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
+import io.github.bgavyus.lightningcamera.extensions.android.util.area
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import io.github.bgavyus.lightningcamera.utilities.Degrees
 import io.github.bgavyus.lightningcamera.utilities.Hertz
@@ -14,16 +15,21 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
+import kotlin.math.ceil
 
 @AutoFactory
 class Recorder(
-    @Provided private val samplesWriterFactory: SamplesWriterFactory,
+    @Provided private val writerFactory: SamplesWriterFactory,
     private val encoder: Encoder,
     private val videoSize: Size,
     private val frameRate: Hertz,
     private val orientation: Flow<Degrees>,
     private val recording: Flow<Boolean>,
 ) : DeferScope() {
+    companion object {
+        private const val minBufferSeconds = 0.05
+    }
+
     private val scope = CoroutineScope(Dispatchers.IO)
         .apply { defer(::cancel) }
 
@@ -47,14 +53,29 @@ class Recorder(
     private fun stopSession() = sessionDeferScope.close()
 
     private fun startSession(format: MediaFormat, orientation: Degrees) {
+        val scope = CoroutineScope(Dispatchers.IO)
+            .apply { sessionDeferScope.defer(::cancel) }
+
         val normalizer = PresentationTimeNormalizer()
 
-        val writer = samplesWriterFactory.create(format, orientation)
+        val writer = writerFactory.create(format, orientation)
             .also { sessionDeferScope.defer(it::close) }
 
         val pipeline = SamplesPipeline(listOf(normalizer, writer))
 
-        RecorderSession(pipeline, videoSize, frameRate, encoder.samples, recording)
-            .also { sessionDeferScope.defer(it::close) }
+        val snake = SamplesSnake(
+            sampleSize = videoSize.area,
+            samplesCount = ceil(frameRate.value * minBufferSeconds).toInt()
+        )
+
+        combine(encoder.samples, recording) { sample, recording ->
+            if (recording) {
+                snake.drain(pipeline::process)
+                pipeline.process(sample)
+            } else {
+                snake.feed(sample)
+            }
+        }
+            .launchIn(scope)
     }
 }
