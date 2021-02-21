@@ -3,7 +3,8 @@ package io.github.bgavyus.lightningcamera.utilities
 import android.view.Surface
 import io.github.bgavyus.lightningcamera.extensions.floorMod
 
-inline class Degrees(val value: Int) {
+// TODO: Convert to value class
+class Degrees(val value: Int) {
     companion object {
         fun fromSurfaceRotation(surfaceRotation: Int) = Degrees(when (surfaceRotation) {
             Surface.ROTATION_0 -> 0

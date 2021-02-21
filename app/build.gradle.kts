@@ -67,7 +67,9 @@ android {
 
         freeCompilerArgs = listOf(
             "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-            "-Xinline-classes"
+            "-Xinline-classes",
+            "-language-version", "1.5",
+            "-api-version", "1.5"
         )
     }
 

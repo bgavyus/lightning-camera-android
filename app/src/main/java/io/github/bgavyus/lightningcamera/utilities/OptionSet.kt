@@ -1,6 +1,7 @@
 package io.github.bgavyus.lightningcamera.utilities
 
-inline class OptionSet(val mask: Int = 0) : Set<Int> {
+@JvmInline
+value class OptionSet(val mask: Int = 0) : Set<Int> {
     override val size get() = mask.countOneBits()
     override fun isEmpty() = mask == 0
     override fun contains(element: Int) = mask and element == element
