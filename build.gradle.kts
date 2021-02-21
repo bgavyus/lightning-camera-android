@@ -1,5 +1,5 @@
 buildscript {
-    // https://kotlinlang.org/releases.html
+    // https://kotlinlang.org/docs/releases.html
     val kotlinVersion by extra("1.4.30")
 
     // https://github.com/google/dagger/releases
