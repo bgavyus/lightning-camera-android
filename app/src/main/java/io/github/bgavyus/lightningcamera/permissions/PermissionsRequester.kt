@@ -1,13 +1,15 @@
 package io.github.bgavyus.lightningcamera.permissions
 
-import androidx.fragment.app.FragmentActivity
+import android.content.Context
+import androidx.activity.result.ActivityResultCaller
 import io.github.bgavyus.lightningcamera.extensions.android.content.hasGranted
 import io.github.bgavyus.lightningcamera.extensions.androidx.activity.result.requestMultiplePermissions
 import io.github.bgavyus.lightningcamera.logging.Logger
 import javax.inject.Inject
 
 class PermissionsRequester @Inject constructor(
-    private val activity: FragmentActivity,
+    private val context: Context,
+    private val caller: ActivityResultCaller,
 ) {
     suspend fun requestMissing(permissions: Iterable<String>): Boolean {
         val missingPermissions = filterMissing(permissions)
@@ -21,11 +23,11 @@ class PermissionsRequester @Inject constructor(
     }
 
     private fun filterMissing(permissions: Iterable<String>) =
-        permissions.filterNot(activity::hasGranted)
+        permissions.filterNot(context::hasGranted)
 
     private suspend fun request(permissions: Collection<String>): Boolean {
         Logger.log("Requesting: ${permissions.joinToString()}")
-        val result = activity.requestMultiplePermissions(permissions.toTypedArray())
+        val result = caller.requestMultiplePermissions(permissions.toTypedArray())
 
         Logger.log("Result: $result")
         return result.all(Map.Entry<String, Boolean>::value)
