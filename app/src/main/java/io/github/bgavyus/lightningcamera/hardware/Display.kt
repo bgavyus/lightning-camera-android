@@ -21,7 +21,6 @@ class Display @Inject constructor(
 ) {
     fun rotations(): Flow<Degrees> {
         val sensorManager = context.systemService<SensorManager>()
-
         val display = context.systemService<DisplayManager>().displays.first()
 
         return sensorManager.samples(
