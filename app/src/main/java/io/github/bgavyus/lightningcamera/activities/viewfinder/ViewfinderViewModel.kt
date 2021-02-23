@@ -118,10 +118,10 @@ class ViewfinderViewModel @Inject constructor(
 
         recorderFactory.create(
             encoder,
+            recording,
             metadata.frameSize,
             metadata.frameRate,
             recorderOrientation,
-            recording,
         )
             .apply { activeDeferScope.defer(::close) }
 

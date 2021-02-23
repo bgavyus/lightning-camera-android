@@ -21,10 +21,10 @@ import kotlin.math.ceil
 class Recorder(
     @Provided private val writerFactory: SamplesWriterFactory,
     private val encoder: Encoder,
-    private val videoSize: Size,
-    private val frameRate: Hertz,
-    private val orientation: Flow<Degrees>,
     private val recording: Flow<Boolean>,
+    videoSize: Size,
+    frameRate: Hertz,
+    orientation: Flow<Degrees>,
 ) : DeferScope() {
     companion object {
         private const val minBufferSeconds = 0.05
@@ -36,11 +36,12 @@ class Recorder(
     private val sessionDeferScope = DeferScope()
         .also { defer(it::close) }
 
-    init {
-        bind()
-    }
+    private val snake = SamplesSnake(
+        sampleSize = videoSize.area,
+        samplesCount = ceil(frameRate.value * minBufferSeconds).toInt()
+    )
 
-    private fun bind() {
+    init {
         combine(encoder.format.filterNotNull(), orientation, ::restartSession)
             .launchIn(scope)
     }
@@ -63,10 +64,7 @@ class Recorder(
 
         val pipeline = SamplesPipeline(listOf(normalizer, writer))
 
-        val snake = SamplesSnake(
-            sampleSize = videoSize.area,
-            samplesCount = ceil(frameRate.value * minBufferSeconds).toInt()
-        )
+        sessionDeferScope.defer { snake.drain {} }
 
         combine(encoder.samples, recording) { sample, recording ->
             if (recording) {
