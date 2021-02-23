@@ -6,10 +6,9 @@ class PresentationTimeNormalizer : SamplesProcessor {
         private const val playbackFps = 5
     }
 
-    private val presentationTimeGenerator =
-        generateSequence(0L) { it + microsInUnit / playbackFps }.iterator()
+    private val generator = generateSequence(0L) { it + microsInUnit / playbackFps }.iterator()
 
     override fun process(sample: Sample) {
-        sample.info.presentationTimeUs = presentationTimeGenerator.next()
+        sample.info.presentationTimeUs = generator.next()
     }
 }
