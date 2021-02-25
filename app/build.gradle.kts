@@ -98,7 +98,7 @@ dependencies {
     kapt("androidx.hilt:hilt-compiler:$jetpackHiltVersion")
 
     // https://developer.android.com/jetpack/androidx/releases/core
-    implementation("androidx.core:core-ktx:1.5.0-beta01")
+    implementation("androidx.core:core-ktx:1.5.0-beta02")
 
     // https://developer.android.com/jetpack/androidx/releases/fragment
     implementation("androidx.fragment:fragment-ktx:1.3.0")
