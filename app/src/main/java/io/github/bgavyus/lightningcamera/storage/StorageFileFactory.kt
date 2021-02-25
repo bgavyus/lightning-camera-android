@@ -3,7 +3,7 @@ package io.github.bgavyus.lightningcamera.storage
 interface StorageFileFactory {
     fun create(
         mimeType: String,
-        standardDirectory: StandardDirectory,
+        mediaDirectory: MediaDirectory,
         appDirectoryName: String,
         name: String,
     ): StorageFile

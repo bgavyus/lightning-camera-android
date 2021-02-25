@@ -22,18 +22,18 @@ class ScopedStorageFile(
     @Provided private val contentResolver: ContentResolver,
     @Provided clock: Clock,
     mimeType: String,
-    standardDirectory: StandardDirectory,
+    mediaDirectory: MediaDirectory,
     appDirectoryName: String,
     name: String,
 ) : DeferScope(), StorageFile {
     private val pending = AtomicBoolean(true)
 
-    private val uri = contentResolver.requireInsert(standardDirectory.externalStorageContentUri) {
+    private val uri = contentResolver.requireInsert(mediaDirectory.externalStorageContentUri) {
         put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
         put(MediaStore.MediaColumns.DISPLAY_NAME, name)
         put(MediaStore.MediaColumns.IS_PENDING, true.toInt())
 
-        val segments = listOf(standardDirectory.value, appDirectoryName)
+        val segments = listOf(mediaDirectory.value, appDirectoryName)
         put(MediaStore.MediaColumns.RELATIVE_PATH, segments.joinToString(separator))
 
         val expirationTime = clock.instant() + Period.ofDays(1)

@@ -18,15 +18,17 @@ class Storage @Inject constructor(
     }
 
     fun generateFile(): StorageFile {
+        val namePrefix = context.getString(R.string.file_name_prefix)
+
         val timeString = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")
             .withZone(clock.zone)
             .format(clock.instant())
 
         return fileFactory.create(
             mimeType = mimeType,
-            standardDirectory = StandardDirectory.Movies,
-            appDirectoryName = context.getString(R.string.video_folder_name),
-            name = "VID_$timeString.$fileExtension",
+            mediaDirectory = MediaDirectory.Movies,
+            appDirectoryName = context.getString(R.string.app_directory_name),
+            name = "${namePrefix}_$timeString.$fileExtension",
         )
     }
 }

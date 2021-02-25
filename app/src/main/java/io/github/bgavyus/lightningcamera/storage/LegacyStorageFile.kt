@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class LegacyStorageFile(
     @Provided private val contentResolver: ContentResolver,
     private val mimeType: String,
-    private val standardDirectory: StandardDirectory,
+    private val mediaDirectory: MediaDirectory,
     appDirectoryName: String,
     name: String,
 ) : DeferScope(), StorageFile {
@@ -25,7 +25,7 @@ class LegacyStorageFile(
     private val file: PendingFile
 
     init {
-        val root = Environment.getExternalStoragePublicDirectory(standardDirectory.value)
+        val root = Environment.getExternalStoragePublicDirectory(mediaDirectory.value)
 
         val parent = File(root, appDirectoryName)
             .apply(File::mkdirsIfNotExists)
@@ -48,7 +48,7 @@ class LegacyStorageFile(
     private fun save() {
         file.save()
 
-        contentResolver.requireInsert(standardDirectory.externalStorageContentUri) {
+        contentResolver.requireInsert(mediaDirectory.externalStorageContentUri) {
             put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
             put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
             put(MediaStore.MediaColumns.DATA, file.absolutePath)
