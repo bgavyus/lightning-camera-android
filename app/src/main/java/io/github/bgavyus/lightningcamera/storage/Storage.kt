@@ -20,7 +20,7 @@ class Storage @Inject constructor(
     fun generateFile(): StorageFile {
         val namePrefix = context.getString(R.string.file_name_prefix)
 
-        val timeString = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")
+        val timeString = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmssSSS")
             .withZone(clock.zone)
             .format(clock.instant())
 
