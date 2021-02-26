@@ -79,6 +79,7 @@ android {
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
+    // https://github.com/google/desugar_jdk_libs/blob/master/CHANGELOG.md
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.1")
 
     val kotlinVersion: String by rootProject.extra
@@ -118,6 +119,7 @@ dependencies {
     // https://github.com/google/auto/releases
     implementation("com.google.auto.factory:auto-factory:1.0-beta8")
 
+    // https://github.com/junit-team/junit4/releases
     testImplementation("junit:junit:4.13.2")
 
     // https://developer.android.com/jetpack/androidx/releases/test
