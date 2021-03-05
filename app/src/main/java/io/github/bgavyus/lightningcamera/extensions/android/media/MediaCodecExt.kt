@@ -15,6 +15,7 @@ fun MediaCodec.encoderEvents(handler: Handler? = null) = callbackFlow<EncoderEve
         override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) =
             sendBlocking(EncoderEvent.FormatChanged(format))
 
+        // TODO: Avoid allocating EncoderEvent.BufferAvailable
         override fun onOutputBufferAvailable(
             codec: MediaCodec,
             index: Int,
