@@ -8,7 +8,7 @@ import android.os.Handler
 import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.samples
 import io.github.bgavyus.lightningcamera.logging.Logger
-import io.github.bgavyus.lightningcamera.utilities.Degrees
+import io.github.bgavyus.lightningcamera.utilities.Rotation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -19,7 +19,7 @@ class Display @Inject constructor(
     private val context: Context,
     private val handler: Handler,
 ) {
-    fun rotations(): Flow<Degrees> {
+    fun rotations(): Flow<Rotation> {
         val sensorManager = context.systemService<SensorManager>()
         val display = context.systemService<DisplayManager>().displays.first()
 
@@ -31,7 +31,7 @@ class Display @Inject constructor(
         )
             .map { display.rotation }
             .distinctUntilChanged()
-            .map(Degrees::fromSurfaceRotation)
+            .map(Rotation::fromSurfaceRotation)
             .onEach { Logger.log("Rotation changed: $it") }
     }
 }

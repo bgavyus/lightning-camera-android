@@ -22,7 +22,7 @@ import io.github.bgavyus.lightningcamera.media.EncoderFactory
 import io.github.bgavyus.lightningcamera.media.RecorderFactory
 import io.github.bgavyus.lightningcamera.media.SamplesSnake
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
-import io.github.bgavyus.lightningcamera.utilities.Degrees
+import io.github.bgavyus.lightningcamera.utilities.Rotation
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
@@ -43,7 +43,7 @@ class ViewfinderViewModel @Inject constructor(
     private val activeDeferScope = DeferScope()
         .apply { deferScope.defer(::close) }
 
-    private val displayRotation = MutableStateFlow(Degrees(0))
+    private val displayRotation = MutableStateFlow(Rotation.Natural)
     val active = MutableStateFlow(false)
     val detecting = MutableStateFlow(false)
     val viewSize = MutableStateFlow(Size(1, 1))

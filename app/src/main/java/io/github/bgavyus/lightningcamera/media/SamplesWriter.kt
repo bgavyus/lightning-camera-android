@@ -8,7 +8,7 @@ import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.storage.Storage
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
-import io.github.bgavyus.lightningcamera.utilities.Degrees
+import io.github.bgavyus.lightningcamera.utilities.Rotation
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class SamplesWriter(
     @Provided storage: Storage,
     format: MediaFormat,
-    orientation: Degrees,
+    orientation: Rotation,
 ) : DeferScope(), SamplesProcessor {
     companion object {
         private const val outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
@@ -33,7 +33,7 @@ class SamplesWriter(
         MediaMuxer(file.descriptor, outputFormat)
     }.apply {
         defer(::release)
-        setOrientationHint(orientation.normalized.value)
+        setOrientationHint(orientation.degrees)
         track = addTrack(format)
         start()
     }

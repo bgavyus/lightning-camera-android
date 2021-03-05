@@ -10,12 +10,12 @@ import io.github.bgavyus.lightningcamera.extensions.android.util.aspectRatio
 import io.github.bgavyus.lightningcamera.extensions.android.util.center
 import io.github.bgavyus.lightningcamera.extensions.android.util.reciprocal
 import io.github.bgavyus.lightningcamera.extensions.android.util.times
-import io.github.bgavyus.lightningcamera.utilities.Degrees
+import io.github.bgavyus.lightningcamera.utilities.Rotation
 
 object TransformMatrixFactory {
-    fun create(rotation: Degrees, inputSize: Size, outputSize: Size) = Matrix().apply {
+    fun create(rotation: Rotation, inputSize: Size, outputSize: Size) = Matrix().apply {
         val outputCenter = outputSize.center.toPointF()
-        postRotate(-rotation.value.toFloat(), outputCenter)
+        postRotate(-rotation.degrees.toFloat(), outputCenter)
 
         val inputRatio = inputSize.aspectRatio
         val outputRatio = outputSize.aspectRatio

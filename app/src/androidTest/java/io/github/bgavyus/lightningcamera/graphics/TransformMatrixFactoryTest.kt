@@ -3,7 +3,7 @@ package io.github.bgavyus.lightningcamera.graphics
 import android.util.Size
 import androidx.core.graphics.values
 import io.github.bgavyus.lightningcamera.extensions.normalized
-import io.github.bgavyus.lightningcamera.utilities.Degrees
+import io.github.bgavyus.lightningcamera.utilities.Rotation
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -71,7 +71,7 @@ class TransformMatrixFactoryTest {
         outputSize: Size,
         values: List<Number>,
     ) {
-        val matrix = TransformMatrixFactory.create(Degrees(rotation), inputSize, outputSize)
+        val matrix = TransformMatrixFactory.create(Rotation(rotation), inputSize, outputSize)
 
         val expectedValues = values
             .map(Number::toFloat)

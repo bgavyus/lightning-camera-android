@@ -5,7 +5,7 @@ import android.media.MediaFormat
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
-import io.github.bgavyus.lightningcamera.utilities.Degrees
+import io.github.bgavyus.lightningcamera.utilities.Rotation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -18,7 +18,7 @@ class Recorder(
     private val encoder: Encoder,
     private val snake: SamplesSnake,
     recording: Flow<Boolean>,
-    orientation: Flow<Degrees>,
+    orientation: Flow<Rotation>,
 ) : DeferScope() {
     private val scope = CoroutineScope(Dispatchers.IO)
         .apply { defer(::cancel) }
@@ -33,14 +33,14 @@ class Recorder(
             .launchIn(scope)
     }
 
-    private fun restartSession(format: MediaFormat, orientation: Degrees) {
+    private fun restartSession(format: MediaFormat, orientation: Rotation) {
         stopSession()
         startSession(format, orientation)
     }
 
     private fun stopSession() = sessionDeferScope.close()
 
-    private fun startSession(format: MediaFormat, orientation: Degrees) {
+    private fun startSession(format: MediaFormat, orientation: Rotation) {
         val normalizer = PresentationTimeNormalizer()
 
         val writer = writerFactory.create(format, orientation)
