@@ -2,12 +2,10 @@ package io.github.bgavyus.lightningcamera.media
 
 import android.media.MediaCodec
 import android.media.MediaFormat
-import android.util.Size
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import io.github.bgavyus.lightningcamera.utilities.Degrees
-import io.github.bgavyus.lightningcamera.utilities.Hertz
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -18,9 +16,8 @@ import java.nio.ByteBuffer
 class Recorder(
     @Provided private val writerFactory: SamplesWriterFactory,
     private val encoder: Encoder,
+    private val snake: SamplesSnake,
     recording: Flow<Boolean>,
-    videoSize: Size,
-    frameRate: Hertz,
     orientation: Flow<Degrees>,
 ) : DeferScope() {
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -30,8 +27,6 @@ class Recorder(
 
     private val sessionDeferScope = DeferScope()
         .also { defer(it::close) }
-
-    private val snake = SamplesSnake(videoSize, frameRate)
 
     init {
         combine(encoder.format.filterNotNull(), orientation, ::restartSession)
@@ -53,16 +48,16 @@ class Recorder(
 
         val pipeline = SamplesPipeline(listOf(normalizer, writer))
 
-        sessionDeferScope.defer(snake::recycle)
+        snake.recycle()
 
         encoder.samplesProcessor = object : SamplesProcessor {
             override fun process(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
                 if (recordingState.value) {
                     snake.drain(pipeline)
-                    pipeline.process(buffer, info)
-                } else {
-                    snake.process(buffer, info)
                 }
+
+                val processor = if (recordingState.value) pipeline else snake
+                processor.process(buffer, info)
             }
         }
 
