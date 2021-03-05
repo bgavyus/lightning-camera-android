@@ -1,5 +1,6 @@
 package io.github.bgavyus.lightningcamera.media
 
+import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.os.Build
@@ -8,6 +9,7 @@ import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.storage.Storage
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import io.github.bgavyus.lightningcamera.utilities.Degrees
+import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 
 @AutoFactory
@@ -38,11 +40,11 @@ class SamplesWriter(
 
     private val active = AtomicBoolean()
 
-    override fun process(sample: Sample) {
+    override fun process(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
         if (active.compareAndSet(false, true)) {
             file.keep()
         }
 
-        muxer.writeSampleData(track, sample.buffer, sample.info)
+        muxer.writeSampleData(track, buffer, info)
     }
 }

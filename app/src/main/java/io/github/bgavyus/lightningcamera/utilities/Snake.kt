@@ -39,4 +39,8 @@ class Snake<Element>(private val nodes: Array<Element>) {
     private fun shrink() {
         size--
     }
+
+    fun recycle() {
+        size = 0
+    }
 }

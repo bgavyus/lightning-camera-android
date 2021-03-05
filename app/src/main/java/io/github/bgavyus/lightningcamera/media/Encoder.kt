@@ -16,7 +16,10 @@ import io.github.bgavyus.lightningcamera.utilities.Hertz
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 @AutoFactory
 class Encoder(
@@ -34,8 +37,7 @@ class Encoder(
     private val _format = MutableStateFlow(null as MediaFormat?)
     val format = _format.asStateFlow()
 
-    private val _samples = MutableSharedFlow<Sample>()
-    val samples = _samples.asSharedFlow()
+    var samplesProcessor: SamplesProcessor? = null
 
     private val codec = MediaCodec.createEncoderByType(mimeType).apply {
         defer(::release)
@@ -68,7 +70,7 @@ class Encoder(
         _format.value = format
     }
 
-    private suspend fun onBufferAvailable(index: Int, info: MediaCodec.BufferInfo) {
+    private fun onBufferAvailable(index: Int, info: MediaCodec.BufferInfo) {
         try {
             if (MediaCodec.BUFFER_FLAG_CODEC_CONFIG in info.flagsSet) {
                 Logger.log("Got codec config")
@@ -82,7 +84,7 @@ class Encoder(
             val buffer = codec.getOutputBuffer(index)
                 ?: throw RuntimeException()
 
-            _samples.emit(Sample(buffer, info))
+            samplesProcessor?.process(buffer, info)
         } finally {
             codec.releaseOutputBuffer(index, false)
         }

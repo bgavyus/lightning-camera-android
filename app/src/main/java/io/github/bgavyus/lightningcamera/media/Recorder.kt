@@ -1,5 +1,6 @@
 package io.github.bgavyus.lightningcamera.media
 
+import android.media.MediaCodec
 import android.media.MediaFormat
 import android.util.Size
 import com.google.auto.factory.AutoFactory
@@ -12,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
+import java.nio.ByteBuffer
 import kotlin.math.ceil
 
 @AutoFactory
@@ -60,19 +62,21 @@ class Recorder(
 
         val pipeline = SamplesPipeline(listOf(normalizer, writer))
 
-        sessionDeferScope.defer { snake.drain {} }
+        sessionDeferScope.defer(snake::recycle)
 
-        val scope = CoroutineScope(Dispatchers.IO)
-            .apply { sessionDeferScope.defer(::cancel) }
-
-        encoder.samples.onEach { sample ->
-            if (recordingState.value) {
-                snake.drain(pipeline::process)
-                pipeline.process(sample)
-            } else {
-                snake.feed(sample)
+        encoder.samplesProcessor = object : SamplesProcessor {
+            override fun process(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+                if (recordingState.value) {
+                    snake.drain(pipeline)
+                    pipeline.process(buffer, info)
+                } else {
+                    snake.process(buffer, info)
+                }
             }
         }
-            .launchIn(scope)
+
+        sessionDeferScope.defer {
+            encoder.samplesProcessor = null
+        }
     }
 }
