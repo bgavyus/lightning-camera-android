@@ -5,7 +5,6 @@ import android.media.MediaFormat
 import android.util.Size
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
-import io.github.bgavyus.lightningcamera.extensions.android.util.area
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import io.github.bgavyus.lightningcamera.utilities.Degrees
 import io.github.bgavyus.lightningcamera.utilities.Hertz
@@ -14,7 +13,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import java.nio.ByteBuffer
-import kotlin.math.ceil
 
 @AutoFactory
 class Recorder(
@@ -25,10 +23,6 @@ class Recorder(
     frameRate: Hertz,
     orientation: Flow<Degrees>,
 ) : DeferScope() {
-    companion object {
-        private const val minBufferSeconds = 0.05
-    }
-
     private val scope = CoroutineScope(Dispatchers.IO)
         .apply { defer(::cancel) }
 
@@ -37,10 +31,7 @@ class Recorder(
     private val sessionDeferScope = DeferScope()
         .also { defer(it::close) }
 
-    private val snake = SamplesSnake(
-        sampleSize = videoSize.area,
-        samplesCount = ceil(frameRate.value * minBufferSeconds).toInt()
-    )
+    private val snake = SamplesSnake(videoSize, frameRate)
 
     init {
         combine(encoder.format.filterNotNull(), orientation, ::restartSession)
