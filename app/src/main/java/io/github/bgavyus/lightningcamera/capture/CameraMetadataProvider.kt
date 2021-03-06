@@ -14,7 +14,7 @@ import io.github.bgavyus.lightningcamera.extensions.android.util.area
 import io.github.bgavyus.lightningcamera.extensions.android.util.has16To9AspectRatio
 import io.github.bgavyus.lightningcamera.extensions.android.util.isSingular
 import io.github.bgavyus.lightningcamera.logging.Logger
-import io.github.bgavyus.lightningcamera.utilities.Hertz
+import io.github.bgavyus.lightningcamera.utilities.FrameRate
 import io.github.bgavyus.lightningcamera.utilities.Rotation
 import javax.inject.Inject
 
@@ -41,7 +41,7 @@ class CameraMetadataProvider @Inject constructor(
             .getMaxBy { (_, _, framesPerSecond) -> framesPerSecond }
 
         val orientation = Rotation.fromDegrees(characteristics.sensorOrientation)
-        val frameRate = Hertz(framesPerSecond)
+        val frameRate = FrameRate(framesPerSecond)
         val streamConfigurationMap = characteristics.streamConfigurationMap
 
         val frameSize = if (frameRate.isHighSpeed) {

@@ -5,12 +5,12 @@ import android.media.MediaCodecList
 import android.media.MediaFormat
 import android.util.Size
 import io.github.bgavyus.lightningcamera.logging.Logger
-import io.github.bgavyus.lightningcamera.utilities.Hertz
+import io.github.bgavyus.lightningcamera.utilities.FrameRate
 
 object FormatFactory {
     fun create(
         size: Size,
-        frameRate: Hertz,
+        frameRate: FrameRate,
         mimeType: String,
     ) = MediaFormat.createVideoFormat(mimeType, size.width, size.height).apply {
         setInteger(
@@ -28,7 +28,7 @@ object FormatFactory {
                 .also { Logger.log("Bit rate: $it") }
         )
 
-        setInteger(MediaFormat.KEY_FRAME_RATE, frameRate.value)
+        setInteger(MediaFormat.KEY_FRAME_RATE, frameRate.hertz)
         setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 0)
     }
 }

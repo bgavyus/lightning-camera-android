@@ -3,7 +3,7 @@ package io.github.bgavyus.lightningcamera.media
 import android.media.MediaCodec
 import java.nio.ByteBuffer
 
-class SamplesPool(samplesCount: Int, sampleSize: Int): Iterator<Sample> {
+class SamplesPool(samplesCount: Int, sampleSize: Int) : Iterator<Sample> {
     private var index = 0
 
     private val array = Array(samplesCount) {

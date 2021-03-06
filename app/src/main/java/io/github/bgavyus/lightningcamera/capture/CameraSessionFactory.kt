@@ -8,7 +8,7 @@ import android.os.Handler
 import android.view.Surface
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.createCaptureSession
 import io.github.bgavyus.lightningcamera.extensions.toRange
-import io.github.bgavyus.lightningcamera.utilities.Hertz
+import io.github.bgavyus.lightningcamera.utilities.FrameRate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import javax.inject.Inject
@@ -23,10 +23,10 @@ class CameraSessionFactory @Inject constructor(
     suspend fun create(
         device: CameraDevice,
         surfaces: List<Surface>,
-        frameRate: Hertz,
+        frameRate: FrameRate,
     ): CameraCaptureSession {
         val captureRequest = device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
-            set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, frameRate.value.toRange())
+            set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, frameRate.hertz.toRange())
             set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF)
             set(CaptureRequest.LENS_FOCUS_DISTANCE, infinityFocus)
             surfaces.forEach(::addTarget)

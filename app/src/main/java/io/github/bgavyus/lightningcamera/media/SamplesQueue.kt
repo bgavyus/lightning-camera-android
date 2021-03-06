@@ -6,12 +6,12 @@ import com.google.common.collect.EvictingQueue
 import io.github.bgavyus.lightningcamera.extensions.android.media.copyFrom
 import io.github.bgavyus.lightningcamera.extensions.android.util.area
 import io.github.bgavyus.lightningcamera.extensions.java.nio.copyFrom
-import io.github.bgavyus.lightningcamera.utilities.Hertz
+import io.github.bgavyus.lightningcamera.utilities.FrameRate
 import java.nio.ByteBuffer
 import kotlin.math.ceil
 
 @Suppress("UnstableApiUsage")
-class SamplesQueue(frameSize: Size, frameRate: Hertz) : SamplesProcessor {
+class SamplesQueue(frameSize: Size, frameRate: FrameRate) : SamplesProcessor {
     companion object {
         private const val minBufferSeconds = 0.05
     }
@@ -20,7 +20,7 @@ class SamplesQueue(frameSize: Size, frameRate: Hertz) : SamplesProcessor {
     private val queue: EvictingQueue<Sample>
 
     init {
-        val samplesCount = ceil(frameRate.value * minBufferSeconds).toInt()
+        val samplesCount = ceil(frameRate.hertz * minBufferSeconds).toInt()
         pool = SamplesPool(samplesCount, frameSize.area)
         queue = EvictingQueue.create(samplesCount)
     }

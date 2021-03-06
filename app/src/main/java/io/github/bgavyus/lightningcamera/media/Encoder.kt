@@ -12,7 +12,7 @@ import io.github.bgavyus.lightningcamera.extensions.android.media.encoderEvents
 import io.github.bgavyus.lightningcamera.extensions.android.media.flagsSet
 import io.github.bgavyus.lightningcamera.logging.Logger
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
-import io.github.bgavyus.lightningcamera.utilities.Hertz
+import io.github.bgavyus.lightningcamera.utilities.FrameRate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.onEach
 class Encoder(
     @Provided handler: Handler,
     size: Size,
-    frameRate: Hertz,
+    frameRate: FrameRate,
 ) : DeferScope() {
     companion object {
         private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
