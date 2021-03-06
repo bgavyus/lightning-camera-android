@@ -1,6 +1,6 @@
 buildscript {
     // https://kotlinlang.org/docs/releases.html
-    val kotlinVersion by extra("1.4.30")
+    val kotlinVersion by extra("1.4.31")
 
     // https://github.com/google/dagger/releases
     val hiltVersion by extra("2.32-alpha")
