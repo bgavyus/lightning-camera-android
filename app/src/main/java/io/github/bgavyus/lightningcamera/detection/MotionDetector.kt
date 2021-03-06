@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
+// TODO: Replace RenderScript with OpenCV
 @AutoFactory
 class MotionDetector(
     @Provided context: Context,
