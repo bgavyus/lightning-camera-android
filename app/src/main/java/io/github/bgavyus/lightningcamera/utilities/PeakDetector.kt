@@ -31,6 +31,7 @@ class PeakDetector(
     }
 
     private fun add(sample: Double) {
+        // TODO: Avoid allocating lambda
         snake.feed { removedSample ->
             sum += sample - removedSample
             sample

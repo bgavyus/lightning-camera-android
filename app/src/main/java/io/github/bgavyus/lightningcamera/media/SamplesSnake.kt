@@ -19,6 +19,7 @@ class SamplesSnake(frameSize: Size, frameRate: Hertz) : SamplesProcessor {
         Sample(ByteBuffer.allocateDirect(frameSize.area), MediaCodec.BufferInfo())
     })
 
+    // TODO: Avoid allocating lambda
     override fun process(buffer: ByteBuffer, info: MediaCodec.BufferInfo) = snake.feed { sample ->
         sample.also {
             it.buffer.copyFrom(buffer)

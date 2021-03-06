@@ -72,7 +72,9 @@ class MotionDetector(
     }
 
     fun detectingStates() = input.buffers()
+        // TODO: Avoid allocating lambda
         .onEach { it.ioReceive() }
+        // TODO: Avoid allocation
         .map(::detecting)
         .distinctUntilChanged()
         .flowOn(Dispatchers.IO)

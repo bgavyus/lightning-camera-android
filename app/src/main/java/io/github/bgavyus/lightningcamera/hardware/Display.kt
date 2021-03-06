@@ -29,6 +29,7 @@ class Display @Inject constructor(
             maxReportLatencyUs = 100_000,
             handler = handler,
         )
+            // TODO: Avoid allocating lambda
             .map { display.rotation }
             .distinctUntilChanged()
             .map(Rotation::fromSurfaceRotation)

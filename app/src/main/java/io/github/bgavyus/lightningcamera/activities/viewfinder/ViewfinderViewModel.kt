@@ -149,6 +149,7 @@ class ViewfinderViewModel @Inject constructor(
     }
 
     suspend fun adjustBufferSize() {
+        // TODO: Avoid allocation
         val metadata = deferredMetadata.await()
         surfaceTexture.value?.setDefaultBufferSize(metadata.frameSize)
     }
