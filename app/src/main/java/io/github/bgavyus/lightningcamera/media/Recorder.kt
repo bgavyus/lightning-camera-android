@@ -16,7 +16,7 @@ import java.nio.ByteBuffer
 class Recorder(
     @Provided private val writerFactory: SamplesWriterFactory,
     private val encoder: Encoder,
-    private val snake: SamplesSnake,
+    private val queue: SamplesQueue,
     recording: Flow<Boolean>,
     orientation: Flow<Rotation>,
 ) : DeferScope() {
@@ -48,15 +48,15 @@ class Recorder(
 
         val pipeline = SamplesPipeline(listOf(normalizer, writer))
 
-        snake.clear()
+        queue.clear()
 
         encoder.samplesProcessor = object : SamplesProcessor {
             override fun process(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
                 if (recordingState.value) {
-                    snake.drain(pipeline)
+                    queue.drain(pipeline)
                 }
 
-                val processor = if (recordingState.value) pipeline else snake
+                val processor = if (recordingState.value) pipeline else queue
                 processor.process(buffer, info)
             }
         }

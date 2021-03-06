@@ -11,7 +11,7 @@ import java.nio.ByteBuffer
 import kotlin.math.ceil
 
 @Suppress("UnstableApiUsage")
-class SamplesSnake(frameSize: Size, frameRate: Hertz) : SamplesProcessor {
+class SamplesQueue(frameSize: Size, frameRate: Hertz) : SamplesProcessor {
     companion object {
         private const val minBufferSeconds = 0.05
     }

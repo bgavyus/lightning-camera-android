@@ -21,7 +21,7 @@ import io.github.bgavyus.lightningcamera.graphics.TransformMatrixFactory
 import io.github.bgavyus.lightningcamera.hardware.Display
 import io.github.bgavyus.lightningcamera.media.EncoderFactory
 import io.github.bgavyus.lightningcamera.media.RecorderFactory
-import io.github.bgavyus.lightningcamera.media.SamplesSnake
+import io.github.bgavyus.lightningcamera.media.SamplesQueue
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import io.github.bgavyus.lightningcamera.utilities.Rotation
 import kotlinx.coroutines.*
@@ -87,9 +87,9 @@ class ViewfinderViewModel @Inject constructor(
             .apply { deferScope.defer(::close) }
     }
 
-    private val deferredSnake = viewModelScope.async(Dispatchers.IO) {
+    private val deferredQueue = viewModelScope.async(Dispatchers.IO) {
         val metadata = deferredMetadata.await()
-        SamplesSnake(metadata.frameSize, metadata.frameRate)
+        SamplesQueue(metadata.frameSize, metadata.frameRate)
     }
 
     init {
@@ -122,11 +122,11 @@ class ViewfinderViewModel @Inject constructor(
     private suspend fun activate() {
         val encoder = deferredEncoder.await()
         val metadata = deferredMetadata.await()
-        val snake = deferredSnake.await()
+        val queue = deferredQueue.await()
 
         recorderFactory.create(
             encoder,
-            snake,
+            queue,
             recording,
             recorderOrientation,
         )
