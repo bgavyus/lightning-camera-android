@@ -58,14 +58,7 @@ class ViewfinderActivity : FragmentActivity() {
         model.surfaceTexture.value?.let(binding.textureView::setSurfaceTexture)
 
         lifecycleScope.launchAll(
-            binding.textureView.surfaceTextureEvents().onEach {
-                when (it) {
-                    is SurfaceTextureEvent.Available -> model.surfaceTexture.value = it.surface
-                    is SurfaceTextureEvent.SizeChanged -> model.viewSize.value = it.size
-                    SurfaceTextureEvent.Updated -> model.adjustBufferSize()
-                }
-            },
-
+            binding.textureView.surfaceTextureEvents().onEach(::handleSurfaceTextureEvent),
             model.transformMatrix.onEach(binding.textureView::setTransform),
             model.detecting.onEach(::setDetectionIndicatorActive),
 
@@ -73,6 +66,12 @@ class ViewfinderActivity : FragmentActivity() {
                 .onEach { Logger.log("Watching? $it") }
                 .reflectTo(model.watching),
         )
+    }
+
+    private suspend fun handleSurfaceTextureEvent(event: SurfaceTextureEvent) = when (event) {
+        is SurfaceTextureEvent.Available -> model.surfaceTexture.value = event.surface
+        is SurfaceTextureEvent.SizeChanged -> model.viewSize.value = event.size
+        SurfaceTextureEvent.Updated -> model.adjustBufferSize()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
