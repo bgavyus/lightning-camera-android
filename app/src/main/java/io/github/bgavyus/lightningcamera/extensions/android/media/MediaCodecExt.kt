@@ -12,15 +12,22 @@ import kotlinx.coroutines.flow.callbackFlow
 
 fun MediaCodec.encoderEvents(handler: Handler? = null) = callbackFlow<EncoderEvent> {
     val callback = object : MediaCodec.Callback() {
+        val bufferAvailableEvents = HashMap<Int, EncoderEvent.BufferAvailable>()
+
         override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) =
             sendBlocking(EncoderEvent.FormatChanged(format))
 
-        // TODO: Avoid allocating EncoderEvent.BufferAvailable
         override fun onOutputBufferAvailable(
             codec: MediaCodec,
             index: Int,
             info: MediaCodec.BufferInfo,
-        ) = sendBlocking(EncoderEvent.BufferAvailable(index, info))
+        ) {
+            val event = bufferAvailableEvents
+                .getOrPut(index) { EncoderEvent.BufferAvailable(index, info) }
+                .also { it.info = info }
+
+            sendBlocking(event)
+        }
 
         override fun onError(codec: MediaCodec, error: MediaCodec.CodecException) = cancel(error)
         override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {}
@@ -32,7 +39,7 @@ fun MediaCodec.encoderEvents(handler: Handler? = null) = callbackFlow<EncoderEve
 
 sealed class EncoderEvent {
     data class FormatChanged(val format: MediaFormat) : EncoderEvent()
-    data class BufferAvailable(val index: Int, val info: MediaCodec.BufferInfo) : EncoderEvent()
+    data class BufferAvailable(val index: Int, var info: MediaCodec.BufferInfo) : EncoderEvent()
 }
 
 fun MediaCodec.configureEncoder(format: MediaFormat? = null, crypto: MediaCrypto? = null) =
