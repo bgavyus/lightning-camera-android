@@ -68,7 +68,7 @@ class ViewfinderActivity : FragmentActivity() {
         )
     }
 
-    private suspend fun handleSurfaceTextureEvent(event: SurfaceTextureEvent) = when (event) {
+    private fun handleSurfaceTextureEvent(event: SurfaceTextureEvent) = when (event) {
         is SurfaceTextureEvent.Available -> model.surfaceTexture.value = event.surface
         is SurfaceTextureEvent.SizeChanged -> model.viewSize.value = event.size
         SurfaceTextureEvent.Updated -> model.adjustBufferSize()

@@ -13,6 +13,7 @@ import io.github.bgavyus.lightningcamera.capture.CameraSessionFactory
 import io.github.bgavyus.lightningcamera.detection.MotionDetectorFactory
 import io.github.bgavyus.lightningcamera.extensions.android.graphics.setDefaultBufferSize
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.and
+import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.getCompletedOrNull
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.launchAll
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.reflectTo
 import io.github.bgavyus.lightningcamera.graphics.SurfaceDuplicatorFactory
@@ -148,9 +149,8 @@ class ViewfinderViewModel @Inject constructor(
             .launchIn(coroutineScope)
     }
 
-    suspend fun adjustBufferSize() {
-        // TODO: Avoid allocation
-        val metadata = deferredMetadata.await()
+    fun adjustBufferSize() {
+        val metadata = deferredMetadata.getCompletedOrNull() ?: return
         surfaceTexture.value?.setDefaultBufferSize(metadata.frameSize)
     }
 
