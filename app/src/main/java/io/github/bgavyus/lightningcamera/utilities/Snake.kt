@@ -26,13 +26,13 @@ class Snake<Element>(private val nodes: Array<Element>) {
     }
 
     fun drain(block: (Element) -> Unit) {
-        while (!empty) {
+        while (!isEmpty) {
             block(nodes[tail])
             shrink()
         }
     }
 
-    private val empty get() = size == 0
+    private val isEmpty get() = size == 0
     private val tail get() = headBased(-size)
     private fun headBased(n: Int) = head + n floorMod nodes.size
 
@@ -40,7 +40,7 @@ class Snake<Element>(private val nodes: Array<Element>) {
         size--
     }
 
-    fun recycle() {
+    fun empty() {
         size = 0
     }
 }

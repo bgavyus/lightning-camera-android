@@ -48,7 +48,7 @@ class Recorder(
 
         val pipeline = SamplesPipeline(listOf(normalizer, writer))
 
-        snake.recycle()
+        snake.empty()
 
         encoder.samplesProcessor = object : SamplesProcessor {
             override fun process(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {

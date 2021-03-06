@@ -30,5 +30,5 @@ class SamplesSnake(frameSize: Size, frameRate: Hertz) : SamplesProcessor {
         processor.process(sample.buffer, sample.info)
     }
 
-    fun recycle() = snake.recycle()
+    fun empty() = snake.empty()
 }
