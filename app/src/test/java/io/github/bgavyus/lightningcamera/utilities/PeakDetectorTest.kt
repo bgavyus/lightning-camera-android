@@ -1,6 +1,5 @@
-package io.github.bgavyus.lightningcamera.common
+package io.github.bgavyus.lightningcamera.utilities
 
-import io.github.bgavyus.lightningcamera.utilities.PeakDetector
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test

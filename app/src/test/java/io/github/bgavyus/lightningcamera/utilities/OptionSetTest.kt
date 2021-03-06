@@ -1,6 +1,5 @@
-package io.github.bgavyus.lightningcamera.common
+package io.github.bgavyus.lightningcamera.utilities
 
-import io.github.bgavyus.lightningcamera.utilities.OptionSet
 import org.junit.Assert.*
 import org.junit.Test
 
