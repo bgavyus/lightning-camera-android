@@ -42,12 +42,8 @@ class Encoder(
     private val codec = MediaCodec.createEncoderByType(mimeType).apply {
         defer(::release)
 
-        encoderEvents(handler).onEach {
-            when (it) {
-                is EncoderEvent.FormatChanged -> onFormatChanged(it.format)
-                is EncoderEvent.BufferAvailable -> onBufferAvailable(it.index, it.info)
-            }
-        }
+        encoderEvents(handler)
+            .onEach(::handleEvent)
             .launchIn(scope)
 
         val format = FormatFactory.create(size, frameRate, mimeType)
@@ -63,6 +59,11 @@ class Encoder(
             defer(::stop)
             defer(::flush)
         }
+    }
+
+    private fun handleEvent(event: EncoderEvent) = when (event) {
+        is EncoderEvent.FormatChanged -> onFormatChanged(event.format)
+        is EncoderEvent.BufferAvailable -> onBufferAvailable(event.index, event.info)
     }
 
     private fun onFormatChanged(format: MediaFormat) {
