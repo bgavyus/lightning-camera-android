@@ -1,13 +1,15 @@
 package io.github.bgavyus.lightningcamera.utilities
 
+import com.google.common.collect.EvictingQueue
 import io.github.bgavyus.lightningcamera.extensions.distance
 
+@Suppress("UnstableApiUsage")
 class PeakDetector(
     private val windowSize: Int,
     private val deviationThreshold: Double,
     private val detectionWeight: Double,
 ) {
-    private val snake = Snake(Array(windowSize) { 0.0 })
+    private val queue = EvictingQueue.create<Double>(windowSize)
     private var sum = 0.0
 
     private val mean get() = sum / windowSize
@@ -31,10 +33,7 @@ class PeakDetector(
     }
 
     private fun add(sample: Double) {
-        // TODO: Avoid allocating lambda
-        snake.feed { removedSample ->
-            sum += sample - removedSample
-            sample
-        }
+        sum += sample - (queue.peek() ?: 0.0)
+        queue.add(sample)
     }
 }
