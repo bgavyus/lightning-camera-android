@@ -9,10 +9,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TransformMatrixFactoryTest {
-    private val natural = 0
-    private val right = 90
-    private val upsideDown = 180
-    private val left = 270
+    private val natural = Rotation.Natural
+    private val right = Rotation.Right
+    private val upsideDown = Rotation.UpsideDown
+    private val left = Rotation.Left
 
     private val wide = Size(200, 100)
     private val tall = Size(100, 200)
@@ -66,12 +66,12 @@ class TransformMatrixFactoryTest {
     fun testUpsideDownWideToWide() = test(upsideDown, wide, wide, listOf(-0.25, 0, 125, 0, -1, 100))
 
     private fun test(
-        rotation: Int,
+        rotation: Rotation,
         inputSize: Size,
         outputSize: Size,
         values: List<Number>,
     ) {
-        val matrix = TransformMatrixFactory.create(Rotation(rotation), inputSize, outputSize)
+        val matrix = TransformMatrixFactory.create(rotation, inputSize, outputSize)
 
         val expectedValues = values
             .map(Number::toFloat)
