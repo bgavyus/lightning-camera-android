@@ -62,15 +62,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("x86", "x86_64", "armeabi", "armeabi-v7a", "mips", "mips64", "arm64-v8a")
-            isUniversalApk = false
-        }
-    }
-
     kotlinOptions {
         useIR = true
         jvmTarget = JavaVersion.VERSION_1_8.toString()
@@ -128,9 +119,6 @@ dependencies {
 
     // https://github.com/google/auto/releases
     implementation("com.google.auto.factory:auto-factory:1.0-beta8")
-
-    // https://github.com/quickbirdstudios/opencv-android/releases
-    implementation("com.quickbirdstudios:opencv:4.3.0")
 
     // https://github.com/junit-team/junit4/releases
     testImplementation("junit:junit:4.13.2")
