@@ -130,7 +130,7 @@ dependencies {
     implementation("com.google.auto.factory:auto-factory:1.0-beta8")
 
     // https://github.com/quickbirdstudios/opencv-android/releases
-    implementation("com.quickbirdstudios:opencv:4.3.0")
+    implementation("com.quickbirdstudios:opencv:4.3.0-contrib")
 
     // https://github.com/junit-team/junit4/releases
     testImplementation("junit:junit:4.13.2")
