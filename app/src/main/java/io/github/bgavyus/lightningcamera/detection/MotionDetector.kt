@@ -64,7 +64,6 @@ class MotionDetector(
     )
 
     private fun detecting(frame: Allocation): Boolean {
-        // TODO: Avoid allocating ScriptC_motion.result_double
         val ratio = script.reduce_rate(frame, lastFrame).get() / maxRate
         lastFrame.copyFrom(frame)
         return peakDetector.getDetectingAndAdd(ratio)
@@ -72,7 +71,6 @@ class MotionDetector(
 
     fun detectingStates() = input.buffers()
         .onEach(Allocation::ioReceive)
-        // TODO: Avoid allocation
         .map(::detecting)
         .distinctUntilChanged()
         .flowOn(Dispatchers.IO)
