@@ -31,7 +31,7 @@ class SamplesQueue(frameSize: Size, frameRate: FrameRate) : SamplesProcessor {
             it.info.copyFrom(info)
         }
 
-        queue.offer(sample)
+        queue.add(sample)
     }
 
     fun drain(processor: SamplesProcessor) {
