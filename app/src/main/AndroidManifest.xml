@@ -45,7 +45,7 @@
         tools:ignore="GoogleAppIndexingWarning">
 
         <activity
-            android:name=".activities.viewfinder.ViewfinderActivity"
+            android:name=".ui.activities.viewfinder.ViewfinderActivity"
             android:screenOrientation="fullSensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

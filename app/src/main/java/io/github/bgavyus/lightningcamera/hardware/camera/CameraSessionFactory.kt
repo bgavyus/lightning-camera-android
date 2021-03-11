@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.capture
+package io.github.bgavyus.lightningcamera.hardware.camera
 
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraConstrainedHighSpeedCaptureSession

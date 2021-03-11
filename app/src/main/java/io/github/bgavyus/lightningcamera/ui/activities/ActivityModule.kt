@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.activities
+package io.github.bgavyus.lightningcamera.ui.activities
 
 import androidx.activity.result.ActivityResultCaller
 import androidx.fragment.app.FragmentActivity

@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.activities.viewfinder
+package io.github.bgavyus.lightningcamera.ui.activities.viewfinder
 
 import android.view.KeyEvent
 import androidx.activity.viewModels
@@ -8,7 +8,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.R
-import io.github.bgavyus.lightningcamera.capture.CameraConnectionFactory
+import io.github.bgavyus.lightningcamera.hardware.camera.CameraConnectionFactory
 import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
 import io.github.bgavyus.lightningcamera.extensions.android.view.SurfaceTextureEvent
 import io.github.bgavyus.lightningcamera.extensions.android.view.surfaceTextureEvents

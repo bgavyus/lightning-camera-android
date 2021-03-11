@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.capture
+package io.github.bgavyus.lightningcamera.hardware.camera
 
 import android.util.Size
 import io.github.bgavyus.lightningcamera.utilities.FrameRate

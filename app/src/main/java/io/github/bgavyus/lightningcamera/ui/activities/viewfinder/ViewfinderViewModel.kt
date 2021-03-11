@@ -1,4 +1,4 @@
-package io.github.bgavyus.lightningcamera.activities.viewfinder
+package io.github.bgavyus.lightningcamera.ui.activities.viewfinder
 
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
@@ -7,9 +7,9 @@ import android.view.Surface
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.bgavyus.lightningcamera.capture.CameraConnectionFactory
-import io.github.bgavyus.lightningcamera.capture.CameraMetadataProvider
-import io.github.bgavyus.lightningcamera.capture.CameraSessionFactory
+import io.github.bgavyus.lightningcamera.hardware.camera.CameraConnectionFactory
+import io.github.bgavyus.lightningcamera.hardware.camera.CameraMetadataProvider
+import io.github.bgavyus.lightningcamera.hardware.camera.CameraSessionFactory
 import io.github.bgavyus.lightningcamera.detection.MotionDetectorFactory
 import io.github.bgavyus.lightningcamera.extensions.android.graphics.setDefaultBufferSize
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.and
