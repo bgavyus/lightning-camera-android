@@ -7,9 +7,6 @@ import android.view.Surface
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.bgavyus.lightningcamera.hardware.camera.CameraConnectionFactory
-import io.github.bgavyus.lightningcamera.hardware.camera.CameraMetadataProvider
-import io.github.bgavyus.lightningcamera.hardware.camera.CameraSessionFactory
 import io.github.bgavyus.lightningcamera.detection.MotionDetectorFactory
 import io.github.bgavyus.lightningcamera.extensions.android.graphics.setDefaultBufferSize
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.and
@@ -19,6 +16,9 @@ import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.reflectTo
 import io.github.bgavyus.lightningcamera.graphics.SurfaceDuplicatorFactory
 import io.github.bgavyus.lightningcamera.graphics.TransformMatrixFactory
 import io.github.bgavyus.lightningcamera.hardware.Display
+import io.github.bgavyus.lightningcamera.hardware.camera.CameraConnectionFactory
+import io.github.bgavyus.lightningcamera.hardware.camera.CameraMetadataProvider
+import io.github.bgavyus.lightningcamera.hardware.camera.CameraSessionFactory
 import io.github.bgavyus.lightningcamera.media.EncoderFactory
 import io.github.bgavyus.lightningcamera.media.RecorderFactory
 import io.github.bgavyus.lightningcamera.media.SamplesQueue
