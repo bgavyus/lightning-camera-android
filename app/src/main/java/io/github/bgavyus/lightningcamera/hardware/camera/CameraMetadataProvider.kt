@@ -8,10 +8,10 @@ import android.util.Size
 import io.github.bgavyus.lightningcamera.extensions.*
 import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.fpsRanges
+import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.params.getOutputMaxFps
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.sensorOrientation
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.streamConfigurationMap
 import io.github.bgavyus.lightningcamera.extensions.android.util.area
-import io.github.bgavyus.lightningcamera.extensions.android.util.has16To9AspectRatio
 import io.github.bgavyus.lightningcamera.extensions.android.util.isSingular
 import io.github.bgavyus.lightningcamera.logging.Logger
 import io.github.bgavyus.lightningcamera.utilities.FrameRate
@@ -46,11 +46,14 @@ class CameraMetadataProvider @Inject constructor(
 
         val frameSize = if (frameRate.isHighSpeed) {
             streamConfigurationMap.getHighSpeedVideoSizesFor(framesPerSecond.toRange())
+                .asSequence()
         } else {
-            streamConfigurationMap.getOutputSizes(ImageFormat.PRIVATE)
+            val format = ImageFormat.PRIVATE
+
+            streamConfigurationMap.getOutputSizes(format)
+                .asSequence()
+                .filter { streamConfigurationMap.getOutputMaxFps(format, it) == framesPerSecond }
         }
-            .asSequence()
-            .filter(Size::has16To9AspectRatio)
             .getMaxBy(Size::area)
 
         return CameraMetadata(id, orientation, frameRate, frameSize)
