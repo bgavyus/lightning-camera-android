@@ -13,7 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asExecutor
 import javax.inject.Inject
 
-class CameraSessionFactory @Inject constructor(
+class CameraCaptureSessionFactory @Inject constructor(
     private val handler: Handler,
 ) {
     companion object {

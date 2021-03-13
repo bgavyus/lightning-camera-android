@@ -16,9 +16,9 @@ import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.reflectTo
 import io.github.bgavyus.lightningcamera.graphics.SurfaceDuplicatorFactory
 import io.github.bgavyus.lightningcamera.graphics.TransformMatrixFactory
 import io.github.bgavyus.lightningcamera.hardware.Display
+import io.github.bgavyus.lightningcamera.hardware.camera.CameraCaptureSessionFactory
 import io.github.bgavyus.lightningcamera.hardware.camera.CameraConnectionFactory
 import io.github.bgavyus.lightningcamera.hardware.camera.CameraMetadataProvider
-import io.github.bgavyus.lightningcamera.hardware.camera.CameraSessionFactory
 import io.github.bgavyus.lightningcamera.media.EncoderFactory
 import io.github.bgavyus.lightningcamera.media.RecorderFactory
 import io.github.bgavyus.lightningcamera.media.SamplesQueue
@@ -36,7 +36,7 @@ class ViewfinderViewModel @Inject constructor(
     private val encoderFactory: EncoderFactory,
     private val recorderFactory: RecorderFactory,
     private val cameraConnectionFactory: CameraConnectionFactory,
-    private val cameraSessionFactory: CameraSessionFactory,
+    private val cameraCaptureSessionFactory: CameraCaptureSessionFactory,
     private val display: Display,
 ) : ViewModel() {
     private val deferScope = DeferScope()
@@ -138,7 +138,7 @@ class ViewfinderViewModel @Inject constructor(
         val duplicator = deferredDuplicator.await()
         val surfaces = listOf(encoder.surface, duplicator.surface)
 
-        cameraSessionFactory.create(cameraDevice, surfaces, metadata.frameRate)
+        cameraCaptureSessionFactory.create(cameraDevice, surfaces, metadata.frameRate)
             .apply { activeDeferScope.defer(::close) }
 
         val coroutineScope = CoroutineScope(Dispatchers.IO)
