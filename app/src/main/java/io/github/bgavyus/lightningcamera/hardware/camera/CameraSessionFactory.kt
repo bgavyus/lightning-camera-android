@@ -26,7 +26,7 @@ class CameraSessionFactory @Inject constructor(
         frameRate: FrameRate,
     ): CameraCaptureSession {
         val captureRequest = device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
-            set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, frameRate.hertz.toRange())
+            set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, frameRate.fps.toRange())
             set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF)
             set(CaptureRequest.LENS_FOCUS_DISTANCE, infinityFocus)
             surfaces.forEach(::addTarget)

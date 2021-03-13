@@ -20,7 +20,7 @@ class SamplesQueue(frameSize: Size, frameRate: FrameRate) : SamplesProcessor {
     private val queue: EvictingQueue<Sample>
 
     init {
-        val samplesCount = ceil(frameRate.hertz * minBufferSeconds).toInt()
+        val samplesCount = ceil(frameRate.fps * minBufferSeconds).toInt()
         pool = SamplesPool(samplesCount, frameSize.area)
         queue = EvictingQueue.create(samplesCount)
     }

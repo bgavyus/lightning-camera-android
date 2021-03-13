@@ -1,5 +1,5 @@
 package io.github.bgavyus.lightningcamera.utilities
 
-data class FrameRate(val hertz: Int) {
-    val isHighSpeed get() = hertz >= 120
+data class FrameRate(val fps: Int) {
+    val isHighSpeed get() = fps >= 120
 }

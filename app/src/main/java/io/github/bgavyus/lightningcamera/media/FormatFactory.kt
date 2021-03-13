@@ -28,7 +28,7 @@ object FormatFactory {
                 .also { Logger.log("Bit rate: $it") }
         )
 
-        setInteger(MediaFormat.KEY_FRAME_RATE, frameRate.hertz)
+        setInteger(MediaFormat.KEY_FRAME_RATE, frameRate.fps)
         setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 0)
     }
 }
