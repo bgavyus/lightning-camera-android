@@ -29,14 +29,14 @@ class CameraMetadataProvider @Inject constructor(
             .map { id ->
                 val characteristics = manager.getCameraCharacteristics(id)
 
-                val framesPerSecond = characteristics.streamConfigurationMap
+                val fps = characteristics.streamConfigurationMap
                     .highSpeedVideoFpsRanges
                     .ifEmpty(characteristics::fpsRanges)
                     .asSequence()
                     .filter(Range<Int>::isSingular)
                     .maxOf(Range<Int>::getUpper)
 
-                Triple(id, characteristics, FrameRate(framesPerSecond))
+                Triple(id, characteristics, FrameRate(fps))
             }
             .getMaxBy { (_, _, frameRate) -> frameRate.fps }
 
