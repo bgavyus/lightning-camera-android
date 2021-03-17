@@ -118,7 +118,7 @@ dependencies {
     implementation("com.google.firebase:firebase-perf-ktx")
 
     // https://github.com/google/auto/releases
-    implementation("com.google.auto.factory:auto-factory:1.0-beta8")
+    implementation("com.google.auto.factory:auto-factory:1.0-beta9")
 
     // https://github.com/junit-team/junit4/releases
     testImplementation("junit:junit:4.13.2")
