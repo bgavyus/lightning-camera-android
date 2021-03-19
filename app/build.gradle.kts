@@ -92,12 +92,7 @@ dependencies {
 
     val hiltVersion: String by rootProject.extra
     implementation("com.google.dagger:hilt-android:$hiltVersion")
-    kapt("com.google.dagger:hilt-android-compiler:$hiltVersion")
-
-    // https://developer.android.com/jetpack/androidx/releases/hilt
-    val jetpackHiltVersion = "1.0.0-alpha03"
-    implementation("androidx.hilt:hilt-lifecycle-viewmodel:$jetpackHiltVersion")
-    kapt("androidx.hilt:hilt-compiler:$jetpackHiltVersion")
+    kapt("com.google.dagger:hilt-compiler:$hiltVersion")
 
     // https://developer.android.com/jetpack/androidx/releases/core
     implementation("androidx.core:core-ktx:1.5.0-beta03")
