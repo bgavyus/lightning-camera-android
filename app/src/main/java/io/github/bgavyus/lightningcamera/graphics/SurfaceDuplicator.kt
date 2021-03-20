@@ -66,6 +66,7 @@ class SurfaceDuplicator(
 
         windows.forEach { window ->
             window.makeCurrent()
+            window.setPresentationTime(surfaceTexture.timestamp)
             program.draw(entireViewport)
             window.swapBuffers()
         }
