@@ -98,7 +98,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.6.0-alpha02")
 
     // https://developer.android.com/jetpack/androidx/releases/fragment
-    implementation("androidx.fragment:fragment-ktx:1.3.2")
+    implementation("androidx.fragment:fragment-ktx:1.3.3")
 
     // https://developer.android.com/jetpack/androidx/releases/constraintlayout
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
