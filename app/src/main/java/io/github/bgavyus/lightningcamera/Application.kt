@@ -14,11 +14,12 @@ class Application : Application() {
         }
     }
 
-    private fun enableStrictMode() =
-        StrictMode.setThreadPolicy(
-            StrictMode.ThreadPolicy.Builder()
-                .detectAll()
-                .penaltyLog()
-                .build()
-        )
+    private fun enableStrictMode() {
+        val threadPolicy = StrictMode.ThreadPolicy.Builder()
+            .detectAll()
+            .penaltyLog()
+            .build()
+
+        StrictMode.setThreadPolicy(threadPolicy)
+    }
 }
