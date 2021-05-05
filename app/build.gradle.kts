@@ -64,7 +64,6 @@ android {
     }
 
     kotlinOptions {
-        useIR = true
         jvmTarget = JavaVersion.VERSION_1_8.toString()
 
         freeCompilerArgs = listOf(
