@@ -6,4 +6,3 @@ import kotlin.math.roundToInt
 
 fun StreamConfigurationMap.getOutputMaxFps(format: Int, size: Size) =
     (1e9 / getOutputMinFrameDuration(format, size)).roundToInt()
-
