@@ -30,10 +30,10 @@ class MotionDetector(
         const val framesPerSecond = 30
     }
 
-    private val renderScript: RenderScript = RenderScript.create(context)
+    private val renderScript = RenderScript.create(context)
         .apply { defer(::destroy) }
 
-    private val type: Type = Type.createXY(
+    private val type = Type.createXY(
         renderScript,
         Element.U8_4(renderScript),
         bufferSize.width,
