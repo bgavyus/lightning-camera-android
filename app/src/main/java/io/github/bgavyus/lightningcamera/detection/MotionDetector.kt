@@ -12,6 +12,7 @@ import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.extensions.android.renderscript.buffers
 import io.github.bgavyus.lightningcamera.extensions.android.util.area
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
+import io.github.bgavyus.lightningcamera.utilities.FrameRate
 import io.github.bgavyus.lightningcamera.utilities.PeakDetector
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -23,11 +24,11 @@ import kotlinx.coroutines.flow.onEach
 class MotionDetector(
     @Provided context: Context,
     bufferSize: Size,
+    frameRate: FrameRate,
 ) : DeferScope() {
     companion object {
         const val channels = 3
         const val maxIntensity = 255
-        const val framesPerSecond = 30
     }
 
     private val renderScript = RenderScript.create(context)
@@ -58,7 +59,7 @@ class MotionDetector(
         .apply { defer(::destroy) }
 
     private val peakDetector = PeakDetector(
-        windowSize = framesPerSecond * 10,
+        windowSize = frameRate.fps * 10,
         deviationThreshold = 0.01,
         detectionWeight = 0.01
     )

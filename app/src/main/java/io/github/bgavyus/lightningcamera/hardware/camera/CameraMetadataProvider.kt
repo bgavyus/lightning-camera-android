@@ -24,7 +24,7 @@ class CameraMetadataProvider @Inject constructor(
     fun collect(): CameraMetadata {
         val manager = context.systemService<CameraManager>()
 
-        val (id, characteristics, frameRate) = manager.cameraIdList
+        val (id, characteristics, captureRate) = manager.cameraIdList
             .asSequence()
             .map { id ->
                 val characteristics = manager.getCameraCharacteristics(id)
@@ -43,19 +43,19 @@ class CameraMetadataProvider @Inject constructor(
         val orientation = Rotation.fromDegrees(characteristics.sensorOrientation)
         val streamConfigurationMap = characteristics.streamConfigurationMap
 
-        val frameSize = if (frameRate.isHighSpeed) {
-            streamConfigurationMap.getHighSpeedVideoSizesFor(frameRate.fps.toRange())
+        val frameSize = if (captureRate.isHighSpeed) {
+            streamConfigurationMap.getHighSpeedVideoSizesFor(captureRate.fps.toRange())
                 .asSequence()
         } else {
             val format = ImageFormat.PRIVATE
 
             streamConfigurationMap.getOutputSizes(format)
                 .asSequence()
-                .filter { streamConfigurationMap.getOutputMaxFps(format, it) == frameRate.fps }
+                .filter { streamConfigurationMap.getOutputMaxFps(format, it) == captureRate.fps }
         }
             .getMaxBy(Size::area)
 
-        return CameraMetadata(id, orientation, frameRate, frameSize)
+        return CameraMetadata(id, orientation, captureRate, frameSize)
             .also { Logger.log("Metadata collected: $it") }
     }
 }

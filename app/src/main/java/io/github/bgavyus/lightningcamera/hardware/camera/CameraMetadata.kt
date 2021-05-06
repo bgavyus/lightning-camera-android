@@ -7,6 +7,8 @@ import io.github.bgavyus.lightningcamera.utilities.Rotation
 data class CameraMetadata(
     val id: String,
     val orientation: Rotation,
-    val frameRate: FrameRate,
+    val captureRate: FrameRate,
     val frameSize: Size,
-)
+) {
+    val previewRate get() = if (captureRate.isHighSpeed) FrameRate(30) else captureRate
+}

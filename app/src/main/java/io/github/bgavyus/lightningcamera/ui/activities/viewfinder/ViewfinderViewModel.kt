@@ -63,7 +63,7 @@ class ViewfinderViewModel @Inject constructor(
     private val deferredDetector = viewModelScope.async(Dispatchers.IO) {
         val metadata = deferredMetadata.await()
 
-        motionDetectorFactory.create(metadata.frameSize)
+        motionDetectorFactory.create(metadata.frameSize, metadata.previewRate)
             .apply { deferScope.defer(::close) }
     }
 
@@ -83,13 +83,13 @@ class ViewfinderViewModel @Inject constructor(
     private val deferredEncoder = viewModelScope.async(Dispatchers.IO) {
         val metadata = deferredMetadata.await()
 
-        encoderFactory.create(metadata.frameSize, metadata.frameRate)
+        encoderFactory.create(metadata.frameSize, metadata.captureRate)
             .apply { deferScope.defer(::close) }
     }
 
     private val deferredQueue = viewModelScope.async(Dispatchers.IO) {
         val metadata = deferredMetadata.await()
-        SamplesQueue(metadata.frameSize, metadata.frameRate)
+        SamplesQueue(metadata.frameSize, metadata.captureRate)
     }
 
     init {
@@ -138,7 +138,7 @@ class ViewfinderViewModel @Inject constructor(
         val duplicator = deferredDuplicator.await()
         val surfaces = listOf(encoder.surface, duplicator.surface)
 
-        cameraCaptureSessionFactory.create(cameraDevice, surfaces, metadata.frameRate)
+        cameraCaptureSessionFactory.create(cameraDevice, surfaces, metadata.captureRate)
             .apply { activeDeferScope.defer(::close) }
 
         val coroutineScope = CoroutineScope(Dispatchers.IO)
