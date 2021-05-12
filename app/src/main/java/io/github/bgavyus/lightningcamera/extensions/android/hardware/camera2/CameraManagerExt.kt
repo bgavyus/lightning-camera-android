@@ -7,13 +7,16 @@ import android.hardware.camera2.CameraManager
 import android.os.Handler
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.callbackFlow
 
+@Suppress("BlockingMethodInNonBlockingContext")
 @SuppressLint("MissingPermission")
-fun CameraManager.openCamera(id: String, handler: Handler? = null) = callbackFlow<CameraDevice> {
+fun CameraManager.openCamera(id: String, handler: Handler? = null) = callbackFlow {
     val callback = object : CameraDevice.StateCallback() {
-        override fun onOpened(camera: CameraDevice) = sendBlocking(camera)
+        override fun onOpened(camera: CameraDevice) {
+            trySendBlocking(camera)
+        }
 
         override fun onDisconnected(camera: CameraDevice) =
             cancel(CameraAccessException(CameraAccessException.CAMERA_DISCONNECTED))

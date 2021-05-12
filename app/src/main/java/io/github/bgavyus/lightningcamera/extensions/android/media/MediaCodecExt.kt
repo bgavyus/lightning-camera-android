@@ -7,15 +7,17 @@ import android.os.Handler
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.cancel
 import io.github.bgavyus.lightningcamera.utilities.OptionSet
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.callbackFlow
 
-fun MediaCodec.encoderEvents(handler: Handler? = null) = callbackFlow<EncoderEvent> {
+@Suppress("BlockingMethodInNonBlockingContext")
+fun MediaCodec.encoderEvents(handler: Handler? = null) = callbackFlow {
     val callback = object : MediaCodec.Callback() {
         val bufferAvailableEvents = HashMap<Int, EncoderEvent.BufferAvailable>()
 
-        override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) =
-            sendBlocking(EncoderEvent.FormatChanged(format))
+        override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
+            trySendBlocking(EncoderEvent.FormatChanged(format))
+        }
 
         override fun onOutputBufferAvailable(
             codec: MediaCodec,
@@ -26,7 +28,7 @@ fun MediaCodec.encoderEvents(handler: Handler? = null) = callbackFlow<EncoderEve
                 .getOrPut(index) { EncoderEvent.BufferAvailable(index, info) }
                 .also { it.info = info }
 
-            sendBlocking(event)
+            trySendBlocking(event)
         }
 
         override fun onError(codec: MediaCodec, error: MediaCodec.CodecException) = cancel(error)
