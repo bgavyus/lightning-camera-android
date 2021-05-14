@@ -11,10 +11,14 @@ buildscript {
     }
 
     dependencies {
+        // https://developer.android.com/studio/releases/gradle-plugin
         classpath("com.android.tools.build:gradle:4.2.1")
+
+        // https://developers.google.com/android/guides/releases
+        classpath("com.google.gms:google-services:4.3.7")
+
         classpath(kotlin("gradle-plugin", kotlinVersion))
         classpath("com.google.dagger:hilt-android-gradle-plugin:$hiltVersion")
-        classpath("com.google.gms:google-services:4.3.7")
         classpath("com.google.firebase:firebase-crashlytics-gradle:2.6.1")
         classpath("com.google.firebase:perf-plugin:1.4.0")
     }
