@@ -15,7 +15,7 @@ buildscript {
         classpath("com.android.tools.build:gradle:4.2.1")
 
         // https://developers.google.com/android/guides/releases
-        classpath("com.google.gms:google-services:4.3.7")
+        classpath("com.google.gms:google-services:4.3.5")
 
         classpath(kotlin("gradle-plugin", kotlinVersion))
         classpath("com.google.dagger:hilt-android-gradle-plugin:$hiltVersion")
