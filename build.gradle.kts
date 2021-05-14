@@ -14,7 +14,7 @@ buildscript {
         classpath("com.android.tools.build:gradle:4.2.1")
         classpath(kotlin("gradle-plugin", kotlinVersion))
         classpath("com.google.dagger:hilt-android-gradle-plugin:$hiltVersion")
-        classpath("com.google.gms:google-services:4.3.5")
+        classpath("com.google.gms:google-services:4.3.7")
         classpath("com.google.firebase:firebase-crashlytics-gradle:2.6.1")
         classpath("com.google.firebase:perf-plugin:1.4.0")
     }
