@@ -6,7 +6,7 @@ import android.os.HandlerThread
 class SingleThreadHandler private constructor(
     thread: HandlerThread,
 ) : Handler(thread.looper), AutoCloseable {
-    constructor(name: String) : this(HandlerThread(name).apply { start() })
+    constructor(name: String) : this(HandlerThread(name).apply(Thread::start))
 
     private val deferScope = DeferScope()
         .also { it.defer(thread::quitSafely) }
