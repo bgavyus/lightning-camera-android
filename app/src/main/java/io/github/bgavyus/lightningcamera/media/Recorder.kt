@@ -17,6 +17,7 @@ class Recorder(
     @Provided private val writerFactory: SamplesWriterFactory,
     private val encoder: Encoder,
     private val queue: SamplesQueue,
+    private val maxPaddingFrames: Int,
     recording: Flow<Boolean>,
     orientation: Flow<Rotation>,
 ) : DeferScope() {
@@ -41,6 +42,7 @@ class Recorder(
     private fun stopSession() = sessionDeferScope.close()
 
     private fun startSession(format: MediaFormat, orientation: Rotation) {
+        var paddingFramesLeft = 0
         val normalizer = PresentationTimeNormalizer()
 
         val writer = writerFactory.create(format, orientation)
@@ -52,11 +54,19 @@ class Recorder(
 
         encoder.samplesProcessor = object : SamplesProcessor {
             override fun process(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-                if (recordingState.value) {
-                    queue.drain(pipeline)
+                val processor = when {
+                    recordingState.value -> {
+                        paddingFramesLeft = maxPaddingFrames
+                        queue.drain(pipeline)
+                        pipeline
+                    }
+                    paddingFramesLeft > 0 -> {
+                        paddingFramesLeft--
+                        pipeline
+                    }
+                    else -> queue
                 }
 
-                val processor = if (recordingState.value) pipeline else queue
                 processor.process(buffer, info)
             }
         }
