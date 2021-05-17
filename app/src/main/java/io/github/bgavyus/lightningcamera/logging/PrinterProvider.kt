@@ -5,5 +5,5 @@ import io.github.bgavyus.lightningcamera.BuildConfig
 import javax.inject.Provider
 
 object PrinterProvider : Provider<Printer> {
-    override fun get() = if (BuildConfig.DEBUG) LocalPrinter() else RemotePrinter()
+    override fun get() = if (BuildConfig.DEBUG) ConsolePrinter() else CrashlyticsPrinter()
 }
