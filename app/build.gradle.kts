@@ -74,7 +74,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion")
 
     // https://github.com/Kotlin/kotlinx.coroutines/releases
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0-RC")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0")
 
     val hiltVersion: String by rootProject.extra
     implementation("com.google.dagger:hilt-android:$hiltVersion")
