@@ -1,6 +1,5 @@
 package io.github.bgavyus.lightningcamera.ui.activities.viewfinder
 
-import android.view.KeyEvent
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.core.view.isInvisible
@@ -77,16 +76,6 @@ class ViewfinderActivity : FragmentActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         Logger.log("Screen in focus? $hasFocus")
         model.active.value = hasFocus
-    }
-
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?) = when (keyCode) {
-        KeyEvent.KEYCODE_VOLUME_UP,
-        KeyEvent.KEYCODE_VOLUME_DOWN,
-        -> {
-            binding.watchToggle.toggle()
-            true
-        }
-        else -> super.onKeyDown(keyCode, event)
     }
 
     private fun setDetectionIndicatorActive(active: Boolean) {
