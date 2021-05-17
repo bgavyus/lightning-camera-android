@@ -2,6 +2,7 @@ package io.github.bgavyus.lightningcamera.hardware.camera
 
 import android.Manifest
 import android.content.Context
+import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.os.Handler
 import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
@@ -17,6 +18,8 @@ class CameraConnectionFactory @Inject constructor(
         val permissions = listOf(Manifest.permission.CAMERA)
     }
 
-    suspend fun open(cameraId: String) =
-        context.systemService<CameraManager>().openCamera(cameraId, handler).first()
+    suspend fun open(cameraId: String): CameraDevice {
+        val manager: CameraManager = context.systemService()
+        return manager.openCamera(cameraId, handler).first()
+    }
 }

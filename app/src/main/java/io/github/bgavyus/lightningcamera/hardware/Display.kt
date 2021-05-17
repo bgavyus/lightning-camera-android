@@ -20,8 +20,9 @@ class Display @Inject constructor(
     private val handler: Handler,
 ) {
     fun rotations(): Flow<Rotation> {
-        val sensorManager = context.systemService<SensorManager>()
-        val display = context.systemService<DisplayManager>().displays.first()
+        val sensorManager: SensorManager = context.systemService()
+        val displayManager: DisplayManager = context.systemService()
+        val display = displayManager.displays.first()
 
         return sensorManager.samples(
             sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),

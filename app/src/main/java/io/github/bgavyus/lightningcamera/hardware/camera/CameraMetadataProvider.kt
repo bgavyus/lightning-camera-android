@@ -22,7 +22,7 @@ class CameraMetadataProvider @Inject constructor(
     private val context: Context,
 ) {
     fun collect(): CameraMetadata {
-        val manager = context.systemService<CameraManager>()
+        val manager: CameraManager = context.systemService()
 
         val (id, characteristics, captureRate) = manager.cameraIdList
             .asSequence()
