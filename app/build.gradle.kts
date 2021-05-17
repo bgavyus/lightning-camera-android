@@ -61,6 +61,12 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
+    kotlinOptions {
+        freeCompilerArgs = listOf(
+            "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+        )
+    }
+
     testOptions.unitTests.isReturnDefaultValues = true
 }
 
