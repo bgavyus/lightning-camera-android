@@ -12,7 +12,7 @@ open class DeferScope : AutoCloseable {
     override fun close() = synchronized(this) {
         while (true) {
             val block = stack.poll() ?: break
-            block.invoke()
+            block()
         }
     }
 }
