@@ -15,7 +15,6 @@ import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.launchAll
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.reflectTo
 import io.github.bgavyus.lightningcamera.graphics.SurfaceDuplicatorFactory
 import io.github.bgavyus.lightningcamera.graphics.TransformMatrixFactory
-import io.github.bgavyus.lightningcamera.hardware.Display
 import io.github.bgavyus.lightningcamera.hardware.camera.CameraCaptureSessionFactory
 import io.github.bgavyus.lightningcamera.hardware.camera.CameraConnectionFactory
 import io.github.bgavyus.lightningcamera.hardware.camera.CameraMetadataProvider
@@ -24,8 +23,10 @@ import io.github.bgavyus.lightningcamera.media.RecorderFactory
 import io.github.bgavyus.lightningcamera.media.SamplesQueue
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import io.github.bgavyus.lightningcamera.utilities.Rotation
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,14 +38,13 @@ class ViewfinderViewModel @Inject constructor(
     private val recorderFactory: RecorderFactory,
     private val cameraConnectionFactory: CameraConnectionFactory,
     private val cameraCaptureSessionFactory: CameraCaptureSessionFactory,
-    private val display: Display,
 ) : ViewModel() {
     private val deferScope = DeferScope()
 
     private val activeDeferScope = DeferScope()
         .apply { deferScope.defer(::close) }
 
-    private val displayRotation = MutableStateFlow(Rotation.Natural)
+    val displayRotation = MutableStateFlow(Rotation.Natural)
     val active = MutableStateFlow(false)
     val detecting = MutableStateFlow(false)
     val viewSize = MutableStateFlow(Size(1, 1))
@@ -142,13 +142,6 @@ class ViewfinderViewModel @Inject constructor(
 
         cameraCaptureSessionFactory.create(cameraDevice, surfaces, metadata.captureRate)
             .apply { activeDeferScope.defer(::close) }
-
-        val coroutineScope = CoroutineScope(Dispatchers.IO)
-            .apply { activeDeferScope.defer(::cancel) }
-
-        display.rotations()
-            .reflectTo(displayRotation)
-            .launchIn(coroutineScope)
     }
 
     fun adjustBufferSize() {
