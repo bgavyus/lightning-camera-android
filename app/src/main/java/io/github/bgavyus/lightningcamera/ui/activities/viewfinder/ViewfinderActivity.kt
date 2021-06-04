@@ -7,6 +7,8 @@ import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.core.view.isInvisible
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.addRepeatingJob
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.R
@@ -26,6 +28,7 @@ import io.github.bgavyus.lightningcamera.permissions.PermissionsRequester
 import io.github.bgavyus.lightningcamera.storage.StorageCharacteristics
 import io.github.bgavyus.lightningcamera.ui.MessageShower
 import io.github.bgavyus.lightningcamera.utilities.Rotation
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
@@ -48,6 +51,7 @@ class ViewfinderActivity : FragmentActivity() {
 
     init {
         lifecycleScope.launchWhenCreated { onCreated() }
+        addRepeatingJob(Lifecycle.State.STARTED) { bindDisplayRotation() }
     }
 
     private suspend fun onCreated() {
@@ -82,13 +86,16 @@ class ViewfinderActivity : FragmentActivity() {
             binding.watchToggle.checked()
                 .onEach { Logger.log("Watching? $it") }
                 .reflectTo(model.watching),
-
-            systemService<DisplayManager>()
-                .rotations(requireDisplay)
-                .map(Rotation::fromSurfaceRotation)
-                .onEach { Logger.log("Rotation changed: $it") }
-                .reflectTo(model.displayRotation)
         )
+    }
+
+    private suspend fun bindDisplayRotation() {
+        systemService<DisplayManager>()
+            .rotations(requireDisplay)
+            .map(Rotation::fromSurfaceRotation)
+            .onEach { Logger.log("Rotation changed: $it") }
+            .reflectTo(model.displayRotation)
+            .collect()
     }
 
     private fun handleSurfaceTextureEvent(event: SurfaceTextureEvent) = when (event) {
