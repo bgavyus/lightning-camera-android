@@ -8,5 +8,3 @@ inline fun <reified T> Context.systemService() = getSystemService(T::class.java)
 
 fun Context.hasGranted(permission: String) =
     checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
-
-val Context.requireDisplay get() = display ?: throw RuntimeException()

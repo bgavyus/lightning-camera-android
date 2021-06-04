@@ -13,7 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.R
 import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
-import io.github.bgavyus.lightningcamera.extensions.android.content.requireDisplay
+import io.github.bgavyus.lightningcamera.extensions.android.app.requireDisplay
 import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.display.rotations
 import io.github.bgavyus.lightningcamera.extensions.android.view.SurfaceTextureEvent
