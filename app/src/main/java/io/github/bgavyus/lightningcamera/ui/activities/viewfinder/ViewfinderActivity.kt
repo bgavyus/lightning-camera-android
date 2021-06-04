@@ -13,9 +13,8 @@ import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.R
 import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
-import io.github.bgavyus.lightningcamera.extensions.android.app.requireDisplay
 import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
-import io.github.bgavyus.lightningcamera.extensions.android.hardware.display.rotations
+import io.github.bgavyus.lightningcamera.extensions.android.hardware.display.metricsChanges
 import io.github.bgavyus.lightningcamera.extensions.android.view.SurfaceTextureEvent
 import io.github.bgavyus.lightningcamera.extensions.android.view.surfaceTextureEvents
 import io.github.bgavyus.lightningcamera.extensions.android.view.updateAttributes
@@ -29,6 +28,7 @@ import io.github.bgavyus.lightningcamera.storage.StorageCharacteristics
 import io.github.bgavyus.lightningcamera.ui.MessageShower
 import io.github.bgavyus.lightningcamera.utilities.Rotation
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
@@ -91,8 +91,9 @@ class ViewfinderActivity : FragmentActivity() {
 
     private suspend fun bindDisplayRotation() {
         systemService<DisplayManager>()
-            .rotations(requireDisplay)
-            .map(Rotation::fromSurfaceRotation)
+            .metricsChanges()
+            .filter { it == binding.root.display.displayId }
+            .map { Rotation.fromSurfaceRotation(binding.root.display.rotation) }
             .onEach { Logger.log("Rotation changed: $it") }
             .reflectTo(model.displayRotation)
             .collect()
