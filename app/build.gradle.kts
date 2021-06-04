@@ -102,7 +102,7 @@ dependencies {
     implementation("com.otaliastudios.opengl:egloo:0.6.0")
 
     // https://firebase.google.com/support/release-notes/android
-    implementation(platform("com.google.firebase:firebase-bom:28.0.1"))
+    implementation(platform("com.google.firebase:firebase-bom:28.1.0"))
     implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-perf-ktx")
