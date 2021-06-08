@@ -27,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -111,7 +112,7 @@ class ViewfinderViewModel @Inject constructor(
         )
     }
 
-    private suspend fun activeChanged(active: Boolean) {
+    private suspend fun activeChanged(active: Boolean) = withContext(Dispatchers.IO) {
         activeDeferScope.close()
 
         if (active) {
