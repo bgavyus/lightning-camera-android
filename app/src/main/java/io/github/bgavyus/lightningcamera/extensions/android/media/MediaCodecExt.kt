@@ -36,7 +36,7 @@ fun MediaCodec.encoderEvents(handler: Handler? = null) = callbackFlow {
     }
 
     setCallback(callback, handler)
-    awaitClose { setCallback(null) }
+    awaitClose()
 }
 
 sealed class EncoderEvent {
