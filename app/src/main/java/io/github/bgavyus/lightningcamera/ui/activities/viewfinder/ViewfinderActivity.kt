@@ -64,7 +64,7 @@ class ViewfinderActivity : FragmentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(binding.root)
         disableRotationAnimation()
-        bind()
+        bindViews()
     }
 
     private fun disableRotationAnimation() = window.updateAttributes {
@@ -75,7 +75,7 @@ class ViewfinderActivity : FragmentActivity() {
         }
     }
 
-    private fun bind() {
+    private fun bindViews() {
         model.surfaceTexture.value?.let(binding.textureView::setSurfaceTexture)
 
         lifecycleScope.launchAll(
