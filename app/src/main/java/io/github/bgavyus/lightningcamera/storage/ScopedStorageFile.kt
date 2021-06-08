@@ -1,9 +1,9 @@
 package io.github.bgavyus.lightningcamera.storage
 
-import android.annotation.TargetApi
 import android.content.ContentResolver
 import android.os.Build
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.extensions.android.content.*
@@ -16,7 +16,7 @@ import java.time.Clock
 import java.time.Period
 import java.util.concurrent.atomic.AtomicBoolean
 
-@TargetApi(Build.VERSION_CODES.Q)
+@RequiresApi(Build.VERSION_CODES.Q)
 @AutoFactory(implementing = [StorageFileFactory::class])
 class ScopedStorageFile(
     @Provided private val contentResolver: ContentResolver,
