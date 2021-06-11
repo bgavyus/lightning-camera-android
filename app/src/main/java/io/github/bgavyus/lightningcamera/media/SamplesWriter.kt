@@ -6,6 +6,7 @@ import android.media.MediaMuxer
 import android.os.Build
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
+import io.github.bgavyus.lightningcamera.extensions.android.media.safeRelease
 import io.github.bgavyus.lightningcamera.storage.Storage
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import io.github.bgavyus.lightningcamera.utilities.Rotation
@@ -32,7 +33,7 @@ class SamplesWriter(
     } else {
         MediaMuxer(file.descriptor, outputFormat)
     }.apply {
-        defer(::release)
+        defer(::safeRelease)
         setOrientationHint(orientation.degrees)
         track = addTrack(format)
         start()
