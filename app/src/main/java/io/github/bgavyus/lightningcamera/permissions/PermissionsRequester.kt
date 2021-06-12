@@ -15,7 +15,6 @@ class PermissionsRequester @Inject constructor(
         val missingPermissions = filterMissing(permissions)
 
         if (missingPermissions.isEmpty()) {
-            Logger.log("Permissions already granted")
             return true
         }
 
