@@ -31,4 +31,5 @@ enum class Rotation {
     val isLandscape get() = this == Right || this == Left
 
     operator fun minus(other: Rotation) = fromIndex(ordinal - other.ordinal)
+    operator fun times(other: Int) = fromIndex(ordinal * other)
 }

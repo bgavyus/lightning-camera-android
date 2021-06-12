@@ -16,6 +16,7 @@ import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
 import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.display.metricsChanges
 import io.github.bgavyus.lightningcamera.extensions.android.view.SurfaceTextureEvent
+import io.github.bgavyus.lightningcamera.extensions.android.view.rotateLayout
 import io.github.bgavyus.lightningcamera.extensions.android.view.surfaceTextureEvents
 import io.github.bgavyus.lightningcamera.extensions.android.view.updateAttributes
 import io.github.bgavyus.lightningcamera.extensions.android.widget.checked
@@ -48,6 +49,12 @@ class ViewfinderActivity : FragmentActivity() {
 
     private val model: ViewfinderViewModel by viewModels()
     private val binding by lazy { ActivityViewfinderBinding.inflate(layoutInflater) }
+
+    private val fixedPositionViews by lazy {
+        listOf(
+            binding.watchToggle,
+        )
+    }
 
     init {
         lifecycleScope.launchWhenCreated { onCreated() }
@@ -95,8 +102,13 @@ class ViewfinderActivity : FragmentActivity() {
             .filter { it == binding.root.display.displayId }
             .map { Rotation.fromSurfaceRotation(binding.root.display.rotation) }
             .onEach { Logger.log("Rotation changed: $it") }
+            .onEach { rotateFixedPositionViews(it - model.displayRotation.value) }
             .reflectTo(model.displayRotation)
             .collect()
+    }
+
+    private fun rotateFixedPositionViews(rotation: Rotation) {
+        fixedPositionViews.forEach { it.rotateLayout(rotation) }
     }
 
     private fun handleSurfaceTextureEvent(event: SurfaceTextureEvent) = when (event) {
