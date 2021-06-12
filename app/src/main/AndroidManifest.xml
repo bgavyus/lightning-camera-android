@@ -43,7 +43,7 @@
 
         <activity
             android:name=".ui.activities.viewfinder.ViewfinderActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:screenOrientation="fullSensor">
 
             <intent-filter>
