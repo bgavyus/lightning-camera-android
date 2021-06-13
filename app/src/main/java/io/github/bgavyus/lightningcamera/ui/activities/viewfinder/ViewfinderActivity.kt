@@ -102,7 +102,7 @@ class ViewfinderActivity : FragmentActivity() {
             .filter { it == binding.root.display.displayId }
             .map { Rotation.fromSurfaceRotation(binding.root.display.rotation) }
             .onEach { Logger.log("Rotation changed: $it") }
-            .onEach { rotateFixedPositionViews(it - model.displayRotation.value) }
+            .onEach { rotateFixedPositionViews(model.displayRotation.value - it) }
             .reflectTo(model.displayRotation)
             .collect()
     }
