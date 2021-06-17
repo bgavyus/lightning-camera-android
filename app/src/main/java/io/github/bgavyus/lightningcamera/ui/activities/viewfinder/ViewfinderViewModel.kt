@@ -106,7 +106,7 @@ class ViewfinderViewModel @Inject constructor(
             detector.detectingStates().reflectTo(detecting),
 
             combine(viewSize, displayRotation) { viewSize, displayRotation ->
-                TransformMatrixFactory.create(displayRotation, metadata.frameSize, viewSize)
+                TransformMatrixFactory.create(displayRotation, metadata.frameSize, viewSize, true)
             }
                 .reflectTo(transformMatrix),
         )
