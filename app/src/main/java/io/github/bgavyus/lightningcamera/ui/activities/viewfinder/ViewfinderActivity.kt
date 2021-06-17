@@ -19,7 +19,6 @@ import io.github.bgavyus.lightningcamera.extensions.android.hardware.display.met
 import io.github.bgavyus.lightningcamera.extensions.android.view.SurfaceTextureEvent
 import io.github.bgavyus.lightningcamera.extensions.android.view.rotateLayout
 import io.github.bgavyus.lightningcamera.extensions.android.view.surfaceTextureEvents
-import io.github.bgavyus.lightningcamera.extensions.android.view.updateAttributes
 import io.github.bgavyus.lightningcamera.extensions.android.widget.checked
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.launchAll
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.reflectTo
@@ -76,12 +75,12 @@ class ViewfinderActivity : FragmentActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(binding.root)
-        disableRotationAnimation()
+        disableWindowRotationAnimation()
         bindViews()
     }
 
-    private fun disableRotationAnimation() = window.updateAttributes {
-        rotationAnimation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    private fun disableWindowRotationAnimation() {
+        window.attributes.rotationAnimation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             WindowManager.LayoutParams.ROTATION_ANIMATION_SEAMLESS
         } else {
             WindowManager.LayoutParams.ROTATION_ANIMATION_CROSSFADE
