@@ -6,10 +6,7 @@ import android.os.Handler
 import android.util.Size
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
-import io.github.bgavyus.lightningcamera.extensions.android.media.EncoderEvent
-import io.github.bgavyus.lightningcamera.extensions.android.media.configureEncoder
-import io.github.bgavyus.lightningcamera.extensions.android.media.encoderEvents
-import io.github.bgavyus.lightningcamera.extensions.android.media.flagsSet
+import io.github.bgavyus.lightningcamera.extensions.android.media.*
 import io.github.bgavyus.lightningcamera.logging.Logger
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import io.github.bgavyus.lightningcamera.utilities.FrameRate
@@ -57,7 +54,7 @@ class Encoder(
         codec.apply {
             start()
             defer(::stop)
-            defer(::flush)
+            defer(::tryFlush)
         }
     }
 
