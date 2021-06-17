@@ -8,8 +8,9 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.isInvisible
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.addRepeatingJob
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.whenCreated
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.R
 import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
@@ -32,6 +33,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -57,8 +59,12 @@ class ViewfinderActivity : FragmentActivity() {
     }
 
     init {
-        lifecycleScope.launchWhenCreated { onCreated() }
-        addRepeatingJob(Lifecycle.State.STARTED) { bindDisplayRotation() }
+        bindLifecycle()
+    }
+
+    private fun bindLifecycle() = lifecycleScope.launch {
+        whenCreated { onCreated() }
+        repeatOnLifecycle(Lifecycle.State.STARTED) { bindDisplayRotation() }
     }
 
     private suspend fun onCreated() {
