@@ -76,6 +76,7 @@ class ViewfinderActivity : FragmentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(binding.root)
         disableWindowRotationAnimation()
+        includeCutouts()
         bindViews()
     }
 
@@ -85,6 +86,19 @@ class ViewfinderActivity : FragmentActivity() {
         } else {
             WindowManager.LayoutParams.ROTATION_ANIMATION_CROSSFADE
         }
+    }
+
+    private fun includeCutouts() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            return
+        }
+
+        window.attributes.layoutInDisplayCutoutMode =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+            } else {
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
     }
 
     private fun bindViews() {
