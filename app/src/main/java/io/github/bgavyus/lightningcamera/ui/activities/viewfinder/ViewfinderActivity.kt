@@ -5,7 +5,8 @@ import android.os.Build
 import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
-import androidx.core.view.isInvisible
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateMargins
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -16,9 +17,7 @@ import io.github.bgavyus.lightningcamera.R
 import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
 import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.display.metricsChanges
-import io.github.bgavyus.lightningcamera.extensions.android.view.SurfaceTextureEvent
-import io.github.bgavyus.lightningcamera.extensions.android.view.rotateLayout
-import io.github.bgavyus.lightningcamera.extensions.android.view.surfaceTextureEvents
+import io.github.bgavyus.lightningcamera.extensions.android.view.*
 import io.github.bgavyus.lightningcamera.extensions.android.widget.checked
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.launchAll
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.reflectTo
@@ -53,6 +52,8 @@ class ViewfinderActivity : FragmentActivity() {
 
     private val fixedPositionViews by lazy {
         listOf(
+            binding.safeArea,
+            binding.detectionIndicator,
             binding.watchToggle,
         )
     }
@@ -118,8 +119,8 @@ class ViewfinderActivity : FragmentActivity() {
     private suspend fun bindDisplayRotation() {
         systemService<DisplayManager>()
             .metricsChanges()
-            .filter { it == binding.root.display.displayId }
-            .map { Rotation.fromSurfaceRotation(binding.root.display.rotation) }
+            .filter { it == window.decorView.display.displayId }
+            .map { Rotation.fromSurfaceRotation(window.decorView.display.rotation) }
             .onEach { Logger.log("Rotation changed: $it") }
             .onEach { rotateFixedPositionViews(model.displayRotation.value - it) }
             .reflectTo(model.displayRotation)
@@ -136,12 +137,31 @@ class ViewfinderActivity : FragmentActivity() {
         SurfaceTextureEvent.Updated -> model.adjustBufferSize()
     }
 
+    override fun onAttachedToWindow() {
+        updateSafeAreaMargins()
+    }
+
+    private fun updateSafeAreaMargins() {
+        val types = WindowInsetsCompat.Type.displayCutout() + WindowInsetsCompat.Type.systemBars()
+        val insets = window.decorView.rootWindowInsetsCompat.getInsets(types)
+        val sidePadding = resources.getDimensionPixelSize(R.dimen.uncut_status_bar_height)
+
+        binding.safeArea.updateConstraintLayoutParams {
+            updateMargins(
+                left = insets.left + sidePadding,
+                top = insets.top,
+                right = insets.right + sidePadding,
+                bottom = insets.bottom,
+            )
+        }
+    }
+
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         Logger.log("Screen in focus? $hasFocus")
         model.active.value = hasFocus
     }
 
     private fun setDetectionIndicatorActive(active: Boolean) {
-        binding.detectionIndicator.isInvisible = !active
+        binding.detectionIndicator.isEnabled = active
     }
 }

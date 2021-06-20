@@ -15,31 +15,43 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
-        android:id="@+id/detection_indicator"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/safe_area"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:src="#40FF0000"
-        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="ContentDescription"
-        tools:visibility="visible" />
+        tools:ignore="ContentDescription">
 
-    <ToggleButton
-        android:id="@+id/watch_toggle"
-        android:layout_width="128dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="64dp"
-        android:background="@drawable/watch_toggle"
-        android:backgroundTint="#40FFFFFF"
-        android:textOff=""
-        android:textOn=""
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintDimensionRatio="1"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/detection_indicator"
+            android:layout_width="55dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="40dp"
+            android:src="@drawable/lightning"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/detection_toggle"
+            tools:ignore="ContentDescription" />
+
+        <ToggleButton
+            android:id="@+id/watch_toggle"
+            android:layout_width="100dp"
+            android:layout_height="0dp"
+            android:layout_marginBottom="40dp"
+            android:background="@drawable/watch_toggle"
+            android:backgroundTint="#40FFFFFF"
+            android:textOff=""
+            android:textOn=""
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
