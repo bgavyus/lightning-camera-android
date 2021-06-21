@@ -52,7 +52,7 @@ class ViewfinderActivity : FragmentActivity() {
 
     private val fixedPositionViews by lazy {
         listOf(
-            binding.safeArea,
+            binding.visibleArea,
             binding.detectionIndicator,
             binding.watchToggle,
         )
@@ -138,15 +138,15 @@ class ViewfinderActivity : FragmentActivity() {
     }
 
     override fun onAttachedToWindow() {
-        updateSafeAreaMargins()
+        updateVisibleAreaMargins()
     }
 
-    private fun updateSafeAreaMargins() {
+    private fun updateVisibleAreaMargins() {
         val types = WindowInsetsCompat.Type.displayCutout() + WindowInsetsCompat.Type.systemBars()
         val insets = window.decorView.rootWindowInsetsCompat.getInsets(types)
         val sidePadding = resources.getDimensionPixelSize(R.dimen.uncut_status_bar_height)
 
-        binding.safeArea.updateConstraintLayoutParams {
+        binding.visibleArea.updateConstraintLayoutParams {
             updateMargins(
                 left = insets.left + sidePadding,
                 top = insets.top,
