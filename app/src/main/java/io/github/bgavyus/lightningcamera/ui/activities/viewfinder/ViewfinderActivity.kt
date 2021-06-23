@@ -15,6 +15,7 @@ import androidx.lifecycle.whenCreated
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.R
 import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
+import io.github.bgavyus.lightningcamera.extensions.android.content.res.identifier
 import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.display.metricsChanges
 import io.github.bgavyus.lightningcamera.extensions.android.view.*
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 
 @AndroidEntryPoint
 class ViewfinderActivity : FragmentActivity() {
@@ -144,13 +146,19 @@ class ViewfinderActivity : FragmentActivity() {
     private fun updateVisibleAreaMargins() {
         val types = WindowInsetsCompat.Type.displayCutout() + WindowInsetsCompat.Type.systemBars()
         val insets = window.decorView.rootWindowInsetsCompat.getInsets(types)
-        val sidePadding = resources.getDimensionPixelSize(R.dimen.uncut_status_bar_height)
+
+        val longEdgePaddingResourceId =
+            resources.identifier("android:dimen/status_bar_height_landscape")
+                ?: resources.identifier("android:dimen/status_bar_height")
+                ?: throw RuntimeException()
+
+        val longEdgePadding = resources.getDimensionPixelSize(longEdgePaddingResourceId)
 
         binding.visibleArea.updateConstraintLayoutParams {
             updateMargins(
-                left = insets.left + sidePadding,
+                left = insets.left + longEdgePadding,
                 top = insets.top,
-                right = insets.right + sidePadding,
+                right = insets.right + longEdgePadding,
                 bottom = insets.bottom,
             )
         }
