@@ -35,7 +35,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-
 @AndroidEntryPoint
 class ViewfinderActivity : FragmentActivity() {
     companion object {
