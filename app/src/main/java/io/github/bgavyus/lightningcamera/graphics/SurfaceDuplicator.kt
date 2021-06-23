@@ -47,21 +47,21 @@ class SurfaceDuplicator(
         val surfaceTexture = SurfaceTexture(texture.id).apply {
             defer(::release)
             setDefaultBufferSize(bufferSize)
-
-            frames(handler)
-                .onEach { surfaceTexture ->
-                    surfaceTexture.updateTexImage()
-                    surfaceTexture.getTransformMatrix(program.textureTransform)
-
-                    windows.forEach { window ->
-                        window.makeCurrent()
-                        window.setPresentationTime(surfaceTexture.timestamp)
-                        program.draw(entireViewport)
-                        window.swapBuffers()
-                    }
-                }
-                .launchIn(scope)
         }
+
+        surfaceTexture.frames(handler)
+            .onEach {
+                surfaceTexture.updateTexImage()
+                surfaceTexture.getTransformMatrix(program.textureTransform)
+
+                windows.forEach { window ->
+                    window.makeCurrent()
+                    window.setPresentationTime(surfaceTexture.timestamp)
+                    program.draw(entireViewport)
+                    window.swapBuffers()
+                }
+            }
+            .launchIn(scope)
 
         Surface(surfaceTexture)
     }
