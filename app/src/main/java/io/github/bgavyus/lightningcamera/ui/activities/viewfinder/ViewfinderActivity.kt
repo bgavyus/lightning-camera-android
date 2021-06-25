@@ -4,7 +4,6 @@ import android.hardware.display.DisplayManager
 import android.os.Build
 import android.view.WindowManager
 import androidx.activity.viewModels
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.descendants
 import androidx.core.view.updateMargins
@@ -72,7 +71,7 @@ class ViewfinderActivity : FragmentActivity() {
             return
         }
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.setDecorFitsSystemWindowsCompat(false)
         setContentView(binding.root)
         disableWindowRotationAnimation()
         includeCutouts()
