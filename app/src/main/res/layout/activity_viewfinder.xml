@@ -28,8 +28,7 @@
             app:layout_constraintDimensionRatio="1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/detection_toggle">
+            app:layout_constraintTop_toTopOf="parent">
 
             <tag
                 android:id="@id/fixed_position"
