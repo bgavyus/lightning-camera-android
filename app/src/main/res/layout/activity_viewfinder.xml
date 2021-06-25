@@ -15,6 +15,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <tag
+            android:id="@id/fixed_position"
+            android:value="" />
+
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/detection_indicator"
             android:layout_width="55dp"
@@ -25,7 +29,13 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/detection_toggle" />
+            app:tint="@color/detection_toggle">
+
+            <tag
+                android:id="@id/fixed_position"
+                android:value="" />
+
+        </androidx.appcompat.widget.AppCompatImageView>
 
         <ToggleButton
             android:id="@+id/watch_toggle"
@@ -39,7 +49,13 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintDimensionRatio="1"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent">
+
+            <tag
+                android:id="@id/fixed_position"
+                android:value="" />
+
+        </ToggleButton>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

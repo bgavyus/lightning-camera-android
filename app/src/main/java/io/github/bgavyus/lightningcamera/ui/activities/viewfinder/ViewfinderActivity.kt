@@ -6,6 +6,7 @@ import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.descendants
 import androidx.core.view.updateMargins
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
@@ -52,11 +53,7 @@ class ViewfinderActivity : FragmentActivity() {
     private val binding by lazy { ActivityViewfinderBinding.inflate(layoutInflater) }
 
     private val fixedPositionViews by lazy {
-        listOf(
-            binding.visibleArea,
-            binding.detectionIndicator,
-            binding.watchToggle,
-        )
+        binding.root.descendants.filter { it.getTag(R.id.fixed_position) != null }
     }
 
     init {
