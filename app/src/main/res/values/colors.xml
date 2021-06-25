@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="lightning">#CABB3B</color>
+    <color name="lightning">#FFEB3B</color>
     <color name="watching">#F44336</color>
     <color name="disabled">#858583</color>
 </resources>
