@@ -4,4 +4,6 @@
     <string name="file_name_prefix" translatable="false">STK</string>
     <string name="app_name">Strike</string>
     <string name="error_permission_not_granted">No permission</string>
+    <string name="start_watching">Start</string>
+    <string name="stop_watching">Stop</string>
 </resources>
