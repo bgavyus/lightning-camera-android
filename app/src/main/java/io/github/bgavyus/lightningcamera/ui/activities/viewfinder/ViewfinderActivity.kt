@@ -4,6 +4,7 @@ import android.hardware.display.DisplayManager
 import android.os.Build
 import android.view.WindowManager
 import androidx.activity.viewModels
+import androidx.annotation.StringRes
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.descendants
 import androidx.core.view.updateMargins
@@ -28,10 +29,7 @@ import io.github.bgavyus.lightningcamera.permissions.PermissionsRequester
 import io.github.bgavyus.lightningcamera.storage.StorageCharacteristics
 import io.github.bgavyus.lightningcamera.ui.MessageShower
 import io.github.bgavyus.lightningcamera.utilities.Rotation
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -106,6 +104,7 @@ class ViewfinderActivity : FragmentActivity() {
             binding.textureView.surfaceTextureEvents().onEach(::handleSurfaceTextureEvent),
             model.transformMatrix.onEach(binding.textureView::setTransform),
             model.detecting.onEach(::setDetectionIndicatorActive),
+            combine(model.watching, model.detecting, ::updateHint),
 
             binding.watchToggle.checked()
                 .onEach { Logger.log("Watching? $it") }
@@ -166,5 +165,17 @@ class ViewfinderActivity : FragmentActivity() {
 
     private fun setDetectionIndicatorActive(active: Boolean) {
         binding.detectionIndicator.isEnabled = active
+    }
+
+    private fun updateHint(watching: Boolean, detecting: Boolean) {
+        binding.hint.text = getText(hintText(watching, detecting))
+    }
+
+    @StringRes
+    private fun hintText(watching: Boolean, detecting: Boolean) = when {
+        watching && detecting -> R.string.watching_detecting_hint
+        watching && !detecting -> R.string.watching_not_detecting_hint
+        !watching && detecting -> R.string.not_watching_detecting_hint
+        else -> R.string.not_watching_not_detecting_hint
     }
 }

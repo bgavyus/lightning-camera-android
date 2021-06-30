@@ -4,4 +4,8 @@
     <string name="error_permission_not_granted">No permission</string>
     <string name="start_watching">Start</string>
     <string name="stop_watching">Stop</string>
+    <string name="not_watching_not_detecting_hint">Place the device pointing toward the lightnings</string>
+    <string name="not_watching_detecting_hint">Make the camera content steady</string>
+    <string name="watching_not_detecting_hint">Waiting for lightnings…</string>
+    <string name="watching_detecting_hint">Lightning captured!</string>
 </resources>
