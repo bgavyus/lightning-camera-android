@@ -87,7 +87,7 @@ dependencies {
     kapt("com.google.dagger:hilt-compiler:$hiltVersion")
 
     // https://developer.android.com/jetpack/androidx/releases/core
-    implementation("androidx.core:core-ktx:1.5.0")
+    implementation("androidx.core:core-ktx:1.6.0")
 
     // https://developer.android.com/jetpack/androidx/releases/fragment
     implementation("androidx.fragment:fragment-ktx:1.3.5")
