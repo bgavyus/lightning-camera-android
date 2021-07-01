@@ -114,5 +114,5 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
 
     // https://developer.android.com/jetpack/androidx/releases/test
-    androidTestImplementation("androidx.test:runner:1.3.0")
+    androidTestImplementation("androidx.test:runner:1.4.0")
 }
