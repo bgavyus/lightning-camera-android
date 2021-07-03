@@ -33,7 +33,11 @@ class PeakDetector(
     }
 
     private fun add(sample: Double) {
-        sum += sample - (queue.peek() ?: 0.0)
+        if (queue.size == windowSize) {
+            sum -= queue.element()
+        }
+
         queue.add(sample)
+        sum += sample
     }
 }
