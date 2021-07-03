@@ -114,6 +114,7 @@ class ViewfinderViewModel @Inject constructor(
 
     private suspend fun activeChanged(active: Boolean) = withContext(Dispatchers.IO) {
         activeDeferScope.close()
+        watching.value = false
 
         if (active) {
             activate()

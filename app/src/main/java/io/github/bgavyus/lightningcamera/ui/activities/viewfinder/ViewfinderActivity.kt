@@ -104,6 +104,7 @@ class ViewfinderActivity : FragmentActivity() {
             binding.textureView.surfaceTextureEvents().onEach(::handleSurfaceTextureEvent),
             model.transformMatrix.onEach(binding.textureView::setTransform),
             model.detecting.onEach(::setDetectionIndicatorActive),
+            model.watching.onEach(::setWatchingToggleActive),
             combine(model.watching, model.detecting, ::updateHint),
 
             binding.watchToggle.checked()
@@ -172,6 +173,10 @@ class ViewfinderActivity : FragmentActivity() {
 
     private fun setDetectionIndicatorActive(active: Boolean) {
         binding.detectionIndicator.isEnabled = active
+    }
+
+    private fun setWatchingToggleActive(active: Boolean) {
+        binding.watchToggle.isChecked = active
     }
 
     private fun updateHint(watching: Boolean, detecting: Boolean) {
