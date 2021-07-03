@@ -10,9 +10,7 @@ plugins {
     id("com.google.firebase.firebase-perf")
 }
 
-kapt {
-    correctErrorTypes = true
-}
+kapt.correctErrorTypes = true
 
 android {
     compileSdkVersion(30)
@@ -27,9 +25,7 @@ android {
         versionName = "0.1.1"
     }
 
-    buildFeatures {
-        viewBinding = true
-    }
+    buildFeatures.viewBinding = true
 
     buildTypes {
         getByName(BuilderConstants.RELEASE) {
@@ -57,15 +53,11 @@ android {
         }
     }
 
-    compileOptions {
-        isCoreLibraryDesugaringEnabled = true
-    }
+    compileOptions.isCoreLibraryDesugaringEnabled = true
 
-    kotlinOptions {
-        freeCompilerArgs = listOf(
-            "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-        )
-    }
+    kotlinOptions.freeCompilerArgs = listOf(
+        "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+    )
 
     testOptions.unitTests.isReturnDefaultValues = true
 }
