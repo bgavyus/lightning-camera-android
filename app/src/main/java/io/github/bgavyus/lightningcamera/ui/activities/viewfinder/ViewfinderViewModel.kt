@@ -52,7 +52,7 @@ class ViewfinderViewModel @Inject constructor(
     val watching = MutableStateFlow(false)
     val transformMatrix = MutableStateFlow(Matrix())
     val surfaceTexture = MutableStateFlow(null as SurfaceTexture?)
-    private val recording = (active and watching and detecting).distinctUntilChanged()
+    private val recording = (watching and detecting).distinctUntilChanged()
 
     private val recorderOrientation = displayRotation
         .map { deferredMetadata.await().orientation - it }
