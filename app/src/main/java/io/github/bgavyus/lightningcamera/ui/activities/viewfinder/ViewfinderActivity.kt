@@ -158,9 +158,16 @@ class ViewfinderActivity : FragmentActivity() {
         }
     }
 
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        Logger.log("Screen in focus? $hasFocus")
-        model.active.value = hasFocus
+    override fun onResume() {
+        Logger.log("Resumed")
+        super.onResume()
+        model.active.value = true
+    }
+
+    override fun onPause() {
+        Logger.log("Paused")
+        super.onPause()
+        model.active.value = false
     }
 
     private fun setDetectionIndicatorActive(active: Boolean) {
