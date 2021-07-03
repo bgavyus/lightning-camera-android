@@ -1,95 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:keepScreenOn="true">
+
+    <TextureView
+        android:id="@+id/texture_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/visible_area"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:keepScreenOn="true">
+        android:layout_height="match_parent">
 
-        <TextureView
-            android:id="@+id/texture_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+        <tag
+            android:id="@id/fixed_position"
+            android:value="" />
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/visible_area"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/detection_indicator"
+            android:layout_width="55dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="40dp"
+            android:src="@drawable/lightning"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <tag
                 android:id="@id/fixed_position"
                 android:value="" />
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/detection_indicator"
-                android:layout_width="55dp"
-                android:layout_height="0dp"
-                android:layout_marginTop="40dp"
-                android:src="@drawable/lightning"
-                app:layout_constraintDimensionRatio="1"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+        </androidx.appcompat.widget.AppCompatImageView>
 
-                <tag
-                    android:id="@id/fixed_position"
-                    android:value="" />
+        <View
+            android:id="@+id/middle"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            app:layout_constraintBottom_toTopOf="@id/watch_toggle"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/detection_indicator">
 
-            </androidx.appcompat.widget.AppCompatImageView>
+            <tag
+                android:id="@id/fixed_position"
+                android:value="" />
 
-            <View
-                android:id="@+id/middle"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="20dp"
-                app:layout_constraintBottom_toTopOf="@id/watch_toggle"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/detection_indicator">
+        </View>
 
-                <tag
-                    android:id="@id/fixed_position"
-                    android:value="" />
+        <TextView
+            android:id="@+id/hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:shadowColor="#000000"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="@id/middle"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="@string/not_watching_not_detecting_hint" />
 
-            </View>
+        <ToggleButton
+            android:id="@+id/watch_toggle"
+            android:layout_width="100dp"
+            android:layout_height="0dp"
+            android:layout_marginBottom="40dp"
+            android:background="@drawable/circle"
+            android:backgroundTint="@color/watch_toggle"
+            android:textOff="@string/start_watching"
+            android:textOn="@string/stop_watching"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
-            <TextView
-                android:id="@+id/hint"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                android:shadowColor="#000000"
-                android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="@id/middle"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                tools:text="@string/not_watching_not_detecting_hint" />
+            <tag
+                android:id="@id/fixed_position"
+                android:value="" />
 
-            <ToggleButton
-                android:id="@+id/watch_toggle"
-                android:layout_width="100dp"
-                android:layout_height="0dp"
-                android:layout_marginBottom="40dp"
-                android:background="@drawable/circle"
-                android:backgroundTint="@color/watch_toggle"
-                android:textOff="@string/start_watching"
-                android:textOn="@string/stop_watching"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintDimensionRatio="1"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
-
-                <tag
-                    android:id="@id/fixed_position"
-                    android:value="" />
-
-            </ToggleButton>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        </ToggleButton>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</layout>
+</androidx.constraintlayout.widget.ConstraintLayout>

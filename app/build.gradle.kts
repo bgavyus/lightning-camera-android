@@ -25,7 +25,7 @@ android {
         versionName = "0.1.1"
     }
 
-    buildFeatures.dataBinding = true
+    buildFeatures.viewBinding = true
 
     buildTypes {
         getByName(BuilderConstants.RELEASE) {

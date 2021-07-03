@@ -2,7 +2,6 @@ package io.github.bgavyus.lightningcamera.ui.activities.viewfinder
 
 import android.hardware.display.DisplayManager
 import android.os.Build
-import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
@@ -51,8 +50,7 @@ class ViewfinderActivity : FragmentActivity() {
     private val binding by lazy { ActivityViewfinderBinding.inflate(layoutInflater) }
 
     private val fixedPositionViews by lazy {
-        val group = binding.root as ViewGroup
-        group.descendants.filter { it.getTag(R.id.fixed_position) != null }
+        binding.root.descendants.filter { it.getTag(R.id.fixed_position) != null }
     }
 
     init {
