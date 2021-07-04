@@ -26,16 +26,16 @@ object TransformMatrixFactory {
         val outputRatio = outputSize.aspectRatio
 
         val (widthScale, heightScale) = if (rotation.isLandscape) {
-            if (inputRatio > outputRatio != fill) {
-                outputRatio to inputRatio.reciprocal
-            } else {
+            if (inputRatio > outputRatio == fill) {
                 inputRatio to outputRatio.reciprocal
+            } else {
+                outputRatio to inputRatio.reciprocal
             }
         } else {
-            if (inputRatio.reciprocal > outputRatio != fill) {
-                1 to inputRatio * outputRatio
-            } else {
+            if (inputRatio.reciprocal > outputRatio == fill) {
                 inputRatio.reciprocal * outputRatio.reciprocal to 1
+            } else {
+                1 to inputRatio * outputRatio
             }
         }
 
