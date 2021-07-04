@@ -1,6 +1,5 @@
 package io.github.bgavyus.lightningcamera.media
 
-import android.media.MediaCodec
 import android.media.MediaFormat
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
@@ -10,7 +9,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
-import java.nio.ByteBuffer
 
 @AutoFactory
 class Recorder(
@@ -52,23 +50,21 @@ class Recorder(
 
         queue.clear()
 
-        encoder.samplesProcessor = object : SamplesProcessor {
-            override fun process(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-                val processor = when {
-                    recordingState.value -> {
-                        paddingFramesLeft = maxPaddingFrames
-                        queue.drain(pipeline)
-                        pipeline
-                    }
-                    paddingFramesLeft > 0 -> {
-                        paddingFramesLeft--
-                        pipeline
-                    }
-                    else -> queue
+        encoder.samplesProcessor = SamplesProcessor { buffer, info ->
+            val processor = when {
+                recordingState.value -> {
+                    paddingFramesLeft = maxPaddingFrames
+                    queue.drain(pipeline)
+                    pipeline
                 }
-
-                processor.process(buffer, info)
+                paddingFramesLeft > 0 -> {
+                    paddingFramesLeft--
+                    pipeline
+                }
+                else -> queue
             }
+
+            processor.process(buffer, info)
         }
 
         sessionDeferScope.defer {
