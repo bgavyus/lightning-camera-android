@@ -1,6 +1,8 @@
 package io.github.bgavyus.lightningcamera.utilities
 
 import com.google.common.collect.EvictingQueue
+import com.google.common.collect.Queues
+import com.google.common.util.concurrent.AtomicDouble
 import io.github.bgavyus.lightningcamera.extensions.distance
 
 @Suppress("UnstableApiUsage")
@@ -9,10 +11,9 @@ class PeakDetector(
     private val deviationThreshold: Double,
     private val detectionWeight: Double,
 ) {
-    private val queue = EvictingQueue.create<Double>(windowSize)
-    private var sum = 0.0
-
-    private val mean get() = sum / windowSize
+    private val queue = Queues.synchronizedQueue(EvictingQueue.create<Double>(windowSize))
+    private val sum = AtomicDouble()
+    private val mean get() = sum.get() / windowSize
 
     fun getDetectingAndAdd(sample: Double): Boolean {
 //        Logger.log("${100 * sample}")
@@ -34,10 +35,10 @@ class PeakDetector(
 
     private fun add(sample: Double) {
         if (queue.size == windowSize) {
-            sum -= queue.element()
+            sum.addAndGet(-queue.element())
         }
 
         queue.add(sample)
-        sum += sample
+        sum.addAndGet(sample)
     }
 }
