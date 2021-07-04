@@ -3,26 +3,29 @@ package io.github.bgavyus.lightningcamera.media
 import android.media.MediaCodec
 import android.util.Size
 import com.google.common.collect.EvictingQueue
+import com.google.common.collect.Queues
 import io.github.bgavyus.lightningcamera.extensions.android.media.copyFrom
 import io.github.bgavyus.lightningcamera.extensions.android.util.area
 import io.github.bgavyus.lightningcamera.extensions.java.nio.copyFrom
 import io.github.bgavyus.lightningcamera.utilities.FrameRate
 import java.nio.ByteBuffer
+import java.util.*
 import kotlin.math.ceil
 
-@Suppress("UnstableApiUsage")
 class SamplesQueue(frameSize: Size, frameRate: FrameRate) : SamplesProcessor {
     companion object {
         private const val minBufferSeconds = 0.05
     }
 
-    private val pool: SamplesPool
-    private val queue: EvictingQueue<Sample>
+    private val pool: Iterator<Sample>
+    private val queue: Queue<Sample>
 
     init {
         val samplesCount = ceil(frameRate.fps * minBufferSeconds).toInt()
         pool = SamplesPool(samplesCount, frameSize.area)
-        queue = EvictingQueue.create(samplesCount)
+
+        @Suppress("UnstableApiUsage")
+        queue = Queues.synchronizedQueue(EvictingQueue.create(samplesCount))
     }
 
     override fun process(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
