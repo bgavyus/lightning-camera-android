@@ -5,11 +5,13 @@ import java.util.*
 open class DeferScope : AutoCloseable {
     private val stack = ArrayDeque<() -> Unit>()
 
-    fun defer(block: () -> Unit) = synchronized(this) {
+    @Synchronized
+    fun defer(block: () -> Unit) {
         stack.push(block)
     }
 
-    override fun close() = synchronized(this) {
+    @Synchronized
+    override fun close() {
         while (true) {
             val block = stack.poll() ?: break
             block()
