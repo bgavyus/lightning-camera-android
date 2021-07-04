@@ -37,7 +37,9 @@ class Recorder(
         startSession(format, orientation)
     }
 
-    private fun stopSession() = sessionDeferScope.close()
+    private fun stopSession() {
+        sessionDeferScope.close()
+    }
 
     private fun startSession(format: MediaFormat, orientation: Rotation) {
         var paddingFramesLeft = 0

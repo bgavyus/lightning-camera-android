@@ -68,5 +68,7 @@ class ScopedStorageFile(
         }
     }
 
-    private fun discard() = contentResolver.requireDelete(uri)
+    private fun discard() {
+        contentResolver.requireDelete(uri)
+    }
 }

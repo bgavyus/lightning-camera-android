@@ -151,5 +151,7 @@ class ViewfinderViewModel @Inject constructor(
         surfaceTexture.value?.setDefaultBufferSize(metadata.frameSize)
     }
 
-    override fun onCleared() = deferScope.close()
+    override fun onCleared() {
+        deferScope.close()
+    }
 }

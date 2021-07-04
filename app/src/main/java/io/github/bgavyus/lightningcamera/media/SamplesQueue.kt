@@ -40,7 +40,9 @@ class SamplesQueue(frameSize: Size, frameRate: FrameRate) : SamplesProcessor {
         }
     }
 
-    fun clear() = queue.clear()
+    fun clear() {
+        queue.clear()
+    }
 
     companion object {
         private const val minBufferSeconds = 0.05

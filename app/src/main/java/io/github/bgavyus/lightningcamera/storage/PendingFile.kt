@@ -8,5 +8,7 @@ class PendingFile(parent: File, child: String) : File(parent, child) {
         delete()
     }
 
-    fun save() = requireRenameTo(this)
+    fun save() {
+        requireRenameTo(this)
+    }
 }
