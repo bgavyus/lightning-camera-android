@@ -24,10 +24,6 @@ class Encoder(
     size: Size,
     frameRate: FrameRate,
 ) : DeferScope() {
-    companion object {
-        private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
-    }
-
     private val scope = CoroutineScope(Dispatchers.IO)
         .apply { defer(::cancel) }
 
@@ -86,5 +82,9 @@ class Encoder(
         } finally {
             codec.releaseOutputBuffer(index, false)
         }
+    }
+
+    companion object {
+        private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
     }
 }

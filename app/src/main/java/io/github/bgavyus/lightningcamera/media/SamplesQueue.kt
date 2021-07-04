@@ -13,10 +13,6 @@ import java.util.*
 import kotlin.math.ceil
 
 class SamplesQueue(frameSize: Size, frameRate: FrameRate) : SamplesProcessor {
-    companion object {
-        private const val minBufferSeconds = 0.05
-    }
-
     private val pool: Iterator<Sample>
     private val queue: Queue<Sample>
 
@@ -45,4 +41,8 @@ class SamplesQueue(frameSize: Size, frameRate: FrameRate) : SamplesProcessor {
     }
 
     fun clear() = queue.clear()
+
+    companion object {
+        private const val minBufferSeconds = 0.05
+    }
 }

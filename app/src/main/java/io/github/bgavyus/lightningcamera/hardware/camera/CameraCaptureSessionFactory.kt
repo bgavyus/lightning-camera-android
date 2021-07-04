@@ -16,10 +16,6 @@ import javax.inject.Inject
 class CameraCaptureSessionFactory @Inject constructor(
     private val handler: Handler,
 ) {
-    companion object {
-        const val infinityFocus = 0f
-    }
-
     suspend fun create(
         device: CameraDevice,
         surfaces: List<Surface>,
@@ -46,5 +42,9 @@ class CameraCaptureSessionFactory @Inject constructor(
                 setRepeatingRequest(captureRequest, null, null)
             }
         }
+    }
+
+    companion object {
+        const val infinityFocus = 0f
     }
 }

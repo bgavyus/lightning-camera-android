@@ -12,11 +12,6 @@ class Storage @Inject constructor(
     private val clock: Clock,
     private val fileFactory: StorageFileFactory,
 ) {
-    companion object {
-        private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
-        private const val fileExtension = "mp4"
-    }
-
     fun generateFile(): StorageFile {
         val namePrefix = context.getString(R.string.file_name_prefix)
 
@@ -30,5 +25,10 @@ class Storage @Inject constructor(
             appDirectoryName = context.getString(R.string.app_directory_name),
             name = "${namePrefix}_$timeString.$fileExtension",
         )
+    }
+
+    companion object {
+        private const val mimeType = MediaFormat.MIMETYPE_VIDEO_AVC
+        private const val fileExtension = "mp4"
     }
 }

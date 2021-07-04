@@ -19,10 +19,6 @@ class SamplesWriter(
     format: MediaFormat,
     orientation: Rotation,
 ) : DeferScope(), SamplesProcessor {
-    companion object {
-        private const val outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
-    }
-
     private val file = storage.generateFile()
         .also { defer(it::close) }
 
@@ -47,5 +43,9 @@ class SamplesWriter(
         }
 
         muxer.writeSampleData(track, buffer, info)
+    }
+
+    companion object {
+        private const val outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
     }
 }

@@ -13,11 +13,11 @@ class CameraConnectionFactory @Inject constructor(
     private val context: Context,
     private val handler: Handler,
 ) {
-    companion object {
-        val permissions = listOf(Manifest.permission.CAMERA)
-    }
-
     suspend fun open(cameraId: String) = context.systemService<CameraManager>()
         .openCamera(cameraId, handler)
         .first()
+
+    companion object {
+        val permissions = listOf(Manifest.permission.CAMERA)
+    }
 }

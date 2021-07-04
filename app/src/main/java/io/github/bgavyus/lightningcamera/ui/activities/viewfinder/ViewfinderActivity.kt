@@ -35,11 +35,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class ViewfinderActivity : FragmentActivity() {
-    companion object {
-        private val requiredPermissions =
-            CameraConnectionFactory.permissions + StorageCharacteristics.permissions
-    }
-
     @Inject
     lateinit var permissionsRequester: PermissionsRequester
 
@@ -189,5 +184,10 @@ class ViewfinderActivity : FragmentActivity() {
         watching && !detecting -> R.string.watching_not_detecting_hint
         !watching && detecting -> R.string.not_watching_detecting_hint
         else -> R.string.not_watching_not_detecting_hint
+    }
+
+    companion object {
+        private val requiredPermissions =
+            CameraConnectionFactory.permissions + StorageCharacteristics.permissions
     }
 }

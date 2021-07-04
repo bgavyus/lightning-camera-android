@@ -10,6 +10,11 @@ enum class Rotation {
     Left,
     ;
 
+    val degrees get() = ordinal * fullCycleDegrees / rotations.size
+    val isLandscape get() = this == Right || this == Left
+
+    operator fun minus(other: Rotation) = fromIndex(ordinal - other.ordinal)
+
     companion object {
         private const val fullCycleDegrees = 360
         private val rotations = values()
@@ -26,9 +31,4 @@ enum class Rotation {
 
         fun fromDegrees(degrees: Int) = fromIndex(degrees * rotations.size / fullCycleDegrees)
     }
-
-    val degrees: Int get() = ordinal * fullCycleDegrees / rotations.size
-    val isLandscape get() = this == Right || this == Left
-
-    operator fun minus(other: Rotation) = fromIndex(ordinal - other.ordinal)
 }

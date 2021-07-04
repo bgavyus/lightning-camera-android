@@ -26,11 +26,6 @@ class MotionDetector(
     bufferSize: Size,
     frameRate: FrameRate,
 ) : DeferScope() {
-    companion object {
-        const val channels = 3
-        const val maxIntensity = 255
-    }
-
     private val renderScript = RenderScript.create(context)
         .apply { defer(::destroy) }
 
@@ -75,4 +70,9 @@ class MotionDetector(
         .map(::detecting)
         .distinctUntilChanged()
         .flowOn(Dispatchers.IO)
+
+    companion object {
+        const val channels = 3
+        const val maxIntensity = 255
+    }
 }
