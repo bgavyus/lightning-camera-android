@@ -140,7 +140,7 @@ class ViewfinderActivity : FragmentActivity() {
         val longEdgePaddingResourceId =
             resources.identifier("android:dimen/status_bar_height_landscape")
                 ?: resources.identifier("android:dimen/status_bar_height")
-                ?: throw RuntimeException()
+                ?: throw NoSuchElementException()
 
         val longEdgePadding = resources.getDimensionPixelSize(longEdgePaddingResourceId)
 

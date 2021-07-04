@@ -14,4 +14,4 @@ val CameraCharacteristics.sensorOrientation: Int
     get() = requireGet(CameraCharacteristics.SENSOR_ORIENTATION)
 
 fun <T> CameraCharacteristics.requireGet(key: CameraCharacteristics.Key<T>) =
-    get(key) ?: throw RuntimeException()
+    get(key) ?: throw NoSuchElementException()

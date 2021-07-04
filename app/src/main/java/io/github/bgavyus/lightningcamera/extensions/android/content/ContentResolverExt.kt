@@ -28,7 +28,7 @@ fun ContentResolver.requireOpenFileDescriptor(
     url: Uri,
     mode: FileMode,
     cancellationSignal: CancellationSignal? = null,
-) = openFileDescriptor(url, mode, cancellationSignal) ?: throw RuntimeException()
+) = openFileDescriptor(url, mode, cancellationSignal) ?: throw IllegalStateException()
 
 fun ContentResolver.openFileDescriptor(
     url: Uri,
@@ -37,7 +37,7 @@ fun ContentResolver.openFileDescriptor(
 ) = openFileDescriptor(url, mode.acronym, cancellationSignal)
 
 fun ContentResolver.requireInsert(url: Uri, valuesBlock: ContentValues.() -> Unit) =
-    insert(url, valuesBlock) ?: throw RuntimeException()
+    insert(url, valuesBlock) ?: throw IllegalStateException()
 
 fun ContentResolver.insert(url: Uri, valuesBlock: ContentValues.() -> Unit) =
     insert(url, ContentValues().apply(valuesBlock))

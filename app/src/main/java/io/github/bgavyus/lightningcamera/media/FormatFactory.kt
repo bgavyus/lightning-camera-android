@@ -19,8 +19,7 @@ object FormatFactory {
         )
 
         val codecInfo = MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos
-            .find { it.supportedTypes.contains(mimeType) }
-            ?: throw RuntimeException()
+            .first { it.supportedTypes.contains(mimeType) }
 
         setInteger(
             MediaFormat.KEY_BIT_RATE,

@@ -72,11 +72,11 @@ class Encoder(
             }
 
             if (MediaCodec.BUFFER_FLAG_END_OF_STREAM in info.flagsSet) {
-                throw RuntimeException()
+                throw IllegalStateException()
             }
 
             val buffer = codec.getOutputBuffer(index)
-                ?: throw RuntimeException()
+                ?: throw IllegalStateException()
 
             samplesProcessor?.process(buffer, info)
         } finally {
