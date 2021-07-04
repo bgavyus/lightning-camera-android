@@ -5,5 +5,8 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 
 class CrashlyticsPrinter : Printer {
     private val crashlytics = FirebaseCrashlytics.getInstance()
-    override fun println(line: String) = crashlytics.log(line)
+
+    override fun println(line: String) {
+        crashlytics.log(line)
+    }
 }

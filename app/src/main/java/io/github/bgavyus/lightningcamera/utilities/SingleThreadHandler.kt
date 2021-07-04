@@ -11,5 +11,7 @@ class SingleThreadHandler private constructor(
     private val deferScope = DeferScope()
         .also { it.defer(thread::quitSafely) }
 
-    override fun close() = deferScope.close()
+    override fun close() {
+        deferScope.close()
+    }
 }
