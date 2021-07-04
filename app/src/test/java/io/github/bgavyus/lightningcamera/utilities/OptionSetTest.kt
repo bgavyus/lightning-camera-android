@@ -51,7 +51,7 @@ class OptionSetTest {
 
     @Test
     operator fun iterator() {
-        assertEquals(listOf<Int>(), OptionSet().toList())
+        assertEquals(emptyList<Int>(), OptionSet().toList())
         assertEquals(listOf(b), OptionSet(b).toList())
         assertEquals(listOf(a, c), OptionSet(a + c).toList())
     }
