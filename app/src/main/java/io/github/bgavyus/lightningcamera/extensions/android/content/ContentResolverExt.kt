@@ -4,7 +4,7 @@ import android.content.ContentResolver
 import android.content.ContentValues
 import android.net.Uri
 import android.os.CancellationSignal
-import io.github.bgavyus.lightningcamera.utilities.validatePositive
+import io.github.bgavyus.lightningcamera.extensions.isPositive
 
 enum class FileMode {
     Read,
@@ -47,7 +47,10 @@ fun ContentResolver.requireUpdate(
     where: String? = null,
     selectionArgs: Array<String>? = null,
     valuesBlock: ContentValues.() -> Unit,
-) = validatePositive(update(uri, where, selectionArgs, valuesBlock))
+) {
+    val updatedRowsCount = update(uri, where, selectionArgs, valuesBlock)
+    check(updatedRowsCount.isPositive)
+}
 
 fun ContentResolver.update(
     uri: Uri,
@@ -60,4 +63,7 @@ fun ContentResolver.requireDelete(
     uri: Uri,
     where: String? = null,
     selectionArgs: Array<String>? = null,
-) = validatePositive(delete(uri, where, selectionArgs))
+) {
+    val deletedRowsCount = delete(uri, where, selectionArgs)
+    check(deletedRowsCount.isPositive)
+}

@@ -1,6 +1,5 @@
 package io.github.bgavyus.lightningcamera.extensions.java.io
 
-import io.github.bgavyus.lightningcamera.utilities.validate
 import java.io.File
 
 fun File.mkdirsIfNotExists() {
@@ -9,6 +8,10 @@ fun File.mkdirsIfNotExists() {
     }
 }
 
-fun File.requireMkdirs() = validate(mkdirs())
+fun File.requireMkdirs() {
+    check(mkdirs())
+}
 
-fun File.requireRenameTo(dest: File) = validate(renameTo(dest))
+fun File.requireRenameTo(dest: File) {
+    check(renameTo(dest))
+}
