@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
+import java.util.concurrent.atomic.AtomicInteger
 
 @AutoFactory
 class Recorder(
@@ -42,7 +43,7 @@ class Recorder(
     }
 
     private fun startSession(format: MediaFormat, orientation: Rotation) {
-        var paddingFramesLeft = 0
+        val paddingFramesLeft = AtomicInteger()
         val normalizer = PresentationTimeNormalizer()
 
         val writer = writerFactory.create(format, orientation)
@@ -55,14 +56,11 @@ class Recorder(
         encoder.samplesProcessor = SamplesProcessor { buffer, info ->
             val processor = when {
                 recordingState.value -> {
-                    paddingFramesLeft = maxPaddingFrames
+                    paddingFramesLeft.set(maxPaddingFrames)
                     queue.drain(pipeline)
                     pipeline
                 }
-                paddingFramesLeft > 0 -> {
-                    paddingFramesLeft--
-                    pipeline
-                }
+                paddingFramesLeft.getAndUpdate { if (it > 0) it - 1 else it } > 0 -> pipeline
                 else -> queue
             }
 
