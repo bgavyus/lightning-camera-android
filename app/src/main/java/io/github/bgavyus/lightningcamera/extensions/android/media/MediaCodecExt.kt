@@ -26,7 +26,7 @@ fun MediaCodec.encoderEvents(handler: Handler? = null) = callbackFlow {
         ) {
             val event = bufferAvailableEvents
                 .getOrPut(index) { EncoderEvent.BufferAvailable(index, info) }
-                .also { it.info = info }
+                .also { it.info.copyFrom(info) }
 
             trySendBlocking(event)
         }
@@ -41,7 +41,7 @@ fun MediaCodec.encoderEvents(handler: Handler? = null) = callbackFlow {
 
 sealed class EncoderEvent {
     data class FormatChanged(val format: MediaFormat) : EncoderEvent()
-    data class BufferAvailable(val index: Int, var info: MediaCodec.BufferInfo) : EncoderEvent()
+    data class BufferAvailable(val index: Int, val info: MediaCodec.BufferInfo) : EncoderEvent()
 }
 
 fun MediaCodec.configureEncoder(format: MediaFormat? = null, crypto: MediaCrypto? = null) =
