@@ -125,7 +125,7 @@ class ViewfinderViewModel @Inject constructor(
         val encoder = deferredEncoder.await()
         val metadata = deferredMetadata.await()
         val queue = deferredQueue.await()
-        val maxPaddingFrames = metadata.previewRate.fps / 4
+        val maxPaddingFrames = metadata.previewRate.fps / 2
 
         recorderFactory.create(
             encoder,
