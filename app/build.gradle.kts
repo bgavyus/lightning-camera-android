@@ -10,7 +10,16 @@ plugins {
     id("com.google.firebase.firebase-perf")
 }
 
-kapt.correctErrorTypes = true
+kapt {
+    correctErrorTypes = true
+
+    javacOptions {
+        // These options are normally set automatically via the Hilt Gradle plugin, but we
+        // set them manually to workaround a bug in the Kotlin 1.5.20
+        option("-Adagger.fastInit=ENABLED")
+        option("-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true")
+    }
+}
 
 android {
     compileSdkVersion(30)
