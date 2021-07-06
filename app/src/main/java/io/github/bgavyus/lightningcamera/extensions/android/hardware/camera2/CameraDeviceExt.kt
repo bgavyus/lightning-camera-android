@@ -23,7 +23,7 @@ suspend fun CameraDevice.createCaptureSession(
             continuation.resume(session)
 
         override fun onConfigureFailed(session: CameraCaptureSession) =
-            continuation.resumeWithException(RuntimeException())
+            continuation.resumeWithException(IllegalStateException())
     }
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
