@@ -100,7 +100,7 @@ class ViewfinderActivity : FragmentActivity() {
             model.transformMatrix.onEach(binding.texture::setTransform),
             model.detecting.onEach(::setDetectionIndicatorActive),
             model.watching.onEach(::setWatchingToggleActive),
-            combine(model.watching, model.detecting, ::updateHint),
+            combine(model.watching, model.detecting.debounce { if (it) 0 else 750 }, ::updateHint),
 
             binding.watchToggle.checked()
                 .onEach { Logger.log("Watching? $it") }

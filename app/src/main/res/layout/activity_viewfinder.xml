@@ -64,11 +64,11 @@
             android:gravity="center"
             android:includeFontPadding="false"
             android:paddingHorizontal="12dp"
+            android:text="@string/not_watching_detecting_hint"
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="@id/middle"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:text="@string/not_watching_not_detecting_hint" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ToggleButton
             android:id="@+id/watch_toggle"

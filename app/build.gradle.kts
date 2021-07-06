@@ -66,6 +66,7 @@ android {
 
     kotlinOptions.freeCompilerArgs = listOf(
         "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+        "-Xopt-in=kotlinx.coroutines.FlowPreview",
     )
 
     testOptions.unitTests.isReturnDefaultValues = true
