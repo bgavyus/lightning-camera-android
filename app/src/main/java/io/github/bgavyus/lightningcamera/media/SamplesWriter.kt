@@ -7,6 +7,7 @@ import android.os.Build
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.extensions.android.media.tryRelease
+import io.github.bgavyus.lightningcamera.logging.Logger
 import io.github.bgavyus.lightningcamera.storage.Storage
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import io.github.bgavyus.lightningcamera.utilities.Rotation
@@ -39,6 +40,7 @@ class SamplesWriter(
 
     override fun process(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
         if (active.compareAndSet(false, true)) {
+            Logger.log("Keeping file")
             file.keep()
         }
 
