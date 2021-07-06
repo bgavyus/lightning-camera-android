@@ -10,5 +10,5 @@ data class CameraMetadata(
     val captureRate: FrameRate,
     val frameSize: Size,
 ) {
-    val previewRate get() = if (captureRate.isHighSpeed) FrameRate(30) else captureRate
+    val previewRate get() = if (captureRate.isHighSpeed) FrameRate(30, false) else captureRate
 }
