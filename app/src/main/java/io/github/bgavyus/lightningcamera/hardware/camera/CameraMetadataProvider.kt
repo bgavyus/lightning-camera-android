@@ -32,6 +32,7 @@ class CameraMetadataProvider @Inject constructor(
                 val fps = characteristics.streamConfigurationMap
                     .highSpeedVideoFpsRanges
                     .ifEmpty(characteristics::fpsRanges)
+                    .also { Logger.log("FPS ranges for camera $id: ${it.joinToString()}") }
                     .asSequence()
                     .filter(Range<Int>::isSingular)
                     .maxOf(Range<Int>::getUpper)
@@ -45,17 +46,25 @@ class CameraMetadataProvider @Inject constructor(
 
         val frameSize = if (captureRate.isHighSpeed) {
             streamConfigurationMap.getHighSpeedVideoSizesFor(captureRate.fps.toRange())
+                .also { Logger.log("High speed frame sizes: ${it.joinToString()}") }
                 .asSequence()
         } else {
             val format = ImageFormat.PRIVATE
 
             streamConfigurationMap.getOutputSizes(format)
+                .map { it to streamConfigurationMap.getOutputMaxFps(format, it) }
+                .also { Logger.log("Normal speed capture configurations: ${it.joinToString()}") }
                 .asSequence()
-                .filter { streamConfigurationMap.getOutputMaxFps(format, it) == captureRate.fps }
+                .filter { (size, fps) -> fps == captureRate.fps && size.area <= maxFramePixels }
+                .map { (size, _) -> size }
         }
             .getMaxBy(Size::area)
 
         return CameraMetadata(id, orientation, captureRate, frameSize)
             .also { Logger.log("Metadata collected: $it") }
+    }
+
+    companion object {
+        const val maxFramePixels = 0x40_00_00
     }
 }
