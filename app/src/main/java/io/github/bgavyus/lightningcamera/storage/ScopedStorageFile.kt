@@ -64,6 +64,7 @@ class ScopedStorageFile(
 
     private fun discardIfPending() {
         if (pending.get()) {
+            Logger.log("Discarding")
             discard()
         }
     }
