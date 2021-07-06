@@ -1,16 +1,15 @@
 package io.github.bgavyus.lightningcamera.utilities
 
+import com.google.common.collect.Queues
 import java.util.*
 
 open class DeferScope : AutoCloseable {
-    private val stack = ArrayDeque<() -> Unit>()
+    private val stack = Queues.synchronizedDeque(ArrayDeque<() -> Unit>())
 
-    @Synchronized
     fun defer(block: () -> Unit) {
         stack.push(block)
     }
 
-    @Synchronized
     override fun close() {
         while (true) {
             val block = stack.poll() ?: break
