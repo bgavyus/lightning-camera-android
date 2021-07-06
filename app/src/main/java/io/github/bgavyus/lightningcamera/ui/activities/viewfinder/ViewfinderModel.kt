@@ -31,7 +31,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class ViewfinderViewModel @Inject constructor(
+class ViewfinderModel @Inject constructor(
     private val motionDetectorFactory: MotionDetectorFactory,
     private val cameraMetadataProvider: CameraMetadataProvider,
     private val surfaceDuplicatorFactory: SurfaceDuplicatorFactory,

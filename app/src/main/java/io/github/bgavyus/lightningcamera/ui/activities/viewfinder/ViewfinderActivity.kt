@@ -41,7 +41,7 @@ class ViewfinderActivity : FragmentActivity() {
     @Inject
     lateinit var messageShower: MessageShower
 
-    private val model: ViewfinderViewModel by viewModels()
+    private val model: ViewfinderModel by viewModels()
     private val binding by lazy { ActivityViewfinderBinding.inflate(layoutInflater) }
 
     private val fixedPositionViews by lazy {
