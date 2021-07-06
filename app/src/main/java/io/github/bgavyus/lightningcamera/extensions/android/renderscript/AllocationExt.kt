@@ -7,5 +7,9 @@ import kotlinx.coroutines.flow.callbackFlow
 
 fun Allocation.buffers() = callbackFlow {
     setOnBufferAvailableListener { trySendBlocking(it) }
-    awaitClose { setOnBufferAvailableListener(null) }
+    awaitClose { trySetOnBufferAvailableListener(null) }
+}
+
+fun Allocation.trySetOnBufferAvailableListener(callback: Allocation.OnBufferAvailableListener?) {
+    runCatching { setOnBufferAvailableListener(callback) }
 }
