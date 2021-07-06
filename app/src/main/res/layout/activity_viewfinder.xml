@@ -7,7 +7,7 @@
     android:keepScreenOn="true">
 
     <TextureView
-        android:id="@+id/texture_view"
+        android:id="@+id/texture"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

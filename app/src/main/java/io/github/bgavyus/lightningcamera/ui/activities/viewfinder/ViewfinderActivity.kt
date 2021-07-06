@@ -93,11 +93,11 @@ class ViewfinderActivity : FragmentActivity() {
     }
 
     private fun bindViews() {
-        model.surfaceTexture.value?.let(binding.textureView::setSurfaceTexture)
+        model.surfaceTexture.value?.let(binding.texture::setSurfaceTexture)
 
         lifecycleScope.launchAll(
-            binding.textureView.surfaceTextureEvents().onEach(::handleSurfaceTextureEvent),
-            model.transformMatrix.onEach(binding.textureView::setTransform),
+            binding.texture.surfaceTextureEvents().onEach(::handleSurfaceTextureEvent),
+            model.transformMatrix.onEach(binding.texture::setTransform),
             model.detecting.onEach(::setDetectionIndicatorActive),
             model.watching.onEach(::setWatchingToggleActive),
             combine(model.watching, model.detecting, ::updateHint),
