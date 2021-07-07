@@ -52,7 +52,6 @@ class ViewfinderModel @Inject constructor(
     val watching = MutableStateFlow(false)
     val transformMatrix = MutableStateFlow(Matrix())
     val surfaceTexture = MutableStateFlow(null as SurfaceTexture?)
-    private val recording = (watching and detecting).distinctUntilChanged()
 
     private val recorderOrientation = displayRotation
         .map { deferredMetadata.await().orientation - it }
@@ -125,12 +124,14 @@ class ViewfinderModel @Inject constructor(
         val encoder = deferredEncoder.await()
         val metadata = deferredMetadata.await()
         val queue = deferredQueue.await()
-        val maxPaddingFrames = metadata.previewRate.fps / 2
+        val detectionEndExtraMillis = if (metadata.captureRate.isHighSpeed) 50L else 500L
+
+        val recording = (watching and detecting.debounce { if (it) 0 else detectionEndExtraMillis })
+            .distinctUntilChanged()
 
         recorderFactory.create(
             encoder,
             queue,
-            maxPaddingFrames,
             recording,
             recorderOrientation,
         )
