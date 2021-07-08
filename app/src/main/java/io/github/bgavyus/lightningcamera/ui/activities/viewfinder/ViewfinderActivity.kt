@@ -1,5 +1,6 @@
 package io.github.bgavyus.lightningcamera.ui.activities.viewfinder
 
+import android.content.res.Configuration
 import android.hardware.display.DisplayManager
 import android.os.Build
 import android.view.WindowManager
@@ -16,12 +17,14 @@ import androidx.lifecycle.whenCreated
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.R
 import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
+import io.github.bgavyus.lightningcamera.extensions.android.app.displayCompat
 import io.github.bgavyus.lightningcamera.extensions.android.content.res.identifier
 import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.display.metricsChanges
 import io.github.bgavyus.lightningcamera.extensions.android.view.*
 import io.github.bgavyus.lightningcamera.extensions.android.widget.checked
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.launchAll
+import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.onEachChange
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.reflectTo
 import io.github.bgavyus.lightningcamera.hardware.camera.CameraConnectionFactory
 import io.github.bgavyus.lightningcamera.logging.Logger
@@ -29,7 +32,10 @@ import io.github.bgavyus.lightningcamera.permissions.PermissionsRequester
 import io.github.bgavyus.lightningcamera.storage.StorageCharacteristics
 import io.github.bgavyus.lightningcamera.ui.MessageShower
 import io.github.bgavyus.lightningcamera.utilities.Rotation
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -105,18 +111,17 @@ class ViewfinderActivity : FragmentActivity() {
             binding.watchToggle.checked()
                 .onEach { Logger.log("Watching? $it") }
                 .reflectTo(model.watching),
+
+            model.displayRotation
+                .onEach { Logger.log("Display rotation: $it") }
+                .onEachChange { old, new -> rotateFixedPositionViews(old - new) },
         )
     }
 
     private suspend fun bindDisplayRotation() {
         systemService<DisplayManager>()
             .metricsChanges()
-            .filter { it == window.decorView.display.displayId }
-            .map { Rotation.fromSurfaceRotation(window.decorView.display.rotation) }
-            .onEach { Logger.log("Rotation changed: $it") }
-            .onEach { rotateFixedPositionViews(model.displayRotation.value - it) }
-            .reflectTo(model.displayRotation)
-            .collect()
+            .collect { updateDisplayRotation() }
     }
 
     private fun rotateFixedPositionViews(rotation: Rotation) {
@@ -184,6 +189,16 @@ class ViewfinderActivity : FragmentActivity() {
         watching && !detecting -> R.string.watching_not_detecting_hint
         !watching && detecting -> R.string.not_watching_detecting_hint
         else -> R.string.not_watching_not_detecting_hint
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        updateDisplayRotation()
+    }
+
+    private fun updateDisplayRotation() {
+        val display = displayCompat ?: return
+        model.displayRotation.value = Rotation.fromSurfaceRotation(display.rotation)
     }
 
     companion object {
