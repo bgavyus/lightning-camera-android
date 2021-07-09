@@ -10,10 +10,10 @@ import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import java.time.Instant
 import javax.inject.Inject
 
-class MediaCollection @Inject constructor(
+class MediaMetadataList @Inject constructor(
     contentResolver: ContentResolver,
     mediaDirectory: MediaDirectory,
-) : AbstractList<MediaItem>(), AutoCloseable {
+) : AbstractList<MediaMetadata>(), AutoCloseable {
     private val deferScope = DeferScope()
 
     private val cursor = contentResolver.requireQuery(
@@ -25,12 +25,12 @@ class MediaCollection @Inject constructor(
 
     override val size get() = cursor.count
 
-    override fun get(index: Int): MediaItem {
+    override fun get(index: Int): MediaMetadata {
         cursor.requireMoveToPosition(index)
-        return item()
+        return element()
     }
 
-    private fun item() = MediaItem(
+    private fun element() = MediaMetadata(
         id = cursor.getInt(columnIndexes.getValue(MediaStore.MediaColumns._ID)),
         title = cursor.getString(columnIndexes.getValue(MediaStore.MediaColumns.TITLE)),
         dateAdded = Instant.ofEpochSecond(
