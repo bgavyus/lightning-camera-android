@@ -1,25 +1,26 @@
 package io.github.bgavyus.lightningcamera.storage
 
 import android.content.ContentResolver
-import android.net.Uri
 import android.provider.MediaStore
-import com.google.auto.factory.AutoFactory
-import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.extensions.android.content.SortDirection
 import io.github.bgavyus.lightningcamera.extensions.android.content.SortOrder
 import io.github.bgavyus.lightningcamera.extensions.android.content.requireQuery
 import io.github.bgavyus.lightningcamera.extensions.android.database.requireMoveToPosition
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import java.time.Instant
+import javax.inject.Inject
 
-@AutoFactory
-class MediaCollection(
-    @Provided contentResolver: ContentResolver,
-    uri: Uri,
+class MediaCollection @Inject constructor(
+    contentResolver: ContentResolver,
+    mediaDirectory: MediaDirectory,
 ) : AbstractList<MediaItem>(), AutoCloseable {
     private val deferScope = DeferScope()
 
-    private val cursor = contentResolver.requireQuery(uri, columnNames, sortOrder)
+    private val cursor = contentResolver.requireQuery(
+        mediaDirectory.externalStorageContentUri,
+        columnNames,
+        sortOrder
+    )
         .apply { deferScope.defer(::close) }
 
     override val size get() = cursor.count

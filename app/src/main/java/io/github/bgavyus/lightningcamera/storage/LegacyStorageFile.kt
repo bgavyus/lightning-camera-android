@@ -16,8 +16,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 @AutoFactory(implementing = [StorageFileFactory::class])
 class LegacyStorageFile(
     @Provided private val contentResolver: ContentResolver,
+    @Provided private val mediaDirectory: MediaDirectory,
     private val mimeType: String,
-    private val mediaDirectory: MediaDirectory,
     appDirectoryName: String,
     name: String,
 ) : DeferScope(), StorageFile {

@@ -18,4 +18,7 @@ object StorageModule {
     } else {
         legacyStorageFileFactoryProvider.get()
     }
+
+    @Provides
+    fun provideMediaDirectory() = MediaDirectory.Movies
 }

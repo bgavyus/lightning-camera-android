@@ -21,8 +21,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 class ScopedStorageFile(
     @Provided private val contentResolver: ContentResolver,
     @Provided clock: Clock,
+    @Provided mediaDirectory: MediaDirectory,
     mimeType: String,
-    mediaDirectory: MediaDirectory,
     appDirectoryName: String,
     name: String,
 ) : DeferScope(), StorageFile {

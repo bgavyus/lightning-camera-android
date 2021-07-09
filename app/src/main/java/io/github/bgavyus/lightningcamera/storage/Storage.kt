@@ -21,7 +21,6 @@ class Storage @Inject constructor(
 
         return fileFactory.create(
             mimeType = mimeType,
-            mediaDirectory = MediaDirectory.Movies,
             appDirectoryName = context.getString(R.string.app_directory_name),
             name = "${namePrefix}_$timeString.$fileExtension",
         )
