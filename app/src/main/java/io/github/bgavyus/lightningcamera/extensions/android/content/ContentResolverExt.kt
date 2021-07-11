@@ -58,16 +58,16 @@ data class SortOrder(val columns: Collection<String>, val direction: SortDirecti
 }
 
 fun ContentResolver.requireOpenFileDescriptor(
-    url: Uri,
+    uri: Uri,
     mode: FileMode,
     cancellationSignal: CancellationSignal? = null,
-) = openFileDescriptor(url, mode, cancellationSignal) ?: throw IllegalStateException()
+) = openFileDescriptor(uri, mode, cancellationSignal) ?: throw IllegalStateException()
 
 fun ContentResolver.openFileDescriptor(
-    url: Uri,
+    uri: Uri,
     mode: FileMode,
     cancellationSignal: CancellationSignal? = null,
-) = openFileDescriptor(url, mode.acronym, cancellationSignal)
+) = openFileDescriptor(uri, mode.acronym, cancellationSignal)
 
 fun ContentResolver.requireInsert(
     @RequiresPermission.Write url: Uri,
