@@ -18,8 +18,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.R
 import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
 import io.github.bgavyus.lightningcamera.extensions.android.app.displayCompat
+import io.github.bgavyus.lightningcamera.extensions.android.content.requireSystemService
 import io.github.bgavyus.lightningcamera.extensions.android.content.res.identifier
-import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.display.metricsChanges
 import io.github.bgavyus.lightningcamera.extensions.android.view.*
 import io.github.bgavyus.lightningcamera.extensions.android.widget.checked
@@ -119,7 +119,7 @@ class ViewfinderActivity : FragmentActivity() {
     }
 
     private suspend fun bindDisplayRotation() {
-        systemService<DisplayManager>()
+        requireSystemService<DisplayManager>()
             .metricsChanges()
             .collect { updateDisplayRotation() }
     }

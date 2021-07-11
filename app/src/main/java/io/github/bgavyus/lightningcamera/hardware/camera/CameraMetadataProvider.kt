@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.ImageFormat
 import android.hardware.camera2.CameraManager
 import android.util.Size
-import io.github.bgavyus.lightningcamera.extensions.android.content.systemService
+import io.github.bgavyus.lightningcamera.extensions.android.content.requireSystemService
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.fpsRanges
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.params.getOutputMaxFps
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.camera2.sensorOrientation
@@ -22,7 +22,7 @@ class CameraMetadataProvider @Inject constructor(
     private val context: Context,
 ) {
     fun collect(): CameraMetadata {
-        val manager: CameraManager = context.systemService()
+        val manager: CameraManager = context.requireSystemService()
 
         val (id, characteristics, captureRate) = manager.cameraIdList
             .asSequence()
