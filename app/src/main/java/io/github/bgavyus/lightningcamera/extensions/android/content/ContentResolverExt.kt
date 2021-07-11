@@ -69,14 +69,20 @@ fun ContentResolver.openFileDescriptor(
     cancellationSignal: CancellationSignal? = null,
 ) = openFileDescriptor(url, mode.acronym, cancellationSignal)
 
-fun ContentResolver.requireInsert(url: Uri, valuesBlock: ContentValues.() -> Unit) =
+fun ContentResolver.requireInsert(
+    @RequiresPermission.Write url: Uri,
+    valuesBlock: ContentValues.() -> Unit
+) =
     insert(url, valuesBlock) ?: throw IllegalStateException()
 
-fun ContentResolver.insert(url: Uri, valuesBlock: ContentValues.() -> Unit) =
+fun ContentResolver.insert(
+    @RequiresPermission.Write url: Uri,
+    valuesBlock: ContentValues.() -> Unit
+) =
     insert(url, ContentValues().apply(valuesBlock))
 
 fun ContentResolver.requireUpdate(
-    uri: Uri,
+    @RequiresPermission.Write uri: Uri,
     where: String? = null,
     selectionArgs: Array<String>? = null,
     valuesBlock: ContentValues.() -> Unit,
@@ -86,14 +92,14 @@ fun ContentResolver.requireUpdate(
 }
 
 fun ContentResolver.update(
-    uri: Uri,
+    @RequiresPermission.Write uri: Uri,
     where: String? = null,
     selectionArgs: Array<String>? = null,
     valuesBlock: ContentValues.() -> Unit,
 ) = update(uri, ContentValues().apply(valuesBlock), where, selectionArgs)
 
 fun ContentResolver.requireDelete(
-    uri: Uri,
+    @RequiresPermission.Write uri: Uri,
     where: String? = null,
     selectionArgs: Array<String>? = null,
 ) {
