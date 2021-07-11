@@ -76,20 +76,13 @@ fun ContentResolver.requireInsert(
 
 fun ContentResolver.requireUpdate(
     @RequiresPermission.Write uri: Uri,
+    values: ContentValues? = null,
     where: String? = null,
     selectionArgs: Array<String>? = null,
-    valuesBlock: ContentValues.() -> Unit,
 ) {
-    val updatedRowsCount = update(uri, where, selectionArgs, valuesBlock)
+    val updatedRowsCount = update(uri, values, where, selectionArgs)
     check(updatedRowsCount.isPositive)
 }
-
-fun ContentResolver.update(
-    @RequiresPermission.Write uri: Uri,
-    where: String? = null,
-    selectionArgs: Array<String>? = null,
-    valuesBlock: ContentValues.() -> Unit,
-) = update(uri, ContentValues().apply(valuesBlock), where, selectionArgs)
 
 fun ContentResolver.requireDelete(
     @RequiresPermission.Write uri: Uri,

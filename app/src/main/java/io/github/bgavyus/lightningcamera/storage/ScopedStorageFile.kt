@@ -61,9 +61,13 @@ class ScopedStorageFile(
         }
     }
 
-    private fun save() = contentResolver.requireUpdate(uri) {
-        putNull(MediaStore.MediaColumns.DATE_EXPIRES)
-        put(MediaStore.MediaColumns.IS_PENDING, false.toInt())
+    private fun save() {
+        val values = contentValuesOf(
+            MediaStore.MediaColumns.DATE_EXPIRES to null,
+            MediaStore.MediaColumns.IS_PENDING to false.toInt(),
+        )
+
+        contentResolver.requireUpdate(uri, values)
     }
 
     private fun discardIfPending() {
