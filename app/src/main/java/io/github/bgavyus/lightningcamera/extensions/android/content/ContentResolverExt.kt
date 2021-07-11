@@ -69,8 +69,10 @@ fun ContentResolver.openFileDescriptor(
     cancellationSignal: CancellationSignal? = null,
 ) = openFileDescriptor(url, mode.acronym, cancellationSignal)
 
-fun ContentResolver.requireInsert(@RequiresPermission.Write url: Uri, values: ContentValues) =
-    insert(url, values) ?: throw IllegalStateException()
+fun ContentResolver.requireInsert(
+    @RequiresPermission.Write url: Uri,
+    values: ContentValues? = null,
+) = insert(url, values) ?: throw IllegalStateException()
 
 fun ContentResolver.requireUpdate(
     @RequiresPermission.Write uri: Uri,
