@@ -4,13 +4,14 @@ import android.content.ContentResolver
 import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
+import androidx.core.content.contentValuesOf
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.extensions.android.content.*
 import io.github.bgavyus.lightningcamera.extensions.toInt
 import io.github.bgavyus.lightningcamera.logging.Logger
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
-import java.io.File.separator
+import java.io.File
 import java.io.FileDescriptor
 import java.time.Clock
 import java.time.Period
@@ -28,18 +29,21 @@ class ScopedStorageFile(
 ) : DeferScope(), StorageFile {
     private val pending = AtomicBoolean(true)
 
-    private val uri = contentResolver.requireInsert(mediaDirectory.externalStorageContentUri) {
-        put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-        put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-        put(MediaStore.MediaColumns.IS_PENDING, true.toInt())
-
+    private val uri = run {
         val segments = listOf(mediaDirectory.value, appDirectoryName)
-        put(MediaStore.MediaColumns.RELATIVE_PATH, segments.joinToString(separator))
-
         val expirationTime = clock.instant() + Period.ofDays(1)
-        put(MediaStore.MediaColumns.DATE_EXPIRES, expirationTime.epochSecond)
+
+        val values = contentValuesOf(
+            MediaStore.MediaColumns.MIME_TYPE to mimeType,
+            MediaStore.MediaColumns.DISPLAY_NAME to name,
+            MediaStore.MediaColumns.IS_PENDING to true.toInt(),
+            MediaStore.MediaColumns.RELATIVE_PATH to segments.joinToString(File.separator),
+            MediaStore.MediaColumns.DATE_EXPIRES to expirationTime.epochSecond,
+        )
+
+        contentResolver.requireInsert(mediaDirectory.externalStorageContentUri, values)
+            .also { Logger.log("Inserted URI: $it") }
     }
-        .also { Logger.log("Inserted URI: $it") }
 
     init {
         defer(::discardIfPending)

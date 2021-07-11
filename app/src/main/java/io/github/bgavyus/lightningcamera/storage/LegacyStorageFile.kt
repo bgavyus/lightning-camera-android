@@ -3,6 +3,7 @@ package io.github.bgavyus.lightningcamera.storage
 import android.content.ContentResolver
 import android.os.Environment
 import android.provider.MediaStore
+import androidx.core.content.contentValuesOf
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
 import io.github.bgavyus.lightningcamera.extensions.android.content.requireInsert
@@ -48,10 +49,12 @@ class LegacyStorageFile(
     private fun save() {
         file.save()
 
-        contentResolver.requireInsert(mediaDirectory.externalStorageContentUri) {
-            put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-            put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
-            put(MediaStore.MediaColumns.DATA, file.absolutePath)
-        }
+        val values = contentValuesOf(
+            MediaStore.MediaColumns.MIME_TYPE to mimeType,
+            MediaStore.MediaColumns.DISPLAY_NAME to file.name,
+            MediaStore.MediaColumns.DATA to file.absolutePath,
+        )
+
+        contentResolver.requireInsert(mediaDirectory.externalStorageContentUri, values)
     }
 }
