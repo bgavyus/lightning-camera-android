@@ -4,10 +4,10 @@ import android.content.ContentResolver
 import android.content.ContentValues
 import android.net.Uri
 import android.os.Build
-import android.os.Bundle
 import android.os.CancellationSignal
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
+import androidx.core.os.bundleOf
 import io.github.bgavyus.lightningcamera.extensions.isPositive
 
 enum class SortDirection {
@@ -49,10 +49,10 @@ enum class FileMode {
 
 data class SortOrder(val columns: Collection<String>, val direction: SortDirection) {
     @RequiresApi(Build.VERSION_CODES.O)
-    fun toQueryArguments() = Bundle().apply {
-        putStringArray(ContentResolver.QUERY_ARG_SORT_COLUMNS, columns.toTypedArray())
-        putInt(ContentResolver.QUERY_ARG_SORT_DIRECTION, direction.queryArgument)
-    }
+    fun toQueryArguments() = bundleOf(
+        ContentResolver.QUERY_ARG_SORT_COLUMNS to columns.toTypedArray(),
+        ContentResolver.QUERY_ARG_SORT_DIRECTION to direction.queryArgument,
+    )
 
     fun toSql() = "${columns.joinToString()} ${direction.sql}"
 }
