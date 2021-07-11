@@ -49,7 +49,7 @@ class Encoder(
     init {
         codec.apply {
             start()
-            defer(::stop)
+            defer(::tryStop)
             defer(::tryFlush)
         }
     }
