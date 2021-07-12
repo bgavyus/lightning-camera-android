@@ -31,10 +31,10 @@ class MediaMetadataList @Inject constructor(
     }
 
     private fun element() = MediaMetadata(
-        id = cursor.getInt(columnIndexes.getValue(MediaStore.MediaColumns._ID)),
+        id = cursor.getLong(columnIndexes.getValue(MediaStore.MediaColumns._ID)),
         title = cursor.getString(columnIndexes.getValue(MediaStore.MediaColumns.TITLE)),
         dateAdded = Instant.ofEpochSecond(
-            cursor.getInt(columnIndexes.getValue(MediaStore.MediaColumns.DATE_ADDED)).toLong()
+            cursor.getLong(columnIndexes.getValue(MediaStore.MediaColumns.DATE_ADDED))
         )
     )
 
