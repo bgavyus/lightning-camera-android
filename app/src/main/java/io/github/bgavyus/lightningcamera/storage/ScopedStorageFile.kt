@@ -49,7 +49,7 @@ class ScopedStorageFile(
         defer(::discardIfPending)
     }
 
-    private val file = contentResolver.requireOpenFileDescriptor(uri, FileMode.Write)
+    private val file = contentResolver.requireOpenFile(uri, FileMode.Write)
         .also { defer(it::close) }
 
     override val descriptor: FileDescriptor get() = file.fileDescriptor
