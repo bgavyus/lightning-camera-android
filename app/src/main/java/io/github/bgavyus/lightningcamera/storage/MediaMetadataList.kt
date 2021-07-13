@@ -21,6 +21,7 @@ class MediaMetadataList @Inject constructor(
         columnNames,
         sortOrder
     )
+        .let { CachedColumnCursor(it) }
         .apply { deferScope.defer(::close) }
 
     override val size get() = cursor.count
@@ -31,11 +32,9 @@ class MediaMetadataList @Inject constructor(
     }
 
     private fun element() = MediaMetadata(
-        id = cursor.getLong(columnIndexes.getValue(MediaStore.MediaColumns._ID)),
-        title = cursor.getString(columnIndexes.getValue(MediaStore.MediaColumns.TITLE)),
-        dateAdded = Instant.ofEpochSecond(
-            cursor.getLong(columnIndexes.getValue(MediaStore.MediaColumns.DATE_ADDED))
-        )
+        id = cursor[MediaStore.MediaColumns._ID],
+        title = cursor[MediaStore.MediaColumns.TITLE],
+        dateAdded = Instant.ofEpochSecond(cursor[MediaStore.MediaColumns.DATE_ADDED])
     )
 
     override fun close() {
@@ -53,9 +52,5 @@ class MediaMetadataList @Inject constructor(
             listOf(MediaStore.MediaColumns.DATE_ADDED),
             SortDirection.Descending
         )
-
-        private val columnIndexes = columnNames
-            .mapIndexed { index, name -> name to index }
-            .toMap()
     }
 }
