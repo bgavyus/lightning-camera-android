@@ -6,39 +6,28 @@ import io.github.bgavyus.lightningcamera.extensions.android.content.SortDirectio
 import io.github.bgavyus.lightningcamera.extensions.android.content.SortOrder
 import io.github.bgavyus.lightningcamera.extensions.android.content.requireQuery
 import io.github.bgavyus.lightningcamera.extensions.android.database.requireMoveToPosition
-import io.github.bgavyus.lightningcamera.utilities.DeferScope
-import java.time.Instant
 import javax.inject.Inject
 
 class MediaMetadataList @Inject constructor(
     contentResolver: ContentResolver,
     mediaDirectory: MediaDirectory,
 ) : AbstractList<MediaMetadata>(), AutoCloseable {
-    private val deferScope = DeferScope()
-
     private val cursor = contentResolver.requireQuery(
         mediaDirectory.externalStorageContentUri,
         columnNames,
         sortOrder
     )
         .let { CachedColumnCursor(it) }
-        .apply { deferScope.defer(::close) }
 
     override val size get() = cursor.count
 
     override fun get(index: Int): MediaMetadata {
         cursor.requireMoveToPosition(index)
-        return element()
+        return MediaMetadata(cursor)
     }
 
-    private fun element() = MediaMetadata(
-        id = cursor[MediaStore.MediaColumns._ID],
-        title = cursor[MediaStore.MediaColumns.TITLE],
-        dateAdded = Instant.ofEpochSecond(cursor[MediaStore.MediaColumns.DATE_ADDED])
-    )
-
     override fun close() {
-        deferScope.close()
+        cursor.close()
     }
 
     companion object {
