@@ -1,13 +1,18 @@
 package io.github.bgavyus.lightningcamera.extensions.android.content
 
 import android.content.ContentResolver
+import android.content.ContentUris
 import android.content.ContentValues
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.CancellationSignal
+import android.provider.MediaStore
+import android.util.Size
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.core.os.bundleOf
+import io.github.bgavyus.lightningcamera.extensions.android.util.videoThumbnailKind
 import io.github.bgavyus.lightningcamera.extensions.isPositive
 
 enum class SortDirection {
@@ -104,4 +109,20 @@ fun ContentResolver.query(
     query(uri, projection, null, null, sortOrder?.toSql(), cancellationSignal)
 } else {
     query(uri, projection, sortOrder?.toQueryArguments(), cancellationSignal)
+}
+
+fun ContentResolver.loadThumbnailCompat(
+    uri: Uri,
+    size: Size,
+    signal: CancellationSignal? = null,
+): Bitmap = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+    @Suppress("DEPRECATION")
+    MediaStore.Video.Thumbnails.getThumbnail(
+        this,
+        ContentUris.parseId(uri),
+        size.videoThumbnailKind,
+        null
+    )
+} else {
+    loadThumbnail(uri, size, signal)
 }
