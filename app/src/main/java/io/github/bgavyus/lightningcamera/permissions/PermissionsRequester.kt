@@ -29,6 +29,6 @@ class PermissionsRequester @Inject constructor(
         val result = caller.requestMultiplePermissions(permissions.toTypedArray())
 
         Logger.log("Result: $result")
-        return result.all(Map.Entry<String, Boolean>::value)
+        return result.all(Map.Entry<*, Boolean>::value)
     }
 }
