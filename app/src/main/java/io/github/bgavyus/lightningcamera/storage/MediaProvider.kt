@@ -19,13 +19,11 @@ class MediaProvider @Inject constructor(
 ) {
     fun list() = contentResolver.requireQuery(uri, columnNames, sortOrder).asList { cursor ->
         MediaMetadata(
-            id = cursor[MediaStore.MediaColumns._ID],
+            uri = ContentUris.withAppendedId(uri, cursor[MediaStore.MediaColumns._ID]),
             title = cursor[MediaStore.MediaColumns.TITLE],
             dateAdded = Instant.ofEpochSecond(cursor[MediaStore.MediaColumns.DATE_ADDED])
         )
     }
-
-    fun uri(id: Long) = ContentUris.withAppendedId(uri, id)
 
     fun thumbnail(uri: Uri, size: Size) = contentResolver.loadThumbnailCompat(uri, size)
 
