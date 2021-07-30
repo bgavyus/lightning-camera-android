@@ -3,7 +3,7 @@ buildscript {
     val kotlinVersion by extra("1.5.20")
 
     // https://github.com/google/dagger/releases
-    val hiltVersion by extra("2.37")
+    val hiltVersion by extra("2.38.1")
 
     repositories {
         google()
