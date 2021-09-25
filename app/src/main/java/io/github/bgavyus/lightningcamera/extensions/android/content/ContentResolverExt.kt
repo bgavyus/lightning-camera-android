@@ -62,12 +62,11 @@ data class SortOrder(val columns: Collection<String>, val direction: SortDirecti
     fun toSql() = "${columns.joinToString()} ${direction.sql}"
 }
 
-@RequiresApi(Build.VERSION_CODES.Q)
-fun ContentResolver.requireOpenFile(
+fun ContentResolver.requireOpenFileDescriptor(
     uri: Uri,
     mode: FileMode,
     cancellationSignal: CancellationSignal? = null,
-) = openFile(uri, mode.acronym, cancellationSignal) ?: throw IllegalStateException()
+) = openFileDescriptor(uri, mode.acronym, cancellationSignal) ?: throw IllegalStateException()
 
 fun ContentResolver.requireInsert(
     @RequiresPermission.Write url: Uri,
