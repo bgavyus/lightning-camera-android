@@ -12,6 +12,9 @@ plugins {
 
 kapt.correctErrorTypes = true
 
+// https://developer.android.com/jetpack/androidx/releases/compose
+val composeVersion = "1.0.2"
+
 android {
     compileSdk = 30
     buildToolsVersion = "30.0.3"
@@ -70,8 +73,7 @@ android {
         "DebugProbesKt.bin",
     )
 
-    // https://developer.android.com/jetpack/androidx/releases/compose
-    composeOptions.kotlinCompilerExtensionVersion = "1.1.0-alpha04"
+    composeOptions.kotlinCompilerExtensionVersion = composeVersion
 
     testOptions.unitTests.isReturnDefaultValues = true
 }
@@ -116,8 +118,7 @@ dependencies {
     // https://github.com/google/auto/releases
     implementation("com.google.auto.factory:auto-factory:1.0.1")
 
-    // https://developer.android.com/jetpack/androidx/releases/compose-material
-    implementation("androidx.compose.material:material:1.0.2")
+    implementation("androidx.compose.material:material:$composeVersion")
 
     // https://developer.android.com/jetpack/androidx/releases/activity
     implementation("androidx.activity:activity-compose:1.3.1")
