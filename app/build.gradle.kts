@@ -12,8 +12,6 @@ plugins {
 
 kapt.correctErrorTypes = true
 
-val composeVersion = "1.0.0"
-
 android {
     compileSdk = 30
     buildToolsVersion = "30.0.3"
@@ -67,9 +65,13 @@ android {
         "-Xopt-in=androidx.compose.foundation.ExperimentalFoundationApi",
     )
 
-    packagingOptions.resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+    packagingOptions.resources.excludes += listOf(
+        "/META-INF/{AL2.0,LGPL2.1}",
+        "DebugProbesKt.bin",
+    )
 
-    composeOptions.kotlinCompilerExtensionVersion = composeVersion
+    // https://developer.android.com/jetpack/androidx/releases/compose
+    composeOptions.kotlinCompilerExtensionVersion = "1.1.0-alpha04"
 
     testOptions.unitTests.isReturnDefaultValues = true
 }
@@ -84,7 +86,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion")
 
     // https://github.com/Kotlin/kotlinx.coroutines/releases
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
 
     val hiltVersion: String by rootProject.extra
     implementation("com.google.dagger:hilt-android:$hiltVersion")
@@ -97,10 +99,10 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.3.6")
 
     // https://developer.android.com/jetpack/androidx/releases/lifecycle
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-alpha02")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-alpha03")
 
     // https://developer.android.com/jetpack/androidx/releases/constraintlayout
-    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.1")
 
     // https://natario1.github.io/Egloo/about/changelog
     implementation("com.otaliastudios.opengl:egloo:0.6.1")
@@ -114,14 +116,11 @@ dependencies {
     // https://github.com/google/auto/releases
     implementation("com.google.auto.factory:auto-factory:1.0.1")
 
-    implementation("com.google.android.material:material:1.4.0")
+    // https://developer.android.com/jetpack/androidx/releases/compose-material
+    implementation("androidx.compose.material:material:1.0.2")
 
-    implementation("androidx.compose.ui:ui:$composeVersion")
-    implementation("androidx.compose.material:material:$composeVersion")
-    implementation("androidx.compose.ui:ui-tooling-preview:$composeVersion")
-    implementation("androidx.activity:activity-compose:1.3.0")
-    debugImplementation("androidx.compose.ui:ui-tooling:$composeVersion")
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:$composeVersion")
+    // https://developer.android.com/jetpack/androidx/releases/activity
+    implementation("androidx.activity:activity-compose:1.3.1")
 
     // https://github.com/junit-team/junit4/releases
     testImplementation("junit:junit:4.13.2")
