@@ -21,7 +21,4 @@ object StorageModule {
 
     @Provides
     fun provideMediaDirectory() = MediaDirectory.Movies
-
-    @Provides
-    fun provideUri(mediaDirectory: MediaDirectory) = mediaDirectory.externalStorageContentUri
 }
