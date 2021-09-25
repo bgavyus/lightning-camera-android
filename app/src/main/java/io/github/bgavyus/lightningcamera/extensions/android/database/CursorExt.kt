@@ -17,6 +17,22 @@ inline operator fun <reified T> Cursor.get(index: Int) = when (T::class) {
     else -> throw IllegalArgumentException()
 } as T
 
+@Suppress("unused")
+fun Cursor.toMap() = columnNames
+    .mapIndexed { index, name ->
+        val value = when (getType(index)) {
+            Cursor.FIELD_TYPE_INTEGER -> getLong(index)
+            Cursor.FIELD_TYPE_FLOAT -> getDouble(index)
+            Cursor.FIELD_TYPE_STRING -> getString(index)
+            Cursor.FIELD_TYPE_BLOB -> getBlob(index)
+            Cursor.FIELD_TYPE_NULL -> null
+            else -> throw RuntimeException()
+        }
+
+        name to value
+    }
+    .toMap()
+
 fun <T> Cursor.asList(factory: (CachedColumnCursor) -> T) =
     CursorList(CachedColumnCursor(this), factory)
 
