@@ -10,31 +10,28 @@ plugins {
     id("com.google.firebase.firebase-perf")
 }
 
-kapt {
-    correctErrorTypes = true
+kapt.correctErrorTypes = true
 
-    javacOptions {
-        // These options are normally set automatically via the Hilt Gradle plugin, but we
-        // set them manually to workaround a bug in the Kotlin 1.5.20
-        option("-Adagger.fastInit=ENABLED")
-        option("-Adagger.hilt.android.internal.disableAndroidSuperclassValidation=true")
-    }
-}
+val composeVersion = "1.0.0"
 
 android {
-    compileSdkVersion(30)
+    compileSdk = 30
     buildToolsVersion = "30.0.3"
 
     defaultConfig {
         applicationId = "io.github.bgavyus.lightningcamera"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        minSdkVersion(24)
-        targetSdkVersion(30)
+        minSdk = 24
+        targetSdk = 30
         versionCode = 12
         versionName = "0.1.2"
+        vectorDrawables.useSupportLibrary = true
     }
 
-    buildFeatures.viewBinding = true
+    buildFeatures {
+        viewBinding = true
+        compose = true
+    }
 
     buildTypes {
         getByName(BuilderConstants.RELEASE) {
@@ -67,7 +64,12 @@ android {
     kotlinOptions.freeCompilerArgs = listOf(
         "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
         "-Xopt-in=kotlinx.coroutines.FlowPreview",
+        "-Xopt-in=androidx.compose.foundation.ExperimentalFoundationApi",
     )
+
+    packagingOptions.resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+
+    composeOptions.kotlinCompilerExtensionVersion = composeVersion
 
     testOptions.unitTests.isReturnDefaultValues = true
 }
@@ -98,7 +100,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-alpha02")
 
     // https://developer.android.com/jetpack/androidx/releases/constraintlayout
-    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.1")
 
     // https://natario1.github.io/Egloo/about/changelog
     implementation("com.otaliastudios.opengl:egloo:0.6.1")
@@ -111,6 +113,15 @@ dependencies {
 
     // https://github.com/google/auto/releases
     implementation("com.google.auto.factory:auto-factory:1.0.1")
+
+    implementation("com.google.android.material:material:1.4.0")
+
+    implementation("androidx.compose.ui:ui:$composeVersion")
+    implementation("androidx.compose.material:material:$composeVersion")
+    implementation("androidx.compose.ui:ui-tooling-preview:$composeVersion")
+    implementation("androidx.activity:activity-compose:1.3.0")
+    debugImplementation("androidx.compose.ui:ui-tooling:$composeVersion")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:$composeVersion")
 
     // https://github.com/junit-team/junit4/releases
     testImplementation("junit:junit:4.13.2")
