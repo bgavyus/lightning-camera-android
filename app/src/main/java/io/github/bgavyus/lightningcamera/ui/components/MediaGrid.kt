@@ -7,17 +7,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.unit.dp
 import io.github.bgavyus.lightningcamera.storage.MediaMetadata
-import io.github.bgavyus.lightningcamera.storage.ThumbnailsProvider
+import io.github.bgavyus.lightningcamera.storage.MediaMetadataProvider
 
 @Composable
 fun MediaGrid(
     metadataList: List<MediaMetadata>,
-    thumbnailsProvider: ThumbnailsProvider,
+    metadataProvider: MediaMetadataProvider,
     uriOpener: UriHandler,
 ) {
     LazyVerticalGrid(GridCells.Adaptive(minSize = 120.dp)) {
         items(metadataList) { metadata ->
-            MediaCell(metadata, thumbnailsProvider, uriOpener)
+            MediaCell(metadata, metadataProvider, uriOpener)
         }
     }
 }

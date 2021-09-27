@@ -33,15 +33,17 @@ fun Cursor.toMap() = columnNames
     }
     .toMap()
 
-fun <T> Cursor.asList(factory: (CachedColumnCursor) -> T) =
-    CursorList(CachedColumnCursor(this), factory)
+fun <T> Cursor.toList(factory: (CachedColumnCursor) -> T) = asList(factory).use(Iterable<T>::toList)
 
 class CachedColumnCursor(cursor: Cursor) : Cursor by cursor {
     val columnIndexes = columnNames.mapIndexed { index, name -> name to index }.toMap()
     inline operator fun <reified T> get(name: String): T = this[columnIndexes.getValue(name)]
 }
 
-class CursorList<Element>(
+private fun <T> Cursor.asList(factory: (CachedColumnCursor) -> T) =
+    CursorList(CachedColumnCursor(this), factory)
+
+private class CursorList<Element>(
     private val cursor: CachedColumnCursor,
     private val factory: (CachedColumnCursor) -> Element,
 ) : AbstractList<Element>(), AutoCloseable by cursor {

@@ -13,10 +13,10 @@ import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 
 @Composable
-fun MediaThumbnail(thumbnail: Bitmap?) {
-    val painter = remember(thumbnail) {
-        if (thumbnail != null) {
-            BitmapPainter(thumbnail.asImageBitmap())
+fun SquareImage(bitmap: Bitmap?) {
+    val painter = remember(bitmap) {
+        if (bitmap != null) {
+            BitmapPainter(bitmap.asImageBitmap())
         } else {
             ColorPainter(Color.Black)
         }
