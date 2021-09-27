@@ -9,7 +9,6 @@ import android.util.Size
 import io.github.bgavyus.lightningcamera.extensions.android.content.*
 import io.github.bgavyus.lightningcamera.extensions.android.database.toList
 import io.github.bgavyus.lightningcamera.extensions.android.media.get
-import io.github.bgavyus.lightningcamera.logging.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.Duration
@@ -36,7 +35,6 @@ class MediaMetadataProvider @Inject constructor(
 
     suspend fun thumbnail(uri: Uri, size: Size) = withContext(Dispatchers.IO) {
         contentResolver.loadThumbnailCompat(uri, size)
-            .also { Logger.log("Got thumbnail: ${it.width}x${it.height}") }
     }
 
     suspend fun duration(uri: Uri): Duration = withContext(Dispatchers.IO) {
