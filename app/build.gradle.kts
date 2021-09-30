@@ -13,7 +13,7 @@ plugins {
 kapt.correctErrorTypes = true
 
 // https://developer.android.com/jetpack/androidx/releases/compose
-val composeVersion = "1.0.2"
+val composeVersion = "1.0.3"
 
 android {
     compileSdk = 30
