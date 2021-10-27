@@ -12,7 +12,7 @@ buildscript {
 
     dependencies {
         // https://developer.android.com/studio/releases/gradle-plugin
-        classpath("com.android.tools.build:gradle:7.0.2")
+        classpath("com.android.tools.build:gradle:7.0.3")
 
         // https://developers.google.com/android/guides/releases
         classpath("com.google.gms:google-services:4.3.10")
