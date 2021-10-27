@@ -6,7 +6,6 @@ import android.util.Size
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -14,7 +13,6 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.unit.dp
 import io.github.bgavyus.lightningcamera.extensions.androidx.compose.ui.layout.androidSize
 import io.github.bgavyus.lightningcamera.extensions.androidx.compose.ui.platform.openUri
-import io.github.bgavyus.lightningcamera.extensions.java.time.format
 import io.github.bgavyus.lightningcamera.storage.MediaMetadata
 import io.github.bgavyus.lightningcamera.storage.MediaMetadataProvider
 import java.time.Duration
@@ -46,8 +44,8 @@ private fun MediaCell(
             .clickable { uriHandler.openUri(metadata.uri) }
     ) {
         SquareImage(thumbnail)
-        Text(metadata.dateAdded.toString())
-        Text(duration?.format() ?: "n/a")
+        InstantText(metadata.dateAdded)
+        DurationText(duration)
     }
 }
 
