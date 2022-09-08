@@ -101,7 +101,7 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.3.6")
 
     // https://developer.android.com/jetpack/androidx/releases/lifecycle
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-alpha03")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.0-alpha02")
 
     // https://developer.android.com/jetpack/androidx/releases/constraintlayout
     implementation("androidx.constraintlayout:constraintlayout:2.1.1")
