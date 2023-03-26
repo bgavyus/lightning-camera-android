@@ -1,9 +1,9 @@
 buildscript {
     // https://kotlinlang.org/docs/releases.html
-    val kotlinVersion by extra("1.5.21")
+    val kotlinVersion by extra("1.8.10")
 
     // https://github.com/google/dagger/releases
-    val hiltVersion by extra("2.40.1")
+    val hiltVersion by extra("2.45")
 
     repositories {
         google()
@@ -15,12 +15,12 @@ buildscript {
         classpath("com.android.tools.build:gradle:7.4.2")
 
         // https://developers.google.com/android/guides/releases
-        classpath("com.google.gms:google-services:4.3.10")
+        classpath("com.google.gms:google-services:4.3.15")
 
         classpath(kotlin("gradle-plugin", kotlinVersion))
         classpath("com.google.dagger:hilt-android-gradle-plugin:$hiltVersion")
-        classpath("com.google.firebase:firebase-crashlytics-gradle:2.7.1")
-        classpath("com.google.firebase:perf-plugin:1.4.1")
+        classpath("com.google.firebase:firebase-crashlytics-gradle:2.9.4")
+        classpath("com.google.firebase:perf-plugin:1.4.2")
     }
 }
 
