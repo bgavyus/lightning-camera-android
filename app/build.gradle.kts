@@ -16,7 +16,7 @@ android {
     compileSdk = 33
 
     // https://developer.android.com/studio/releases/build-tools
-    buildToolsVersion = "33.0.1"
+    buildToolsVersion = "30.0.3"
 
     defaultConfig {
         applicationId = "io.github.bgavyus.lightningcamera"
