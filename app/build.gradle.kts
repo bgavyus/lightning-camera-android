@@ -14,7 +14,9 @@ kapt.correctErrorTypes = true
 
 android {
     compileSdk = 33
-    buildToolsVersion = "30.0.3"
+
+    // https://developer.android.com/studio/releases/build-tools
+    buildToolsVersion = "33.0.1"
 
     defaultConfig {
         applicationId = "io.github.bgavyus.lightningcamera"
