@@ -10,7 +10,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.callbackFlow
 
-@Suppress("BlockingMethodInNonBlockingContext")
 fun MediaCodec.encoderEvents(handler: Handler? = null) = callbackFlow {
     val callback = object : MediaCodec.Callback() {
         val bufferAvailableEvents = HashMap<Int, EncoderEvent.BufferAvailable>()

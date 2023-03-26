@@ -6,7 +6,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.callbackFlow
 
-@Suppress("BlockingMethodInNonBlockingContext")
 fun DisplayManager.metricsChanges(handler: Handler? = null) = callbackFlow {
     val listener = object : DisplayManager.DisplayListener {
         override fun onDisplayChanged(displayId: Int) {
