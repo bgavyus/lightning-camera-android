@@ -76,6 +76,7 @@ android {
     composeOptions.kotlinCompilerExtensionVersion = composeVersion
 
     testOptions.unitTests.isReturnDefaultValues = true
+    namespace = "io.github.bgavyus.lightningcamera"
 }
 
 dependencies {
