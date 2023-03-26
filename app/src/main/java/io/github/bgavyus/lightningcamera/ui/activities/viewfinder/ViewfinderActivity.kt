@@ -32,7 +32,6 @@ import io.github.bgavyus.lightningcamera.permissions.PermissionsRequester
 import io.github.bgavyus.lightningcamera.storage.StorageCharacteristics
 import io.github.bgavyus.lightningcamera.ui.MessageShower
 import io.github.bgavyus.lightningcamera.utilities.Rotation
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.onEach
