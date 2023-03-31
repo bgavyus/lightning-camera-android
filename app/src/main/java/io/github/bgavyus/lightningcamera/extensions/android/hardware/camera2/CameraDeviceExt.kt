@@ -34,8 +34,10 @@ suspend fun CameraDevice.createCaptureSession(
             createCaptureSession(surfaces, callback, handler)
         }
     } else {
-        val mode =
-            if (isHighSpeed) SessionConfiguration.SESSION_HIGH_SPEED else SessionConfiguration.SESSION_REGULAR
+        val mode = if (isHighSpeed)
+            SessionConfiguration.SESSION_HIGH_SPEED
+        else
+            SessionConfiguration.SESSION_REGULAR
 
         val configuration = SessionConfiguration(
             mode,
