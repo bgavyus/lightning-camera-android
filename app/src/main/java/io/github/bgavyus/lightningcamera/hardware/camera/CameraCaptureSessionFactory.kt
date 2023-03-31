@@ -37,9 +37,9 @@ class CameraCaptureSessionFactory @Inject constructor(
             if (frameRate.isHighSpeed) {
                 val highSpeedCaptureSession = this as CameraConstrainedHighSpeedCaptureSession
                 val requests = highSpeedCaptureSession.createHighSpeedRequestList(captureRequest)
-                setRepeatingBurst(requests, null, null)
+                setRepeatingBurst(requests, null, handler)
             } else {
-                setRepeatingRequest(captureRequest, null, null)
+                setRepeatingRequest(captureRequest, null, handler)
             }
         }
     }
