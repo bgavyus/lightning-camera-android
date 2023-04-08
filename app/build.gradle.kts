@@ -83,7 +83,7 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
     // https://github.com/google/desugar_jdk_libs/blob/master/CHANGELOG.md
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.2")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 
     val kotlinVersion: String by rootProject.extra
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion")
@@ -96,7 +96,7 @@ dependencies {
     kapt("com.google.dagger:hilt-compiler:$hiltVersion")
 
     // https://developer.android.com/jetpack/androidx/releases/core
-    implementation("androidx.core:core-ktx:1.9.0")
+    implementation("androidx.core:core-ktx:1.10.0")
 
     // https://developer.android.com/jetpack/androidx/releases/fragment
     implementation("androidx.fragment:fragment-ktx:1.5.6")
@@ -111,7 +111,7 @@ dependencies {
     implementation("com.otaliastudios.opengl:egloo:0.6.1")
 
     // https://firebase.google.com/support/release-notes/android
-    implementation(platform("com.google.firebase:firebase-bom:31.3.0"))
+    implementation(platform("com.google.firebase:firebase-bom:31.4.0"))
     implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-perf-ktx")
@@ -120,7 +120,7 @@ dependencies {
     implementation("com.google.auto.factory:auto-factory:1.0.1")
 
     // https://developer.android.com/jetpack/androidx/releases/compose-material
-    implementation("androidx.compose.material:material:1.4.0")
+    implementation("androidx.compose.material:material:1.4.1")
 
     // https://developer.android.com/jetpack/androidx/releases/activity
     implementation("androidx.activity:activity-compose:1.7.0")
