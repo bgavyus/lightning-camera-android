@@ -1,6 +1,6 @@
 buildscript {
     // https://kotlinlang.org/docs/releases.html
-    val kotlinVersion by extra("1.8.10")
+    val kotlinVersion by extra("1.8.20")
 
     // https://github.com/google/dagger/releases
     val hiltVersion by extra("2.45")
@@ -12,7 +12,7 @@ buildscript {
 
     dependencies {
         // https://developer.android.com/studio/releases/gradle-plugin
-        classpath("com.android.tools.build:gradle:7.4.2")
+        classpath("com.android.tools.build:gradle:8.0.0")
 
         // https://developers.google.com/android/guides/releases
         classpath("com.google.gms:google-services:4.3.15")

@@ -31,6 +31,7 @@ android {
     buildFeatures {
         viewBinding = true
         compose = true
+        renderScript = true
     }
 
     buildTypes {
@@ -59,12 +60,14 @@ android {
         }
     }
 
-    compileOptions.isCoreLibraryDesugaringEnabled = true
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
 
     kotlinOptions.freeCompilerArgs = listOf(
-        "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
         "-Xopt-in=kotlinx.coroutines.FlowPreview",
-        "-Xopt-in=androidx.compose.foundation.ExperimentalFoundationApi",
     )
 
     packagingOptions.resources.excludes += listOf(
@@ -73,7 +76,7 @@ android {
     )
 
     // https://developer.android.com/jetpack/androidx/releases/compose
-    composeOptions.kotlinCompilerExtensionVersion = "1.4.4"
+    composeOptions.kotlinCompilerExtensionVersion = "1.4.5"
 
     testOptions.unitTests.isReturnDefaultValues = true
     namespace = "io.github.bgavyus.lightningcamera"
@@ -111,7 +114,7 @@ dependencies {
     implementation("com.otaliastudios.opengl:egloo:0.6.1")
 
     // https://firebase.google.com/support/release-notes/android
-    implementation(platform("com.google.firebase:firebase-bom:31.4.0"))
+    implementation(platform("com.google.firebase:firebase-bom:31.5.0"))
     implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-perf-ktx")
