@@ -13,7 +13,6 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.lifecycle.whenCreated
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.R
 import io.github.bgavyus.lightningcamera.databinding.ActivityViewfinderBinding
@@ -21,7 +20,12 @@ import io.github.bgavyus.lightningcamera.extensions.android.app.displayCompat
 import io.github.bgavyus.lightningcamera.extensions.android.content.requireSystemService
 import io.github.bgavyus.lightningcamera.extensions.android.content.res.identifier
 import io.github.bgavyus.lightningcamera.extensions.android.hardware.display.metricsChanges
-import io.github.bgavyus.lightningcamera.extensions.android.view.*
+import io.github.bgavyus.lightningcamera.extensions.android.view.SurfaceTextureEvent
+import io.github.bgavyus.lightningcamera.extensions.android.view.rootWindowInsetsCompat
+import io.github.bgavyus.lightningcamera.extensions.android.view.rotateLayout
+import io.github.bgavyus.lightningcamera.extensions.android.view.setDecorFitsSystemWindowsCompat
+import io.github.bgavyus.lightningcamera.extensions.android.view.surfaceTextureEvents
+import io.github.bgavyus.lightningcamera.extensions.android.view.updateConstraintLayoutParams
 import io.github.bgavyus.lightningcamera.extensions.android.widget.checked
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.launchAll
 import io.github.bgavyus.lightningcamera.extensions.kotlinx.coroutines.onEachChange
@@ -58,7 +62,7 @@ class ViewfinderActivity : FragmentActivity() {
     }
 
     private fun bindLifecycle() = lifecycleScope.launch {
-        whenCreated { onCreated() }
+        repeatOnLifecycle(Lifecycle.State.CREATED) { onCreated() }
         repeatOnLifecycle(Lifecycle.State.STARTED) { bindDisplayRotation() }
     }
 

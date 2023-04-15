@@ -5,8 +5,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.material.Surface
 import androidx.compose.ui.platform.AndroidUriHandler
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.whenCreated
+import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.bgavyus.lightningcamera.ui.components.MediaGrid
 import io.github.bgavyus.lightningcamera.ui.theme.ApplicationTheme
@@ -18,7 +19,7 @@ class GalleryActivity : ComponentActivity() {
 
     init {
         lifecycleScope.launch {
-            whenCreated { onCreated() }
+            repeatOnLifecycle(Lifecycle.State.CREATED) { onCreated() }
         }
     }
 
