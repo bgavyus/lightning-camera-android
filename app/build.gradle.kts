@@ -120,7 +120,7 @@ dependencies {
     implementation("com.google.auto.factory:auto-factory:1.0.1")
 
     // https://developer.android.com/jetpack/androidx/releases/compose-material
-    implementation("androidx.compose.material:material:1.4.0")
+    implementation("androidx.compose.material:material:1.4.2")
 
     // https://developer.android.com/jetpack/androidx/releases/activity
     implementation("androidx.activity:activity-compose:1.7.0")
