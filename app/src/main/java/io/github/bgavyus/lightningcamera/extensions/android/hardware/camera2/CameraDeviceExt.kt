@@ -28,16 +28,15 @@ suspend fun CameraDevice.createCaptureSession(
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
         @Suppress("DEPRECATION")
-        if (isHighSpeed) {
-            createConstrainedHighSpeedCaptureSession(surfaces, callback, handler)
-        } else {
-            createCaptureSession(surfaces, callback, handler)
+        when {
+            isHighSpeed -> createConstrainedHighSpeedCaptureSession(surfaces, callback, handler)
+            else -> createCaptureSession(surfaces, callback, handler)
         }
     } else {
-        val mode = if (isHighSpeed)
-            SessionConfiguration.SESSION_HIGH_SPEED
-        else
-            SessionConfiguration.SESSION_REGULAR
+        val mode = when {
+            isHighSpeed -> SessionConfiguration.SESSION_HIGH_SPEED
+            else -> SessionConfiguration.SESSION_REGULAR
+        }
 
         val configuration = SessionConfiguration(
             mode,
