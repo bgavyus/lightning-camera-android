@@ -6,7 +6,12 @@ import android.os.Handler
 import android.util.Size
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
-import io.github.bgavyus.lightningcamera.extensions.android.media.*
+import io.github.bgavyus.lightningcamera.extensions.android.media.EncoderEvent
+import io.github.bgavyus.lightningcamera.extensions.android.media.configureEncoder
+import io.github.bgavyus.lightningcamera.extensions.android.media.encoderEvents
+import io.github.bgavyus.lightningcamera.extensions.android.media.flagsSet
+import io.github.bgavyus.lightningcamera.extensions.android.media.tryFlush
+import io.github.bgavyus.lightningcamera.extensions.android.media.tryStop
 import io.github.bgavyus.lightningcamera.logging.Logger
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import io.github.bgavyus.lightningcamera.utilities.FrameRate
@@ -36,7 +41,7 @@ class Encoder(
         defer(::release)
 
         encoderEvents(handler)
-            .onEach(::handleEvent)
+            .onEach(::routeEvent)
             .launchIn(scope)
 
         val format = FormatFactory.create(size, frameRate, mimeType)
@@ -54,7 +59,7 @@ class Encoder(
         }
     }
 
-    private fun handleEvent(event: EncoderEvent) = when (event) {
+    private fun routeEvent(event: EncoderEvent) = when (event) {
         is EncoderEvent.FormatChanged -> onFormatChanged(event.format)
         is EncoderEvent.BufferAvailable -> onBufferAvailable(event.index, event.info)
     }
