@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.getSystemService
 
-inline fun <reified T : Any> Context.requireSystemService(): T =
+inline fun <reified T> Context.requireSystemService(): T =
     getSystemService() ?: throw IllegalStateException()
 
 fun Context.hasGranted(permission: String) =
