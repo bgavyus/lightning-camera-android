@@ -9,7 +9,7 @@ import io.github.bgavyus.lightningcamera.extensions.android.util.area
 import io.github.bgavyus.lightningcamera.extensions.java.nio.copyFrom
 import io.github.bgavyus.lightningcamera.utilities.FrameRate
 import java.nio.ByteBuffer
-import java.util.*
+import java.util.Queue
 import kotlin.math.ceil
 
 class SamplesQueue(frameSize: Size, frameRate: FrameRate) : SamplesProcessor {

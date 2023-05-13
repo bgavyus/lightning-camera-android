@@ -7,7 +7,11 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.contentValuesOf
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
-import io.github.bgavyus.lightningcamera.extensions.android.content.*
+import io.github.bgavyus.lightningcamera.extensions.android.content.FileMode
+import io.github.bgavyus.lightningcamera.extensions.android.content.requireDelete
+import io.github.bgavyus.lightningcamera.extensions.android.content.requireInsert
+import io.github.bgavyus.lightningcamera.extensions.android.content.requireOpenFileDescriptor
+import io.github.bgavyus.lightningcamera.extensions.android.content.requireUpdate
 import io.github.bgavyus.lightningcamera.extensions.toInt
 import io.github.bgavyus.lightningcamera.logging.Logger
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
