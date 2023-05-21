@@ -13,7 +13,6 @@ import java.io.File
 import java.io.FileDescriptor
 import java.util.concurrent.atomic.AtomicBoolean
 
-@Suppress("DEPRECATION")
 @AutoFactory(implementing = [StorageFileFactory::class])
 class LegacyStorageFile(
     @Provided private val contentResolver: ContentResolver,
