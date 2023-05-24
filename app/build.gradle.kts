@@ -82,7 +82,7 @@ android {
 
     testOptions.unitTests.isReturnDefaultValues = true
     namespace = "io.github.bgavyus.lightningcamera"
-    aaptOptions.noCompress.add("tflite")
+    androidResources.noCompress.add("tflite")
 }
 
 dependencies {
