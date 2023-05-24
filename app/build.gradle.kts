@@ -1,4 +1,6 @@
+import com.android.build.gradle.internal.tasks.factory.dependsOn
 import com.android.builder.core.BuilderConstants
+import com.pswidersk.gradle.python.VenvTask
 
 plugins {
     id("com.android.application")
@@ -8,6 +10,7 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("com.google.firebase.firebase-perf")
+    id("com.pswidersk.python-plugin") version "2.3.0"
 }
 
 kapt.correctErrorTypes = true
@@ -31,7 +34,6 @@ android {
     buildFeatures {
         viewBinding = true
         compose = true
-        renderScript = true
     }
 
     buildTypes {
@@ -80,6 +82,7 @@ android {
 
     testOptions.unitTests.isReturnDefaultValues = true
     namespace = "io.github.bgavyus.lightningcamera"
+    aaptOptions.noCompress.add("tflite")
 }
 
 dependencies {
@@ -97,6 +100,10 @@ dependencies {
     val hiltVersion: String by rootProject.extra
     implementation("com.google.dagger:hilt-android:$hiltVersion")
     kapt("com.google.dagger:hilt-compiler:$hiltVersion")
+
+    // https://developers.google.com/android/guides/releases
+    implementation("com.google.android.gms:play-services-tflite-java:16.1.0")
+    implementation("com.google.android.gms:play-services-tflite-support:16.1.0")
 
     // https://developer.android.com/jetpack/androidx/releases/core
     implementation("androidx.core:core-ktx:1.10.0")
@@ -133,4 +140,32 @@ dependencies {
 
     // https://developer.android.com/jetpack/androidx/releases/test
     androidTestImplementation("androidx.test:runner:1.5.2")
+}
+
+pythonPlugin {
+    pythonVersion.set("3.11.2")
+}
+
+tasks {
+    val modelProjectDirectory = projectDir.resolve("../motion")
+
+    val prepareModelCompiler by registering(VenvTask::class) {
+        val requirementsFile = modelProjectDirectory.resolve("requirements.txt")
+        inputs.file(requirementsFile)
+        outputs.dir(projectDir.resolve(".gradle/python"))
+        venvExec = "pip"
+        args = listOf("install", "-r", requirementsFile.path)
+    }
+
+    val compileModel by registering(VenvTask::class) {
+        dependsOn(prepareModelCompiler)
+        val modelCompilerFile = modelProjectDirectory.resolve("main.py")
+        inputs.file(modelCompilerFile)
+        val modelFile = projectDir.resolve("src/main/assets/motion.tflite")
+        outputs.file(modelFile)
+        venvExec = "python"
+        args = listOf(modelCompilerFile.path, modelFile.path)
+    }
+
+    preBuild.dependsOn(compileModel)
 }
