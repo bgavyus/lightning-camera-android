@@ -105,7 +105,7 @@ class ViewfinderActivity : FragmentActivity() {
         model.surfaceTexture.value?.let(binding.texture::setSurfaceTexture)
 
         lifecycleScope.launchAll(
-            binding.texture.surfaceTextureEvents().onEach(::handleSurfaceTextureEvent),
+            binding.texture.surfaceTextureEvents().onEach(::routeSurfaceTextureEvent),
             model.transformMatrix.onEach(binding.texture::setTransform),
             model.detecting.onEach(::setDetectionIndicatorActive),
             model.watching.onEach(::setWatchingToggleActive),
@@ -131,7 +131,7 @@ class ViewfinderActivity : FragmentActivity() {
         fixedPositionViews.forEach { it.rotateLayout(rotation) }
     }
 
-    private fun handleSurfaceTextureEvent(event: SurfaceTextureEvent) = when (event) {
+    private fun routeSurfaceTextureEvent(event: SurfaceTextureEvent) = when (event) {
         is SurfaceTextureEvent.Available -> model.surfaceTexture.value = event.surface
         is SurfaceTextureEvent.SizeChanged -> model.viewSize.value = event.size
         SurfaceTextureEvent.Updated -> model.adjustBufferSize()
