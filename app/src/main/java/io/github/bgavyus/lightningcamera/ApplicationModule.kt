@@ -17,6 +17,10 @@ import javax.inject.Singleton
 object ApplicationModule {
     @Singleton
     @Provides
+    fun provideRuntime(): Runtime = Runtime.getRuntime()
+
+    @Singleton
+    @Provides
     fun provideClock(): Clock = Clock.systemDefaultZone()
 
     @Singleton

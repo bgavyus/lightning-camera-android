@@ -14,12 +14,13 @@ import javax.inject.Inject
 class MotionDetectorFactory @Inject constructor(
     private val handler: Handler,
     private val context: Context,
+    private val runtime: Runtime,
 ) : DeferScope() {
     suspend fun create(
         bufferSize: Size,
         frameRate: FrameRate,
     ) = withContext(handler.asCoroutineDispatcher()) {
         TfLite.initialize(context).await()
-        MotionDetector(handler, context, bufferSize, frameRate)
+        MotionDetector(handler, context, runtime, bufferSize, frameRate)
     }
 }

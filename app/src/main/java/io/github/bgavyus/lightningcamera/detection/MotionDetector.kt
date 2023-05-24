@@ -12,6 +12,7 @@ import io.github.bgavyus.lightningcamera.extensions.android.graphics.load
 import io.github.bgavyus.lightningcamera.extensions.android.media.firstPlainBuffer
 import io.github.bgavyus.lightningcamera.extensions.android.media.images
 import io.github.bgavyus.lightningcamera.extensions.android.util.area
+import io.github.bgavyus.lightningcamera.logging.Logger
 import io.github.bgavyus.lightningcamera.utilities.DeferScope
 import io.github.bgavyus.lightningcamera.utilities.FrameRate
 import io.github.bgavyus.lightningcamera.utilities.PeakDetector
@@ -26,6 +27,7 @@ import java.nio.ByteBuffer
 class MotionDetector(
     private val handler: Handler,
     context: Context,
+    runtime: Runtime,
     bufferSize: Size,
     frameRate: FrameRate,
 ) : DeferScope() {
@@ -42,7 +44,11 @@ class MotionDetector(
 
     private val interpreter = InterpreterApi.create(
         FileUtil.loadMappedFile(context, "motion.tflite"),
-        InterpreterApi.Options().setRuntime(InterpreterApi.Options.TfLiteRuntime.FROM_SYSTEM_ONLY)
+        InterpreterApi.Options()
+            .setRuntime(InterpreterApi.Options.TfLiteRuntime.FROM_SYSTEM_ONLY)
+            .setNumThreads(
+                runtime.availableProcessors().also { Logger.log("Available Processors: $it") }
+            )
     )
         .also { defer(it::close) }
         .apply {
