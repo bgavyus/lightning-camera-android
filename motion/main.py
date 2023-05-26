@@ -12,7 +12,7 @@ class MotionModel(tf.Module):
         maximum = tf.maximum(*float_images)
         minimum = tf.minimum(*float_images)
         subtract = tf.subtract(maximum, minimum)
-        return tf.reduce_sum(subtract)
+        return tf.reduce_sum(subtract, keepdims=True)
 
 
 def main():
