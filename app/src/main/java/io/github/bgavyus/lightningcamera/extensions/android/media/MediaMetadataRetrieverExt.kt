@@ -1,6 +1,7 @@
 package io.github.bgavyus.lightningcamera.extensions.android.media
 
 import android.media.MediaMetadataRetriever
+import android.os.Build
 
 inline operator fun <reified T> MediaMetadataRetriever.get(keyCode: Int): T {
     val value = requireExtractMetadata(keyCode)
@@ -63,3 +64,13 @@ fun MediaMetadataRetriever.toMap() = listOf(
 )
     .mapIndexed { code, name -> name to extractMetadata(code) }
     .toMap()
+
+class CompatibleMediaMetadataRetriever : MediaMetadataRetriever(), AutoCloseable {
+    override fun close() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            super.release()
+        } else {
+            super.close()
+        }
+    }
+}

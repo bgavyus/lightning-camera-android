@@ -13,6 +13,7 @@ import io.github.bgavyus.lightningcamera.extensions.android.content.loadThumbnai
 import io.github.bgavyus.lightningcamera.extensions.android.content.requireOpenFileDescriptor
 import io.github.bgavyus.lightningcamera.extensions.android.content.requireQuery
 import io.github.bgavyus.lightningcamera.extensions.android.database.toList
+import io.github.bgavyus.lightningcamera.extensions.android.media.CompatibleMediaMetadataRetriever
 import io.github.bgavyus.lightningcamera.extensions.android.media.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -43,7 +44,7 @@ class MediaMetadataProvider @Inject constructor(
     }
 
     suspend fun duration(uri: Uri): Duration = withContext(Dispatchers.IO) {
-        MediaMetadataRetriever().use { metadataRetriever ->
+        CompatibleMediaMetadataRetriever().use { metadataRetriever ->
             contentResolver.requireOpenFileDescriptor(uri, FileMode.Read)
                 .use { metadataRetriever.setDataSource(it.fileDescriptor) }
 
