@@ -14,5 +14,6 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+          cache: gradle
       - run: chmod +x gradlew
       - run: ./gradlew build
