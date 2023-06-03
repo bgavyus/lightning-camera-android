@@ -69,7 +69,8 @@ android {
     }
 
     kotlinOptions.freeCompilerArgs = listOf(
-        "-Xopt-in=kotlinx.coroutines.FlowPreview",
+        "-opt-in=kotlinx.coroutines.FlowPreview",
+        "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
     )
 
     packagingOptions.resources.excludes += listOf(
