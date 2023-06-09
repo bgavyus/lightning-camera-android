@@ -19,7 +19,7 @@ buildscript {
 
         classpath(kotlin("gradle-plugin", kotlinVersion))
         classpath("com.google.dagger:hilt-android-gradle-plugin:$hiltVersion")
-        classpath("com.google.firebase:firebase-crashlytics-gradle:2.9.4")
+        classpath("com.google.firebase:firebase-crashlytics-gradle:2.9.5")
         classpath("com.google.firebase:perf-plugin:1.4.2")
     }
 }
