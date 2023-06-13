@@ -1,36 +1,21 @@
-buildscript {
+plugins {
+    // https://developer.android.com/studio/releases/gradle-plugin
+    id("com.android.application") version "8.0.2" apply false
+
+    // https://developers.google.com/android/guides/releases
+    id("com.google.gms.google-services") version "4.3.15" apply false
+
     // https://kotlinlang.org/docs/releases.html
-    val kotlinVersion by extra("1.8.20")
+    id("org.jetbrains.kotlin.android") version "1.8.20" apply false
+    id("org.jetbrains.kotlin.kapt") version "1.8.20" apply false
 
     // https://github.com/google/dagger/releases
-    val hiltVersion by extra("2.46.1")
+    id("com.google.dagger.hilt.android") version "2.46.1" apply false
 
-    repositories {
-        google()
-        mavenCentral()
-    }
+    // https://firebase.google.com/support/release-notes/android
+    id("com.google.firebase.crashlytics") version "2.9.5" apply false
+    id("com.google.firebase.firebase-perf") version "1.4.2" apply false
 
-    dependencies {
-        // https://developer.android.com/studio/releases/gradle-plugin
-        classpath("com.android.tools.build:gradle:8.0.2")
-
-        // https://developers.google.com/android/guides/releases
-        classpath("com.google.gms:google-services:4.3.15")
-
-        classpath(kotlin("gradle-plugin", kotlinVersion))
-        classpath("com.google.dagger:hilt-android-gradle-plugin:$hiltVersion")
-        classpath("com.google.firebase:firebase-crashlytics-gradle:2.9.5")
-        classpath("com.google.firebase:perf-plugin:1.4.2")
-    }
-}
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
-task<Delete>("clean") {
-    delete(rootProject.buildDir)
+    // https://github.com/PrzemyslawSwiderski/python-gradle-plugin/blob/master/CHANGELOG.md
+    id("com.pswidersk.python-plugin") version "2.3.0" apply false
 }

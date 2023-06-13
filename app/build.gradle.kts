@@ -4,13 +4,13 @@ import com.pswidersk.gradle.python.VenvTask
 
 plugins {
     id("com.android.application")
-    kotlin("android")
-    kotlin("kapt")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.kapt")
     id("dagger.hilt.android.plugin")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("com.google.firebase.firebase-perf")
-    id("com.pswidersk.python-plugin") version "2.3.0"
+    id("com.pswidersk.python-plugin")
 }
 
 kapt.correctErrorTypes = true
@@ -92,15 +92,13 @@ dependencies {
     // https://github.com/google/desugar_jdk_libs/blob/master/CHANGELOG.md
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 
-    val kotlinVersion: String by rootProject.extra
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.20")
 
     // https://github.com/Kotlin/kotlinx.coroutines/releases
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
 
-    val hiltVersion: String by rootProject.extra
-    implementation("com.google.dagger:hilt-android:$hiltVersion")
-    kapt("com.google.dagger:hilt-compiler:$hiltVersion")
+    implementation("com.google.dagger:hilt-android:2.46.1")
+    kapt("com.google.dagger:hilt-compiler:2.46.1")
 
     // https://developers.google.com/android/guides/releases
     implementation("com.google.android.gms:play-services-tflite-java:16.1.0")
