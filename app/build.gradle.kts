@@ -92,7 +92,7 @@ dependencies {
     // https://github.com/google/desugar_jdk_libs/blob/master/CHANGELOG.md
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.20")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22")
 
     // https://github.com/Kotlin/kotlinx.coroutines/releases
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
