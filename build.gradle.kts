@@ -7,7 +7,7 @@ plugins {
 
     // https://kotlinlang.org/docs/releases.html
     id("org.jetbrains.kotlin.android") version "1.8.20" apply false
-    id("org.jetbrains.kotlin.kapt") version "1.8.20" apply false
+    id("org.jetbrains.kotlin.kapt") version "1.8.22" apply false
 
     // https://github.com/google/dagger/releases
     id("com.google.dagger.hilt.android") version "2.46.1" apply false
