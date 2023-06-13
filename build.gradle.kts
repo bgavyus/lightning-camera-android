@@ -6,7 +6,7 @@ plugins {
     id("com.google.gms.google-services") version "4.3.15" apply false
 
     // https://kotlinlang.org/docs/releases.html
-    id("org.jetbrains.kotlin.android") version "1.8.20" apply false
+    id("org.jetbrains.kotlin.android") version "1.8.22" apply false
     id("org.jetbrains.kotlin.kapt") version "1.8.20" apply false
 
     // https://github.com/google/dagger/releases
