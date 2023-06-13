@@ -1,0 +1,6 @@
+[versions]
+# https://kotlinlang.org/docs/releases.html
+kotlin = "1.8.20"
+
+# https://github.com/google/dagger/releases
+hilt = "2.46.1"
