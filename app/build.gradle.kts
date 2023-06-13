@@ -78,8 +78,8 @@ android {
         "DebugProbesKt.bin",
     )
 
-    // https://developer.android.com/jetpack/androidx/releases/compose
-    composeOptions.kotlinCompilerExtensionVersion = "1.4.5"
+    // https://developer.android.com/jetpack/androidx/releases/compose-kotlin
+    composeOptions.kotlinCompilerExtensionVersion = "1.4.7"
 
     testOptions.unitTests.isReturnDefaultValues = true
     namespace = "io.github.bgavyus.lightningcamera"
