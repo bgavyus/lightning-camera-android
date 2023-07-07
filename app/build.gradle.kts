@@ -142,6 +142,7 @@ dependencies {
 }
 
 pythonPlugin {
+    // https://docs.python.org/3/whatsnew/changelog.html
     pythonVersion.set("3.11.2")
 }
 
