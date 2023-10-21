@@ -38,9 +38,9 @@ fun MediaCodec.encoderEvents(handler: Handler? = null) = callbackFlow {
     awaitClose()
 }
 
-sealed class EncoderEvent {
-    data class FormatChanged(val format: MediaFormat) : EncoderEvent()
-    data class BufferAvailable(val index: Int, val info: MediaCodec.BufferInfo) : EncoderEvent()
+sealed interface EncoderEvent {
+    data class FormatChanged(val format: MediaFormat) : EncoderEvent
+    data class BufferAvailable(val index: Int, val info: MediaCodec.BufferInfo) : EncoderEvent
 }
 
 fun MediaCodec.configureEncoder(format: MediaFormat? = null, crypto: MediaCrypto? = null) =

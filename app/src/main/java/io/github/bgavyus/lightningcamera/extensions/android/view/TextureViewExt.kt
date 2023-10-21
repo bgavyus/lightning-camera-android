@@ -30,8 +30,8 @@ fun TextureView.surfaceTextureEvents() = callbackFlow {
     awaitClose()
 }
 
-sealed class SurfaceTextureEvent {
-    data class Available(val surface: SurfaceTexture) : SurfaceTextureEvent()
-    data class SizeChanged(val size: Size) : SurfaceTextureEvent()
-    object Updated : SurfaceTextureEvent()
+sealed interface SurfaceTextureEvent {
+    data class Available(val surface: SurfaceTexture) : SurfaceTextureEvent
+    data class SizeChanged(val size: Size) : SurfaceTextureEvent
+    data object Updated : SurfaceTextureEvent
 }

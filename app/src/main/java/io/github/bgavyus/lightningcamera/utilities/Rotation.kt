@@ -10,16 +10,15 @@ enum class Rotation {
     Left,
     ;
 
-    val degrees get() = ordinal * fullCycleDegrees / rotations.size
+    val degrees get() = ordinal * fullCycleDegrees / entries.size
     val isLandscape get() = this == Right || this == Left
 
     operator fun minus(other: Rotation) = fromIndex(ordinal - other.ordinal)
 
     companion object {
         private const val fullCycleDegrees = 360
-        private val rotations = values()
 
-        private fun fromIndex(index: Int) = rotations[index floorMod rotations.size]
+        private fun fromIndex(index: Int) = entries[index floorMod entries.size]
 
         fun fromSurfaceRotation(surfaceRotation: Int) = when (surfaceRotation) {
             Surface.ROTATION_0 -> Natural
@@ -29,6 +28,6 @@ enum class Rotation {
             else -> throw IllegalArgumentException()
         }
 
-        fun fromDegrees(degrees: Int) = fromIndex(degrees * rotations.size / fullCycleDegrees)
+        fun fromDegrees(degrees: Int) = fromIndex(degrees * entries.size / fullCycleDegrees)
     }
 }

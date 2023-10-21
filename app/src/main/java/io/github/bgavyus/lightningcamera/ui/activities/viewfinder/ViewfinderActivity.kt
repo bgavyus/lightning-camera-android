@@ -134,7 +134,7 @@ class ViewfinderActivity : FragmentActivity() {
     private fun routeSurfaceTextureEvent(event: SurfaceTextureEvent) = when (event) {
         is SurfaceTextureEvent.Available -> model.surfaceTexture.value = event.surface
         is SurfaceTextureEvent.SizeChanged -> model.viewSize.value = event.size
-        SurfaceTextureEvent.Updated -> model.adjustBufferSize()
+        is SurfaceTextureEvent.Updated -> model.adjustBufferSize()
     }
 
     override fun onAttachedToWindow() {
