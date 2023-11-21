@@ -126,7 +126,7 @@ dependencies {
     implementation("com.google.firebase:firebase-perf-ktx")
 
     // https://github.com/google/auto/releases
-    implementation("com.google.auto.factory:auto-factory:1.0.1")
+    implementation("com.google.auto.factory:auto-factory:1.1.0")
 
     // https://developer.android.com/jetpack/androidx/releases/compose-material
     implementation("androidx.compose.material:material:1.5.4")
