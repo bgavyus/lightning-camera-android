@@ -10,7 +10,7 @@ plugins {
     id("com.google.gms.google-services") version "4.3.15" apply false
 
     // https://firebase.google.com/support/release-notes/android
-    id("com.google.firebase.crashlytics") version "2.9.5" apply false
+    id("com.google.firebase.crashlytics") version "2.9.9" apply false
     id("com.google.firebase.firebase-perf") version "1.4.2" apply false
 
     // https://github.com/PrzemyslawSwiderski/python-gradle-plugin/blob/master/CHANGELOG.md
