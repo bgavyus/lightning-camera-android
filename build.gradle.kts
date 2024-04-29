@@ -14,5 +14,5 @@ plugins {
     id("com.google.firebase.firebase-perf") version "1.4.2" apply false
 
     // https://github.com/PrzemyslawSwiderski/python-gradle-plugin/blob/master/CHANGELOG.md
-    id("com.pswidersk.python-plugin") version "2.6.1" apply false
+    id("com.pswidersk.python-plugin") version "2.7.1" apply false
 }
