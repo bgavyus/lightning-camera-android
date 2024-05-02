@@ -108,7 +108,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.0")
 
     // https://developer.android.com/jetpack/androidx/releases/fragment
-    implementation("androidx.fragment:fragment-ktx:1.6.1")
+    implementation("androidx.fragment:fragment-ktx:1.7.0")
 
     // https://developer.android.com/jetpack/androidx/releases/lifecycle
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
