@@ -7,7 +7,7 @@ plugins {
     id("com.android.application") version "8.1.2" apply false
 
     // https://developers.google.com/android/guides/releases
-    id("com.google.gms.google-services") version "4.4.1" apply false
+    id("com.google.gms.google-services") version "4.4.2" apply false
 
     // https://firebase.google.com/support/release-notes/android
     id("com.google.firebase.crashlytics") version "2.9.5" apply false
