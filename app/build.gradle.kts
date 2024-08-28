@@ -90,7 +90,7 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
     // https://github.com/google/desugar_jdk_libs/blob/master/CHANGELOG.md
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.0")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.1")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${libs.versions.kotlin.get()}")
 
