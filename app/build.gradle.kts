@@ -132,7 +132,7 @@ dependencies {
     implementation("androidx.compose.material:material:1.6.8")
 
     // https://developer.android.com/jetpack/androidx/releases/activity
-    implementation("androidx.activity:activity-compose:1.9.1")
+    implementation("androidx.activity:activity-compose:1.9.2")
 
     // https://github.com/junit-team/junit4/releases
     testImplementation("junit:junit:4.13.2")
