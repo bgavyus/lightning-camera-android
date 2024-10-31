@@ -114,7 +114,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
 
     // https://developer.android.com/jetpack/androidx/releases/constraintlayout
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("androidx.constraintlayout:constraintlayout:2.2.0")
 
     // https://natario1.github.io/Egloo/about/changelog
     implementation("com.otaliastudios.opengl:egloo:0.6.1")
