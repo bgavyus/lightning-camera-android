@@ -101,7 +101,7 @@ dependencies {
     kapt("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
 
     // https://developers.google.com/android/guides/releases
-    implementation("com.google.android.gms:play-services-tflite-java:16.1.0")
+    implementation("com.google.android.gms:play-services-tflite-java:16.3.0")
     implementation("com.google.android.gms:play-services-tflite-support:16.1.0")
 
     // https://developer.android.com/jetpack/androidx/releases/core
