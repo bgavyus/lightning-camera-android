@@ -105,7 +105,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-tflite-support:16.4.0")
 
     // https://developer.android.com/jetpack/androidx/releases/core
-    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.core:core-ktx:1.15.0")
 
     // https://developer.android.com/jetpack/androidx/releases/fragment
     implementation("androidx.fragment:fragment-ktx:1.8.5")
