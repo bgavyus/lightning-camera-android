@@ -4,7 +4,7 @@ plugins {
     id("com.google.dagger.hilt.android") version libs.versions.hilt.get() apply false
 
     // https://developer.android.com/studio/releases/gradle-plugin
-    id("com.android.application") version "8.1.2" apply false
+    id("com.android.application") version "8.8.1" apply false
 
     // https://developers.google.com/android/guides/releases
     id("com.google.gms.google-services") version "4.4.2" apply false
