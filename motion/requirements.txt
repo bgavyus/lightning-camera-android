@@ -1,2 +1,2 @@
 # https://github.com/tensorflow/tensorflow/releases
-tensorflow==2.18.0
+tensorflow==2.18.1
